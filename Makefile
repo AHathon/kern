@@ -29,5 +29,4 @@ bin/%.cpp.o: %.cpp
 	aarch64-none-elf-g++ $(addprefix -I,$(INCLUDES)) -ffreestanding -fno-exceptions -fno-rtti -O2 -Wall -Wextra -c -o $@ $^
 
 setup:
-	mkdir ./bin
-	mkdir ./bin/kernel
+	mkdir -p ./bin/kernel
