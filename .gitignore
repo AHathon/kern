@@ -1,2 +1,3 @@
 bin/*
-kernel8.bin
+kernel8.elf
+KIPs/pm/build/*

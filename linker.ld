@@ -37,6 +37,14 @@ SECTIONS
     }
     . = ALIGN(4096);
     __bss_end = .;
+
+    __kips_start = .;
+    .kips : {
+        KEEP(*(.kips))
+    }
+    . = ALIGN(8);
+    __kips_end = .;
+
     __bss_size = __bss_end - __bss_start;
     __end = .;
 }

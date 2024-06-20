@@ -88,3 +88,6 @@ boot_kernel:
     mov x2, #0
     mov x3, #0
     br x4
+
+.section ".kips"
+    .byte 0

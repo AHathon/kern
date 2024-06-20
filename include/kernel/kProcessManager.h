@@ -3,6 +3,9 @@
 #include "kernel/kProcess.h"
 #include "kernel/debug.h"
 
+extern const char *__kips_start;
+extern const char *__kips_end;
+
 #define MAX_PROC 256
 
 static KProcess processTable[MAX_PROC];
