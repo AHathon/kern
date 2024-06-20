@@ -12,7 +12,7 @@ all: setup $(kernel).elf packKips
 
 clean:
 	@rm -fr bin $(kernel).elf
-	$(MAKE) -C KIPs/pm clean
+	$(MAKE) -C KIPs clean
 
 qemu: $(kernel).elf
 	qemu-system-aarch64 -M raspi3b -serial null -serial stdio -kernel $(kernel).elf
@@ -20,11 +20,11 @@ qemu: $(kernel).elf
 $(kernel).elf: $(OBJS)
 	$(CC) -T linker.ld -ffreestanding -O2 -nostdlib -lgcc -o $@ $^
 
-packKips: $(CURDIR)/KIPs/pm/pm
+packKips: $(CURDIR)/KIPs/kip_blob
 	$(OC) --update-section .kips=$^ $(kernel).elf
 
-$(CURDIR)/KIPs/pm/pm:
-	$(MAKE) -C KIPs/pm
+$(CURDIR)/KIPs/kip_blob:
+	$(MAKE) -C KIPs
 
 # compile assembly files
 bin/%.S.o: %.S
