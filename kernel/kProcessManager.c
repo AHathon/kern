@@ -15,7 +15,7 @@ void InitProcessTable() {
 	}
 }
 
-void CreateKProc(uint64_t memory, unsigned flags) {
+void CreateKProc(size_t memory, unsigned flags) {
 	kprintf("Creating process\n");
 	unsigned proc = FindFreeProcSpace();
 	processTable[proc].PID = ++lastPID;

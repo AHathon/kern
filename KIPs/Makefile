@@ -10,6 +10,6 @@ $(TARGET):
 	@cat pm/pm fs/fs > kip_blob
 
 clean:
-	@rm kip_blob
+	@rm -f kip_blob
 	$(MAKE) -C pm clean
 	$(MAKE) -C fs clean

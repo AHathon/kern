@@ -2,6 +2,7 @@
 
 #include "kernel/kProcess.h"
 #include "kernel/debug.h"
+#include "kernel/memory/kMemoryManager.h"
 
 extern const char *__kips_start;
 extern const char *__kips_end;
@@ -12,6 +13,6 @@ static KProcess processTable[MAX_PROC];
 static unsigned lastPID = 0;
 
 void InitProcessTable();
-void CreateKProc(uint64_t memory, unsigned flags);
+void CreateKProc(size_t memory, unsigned flags);
 void KillProcess(unsigned ind);
 void startKIPs();

@@ -3,7 +3,7 @@
 #include "kernel/mmu.h"
 #include "kernel/gpio.h"
 #include "kernel/debug.h"
-#include "kernel/kMemoryManager.h"
+#include "kernel/memory/kMemoryManager.h"
 #include "kernel/kProcessManager.h"
 #include "kernel/exceptions.h"
 #include "kernel/debug.h"
@@ -12,10 +12,10 @@ void kMain(uint64_t dtb_ptr32){
     init_uart1();
     
     kprintf("Initializing MMU\n");
-    setupMMU();
+    MMU_Init();
     
     kprintf("Initializing memory manager\n");
-    InitMemoryManager();
+    kMemManager_Init();
 	
 	//kprintf("Allocating kernel heap\n");
 	

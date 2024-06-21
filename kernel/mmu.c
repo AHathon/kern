@@ -110,7 +110,7 @@ void initPageTables() {
         PT_DEV;       // device memory
 }
 
-void setupMMU() {
+void MMU_Init() {
     initPageTables();    
     initMMU();
 }

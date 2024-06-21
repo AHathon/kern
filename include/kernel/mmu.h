@@ -26,4 +26,4 @@
 extern volatile unsigned char __data_start;
 extern volatile unsigned char __end;
 
-void setupMMU(void);
+void MMU_Init(void);

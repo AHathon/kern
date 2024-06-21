@@ -1,7 +1,6 @@
-#include "kernel/kMemoryManager.h"
+#include "kernel/kPageAllocator.h"
 
-void InitMemoryManager() {
-	//kSlabInit(); //TODO: make this usable
+void InitPageAllocator() {
 	kprintf("Total pages: %d\n", MAX_PAGES);
     for(int i = 0; i < MAX_PAGES; i++){
         pages[i].vaddr = i * PAGESIZE;
@@ -28,7 +27,7 @@ int FindFreePages(uint32_t pageCnt) {
 	return index;
 }
 
-void *KMemAlloc(size_t size) {
+void *AllocPages(size_t size) {
     size_t numPages = (size / PAGESIZE) + 1;
 	kprintf("Allocating %d pages\n", numPages);
     int ind = FindFreePages(numPages);
@@ -42,7 +41,7 @@ void *KMemAlloc(size_t size) {
     return (void*)pages[ind].vaddr;
 }
 
-void KMemFree(void *ptr) {
+void FreePages(void *ptr) {
 	int i = 0;
 	int found = 0;
 	for(i = 0; i < MAX_PAGES; i++){
@@ -62,7 +61,7 @@ void KMemFree(void *ptr) {
 	}
 }
 
-void KMemDebugPrintUsed() {
+void DebugPrintPagesUsed() {
 	kprintf("Pages in use:\n");
 	for(int i = 0; i < MAX_PAGES; i++){
         if(pages[i].used) kprintf("%d, ", i);
