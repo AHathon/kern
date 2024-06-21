@@ -1,6 +1,6 @@
 #include "kernel/uart.h"
 
-void init_uart1() {
+void UART1_Init() {
     register unsigned int r;
 
     // initialize UART1

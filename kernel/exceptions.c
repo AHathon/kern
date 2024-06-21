@@ -1,7 +1,7 @@
 #include "kernel/exceptions.h"
 #include "kernel/svc.h"
 
-void SetExceptionVecTbl(uint64_t excepVec) {
+void ExceptionVector_Init(uint64_t excepVec) {
     asm volatile ("dsb ish; isb; msr vbar_el1, %0" : "=r" (excepVec));
 }
 

@@ -20,14 +20,14 @@ void CreateKProc(size_t memory, unsigned flags) {
 	unsigned proc = FindFreeProcSpace();
 	processTable[proc].PID = ++lastPID;
 	processTable[proc].flags = flags | IS_ACTIVE_PROC;
-	processTable[proc].vaddr = KMemAlloc(memory);
+	processTable[proc].vaddr = kMemAlloc(memory);
 }
 
 void KillProcess(unsigned ind) {
 	if(ind >= MAX_PROC) return;
 	processTable[ind].PID = 0;
 	processTable[ind].flags = IS_INACTIVE_PROC;
-	KMemFree(processTable[ind].vaddr);
+	kMemFree(processTable[ind].vaddr);
 }
 
 void PrintDebugProc() {

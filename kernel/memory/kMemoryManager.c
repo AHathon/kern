@@ -2,15 +2,16 @@
 
 void kMemManager_Init()
 {
-    //
+    PageAllocator_Init();
+    kprintf("Initialized kMemoryManager\n");
 }
 
-void *KMemAlloc(size_t size)
+void *kMemAlloc(size_t size)
 {
     //
 }
 
-void KMemFree(void *addr)
+void kMemFree(void *addr)
 {
     //
 }

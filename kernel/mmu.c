@@ -113,4 +113,5 @@ void initPageTables() {
 void MMU_Init() {
     initPageTables();    
     initMMU();
+    kprintf("Initialized MMU\n");
 }

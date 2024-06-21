@@ -6,8 +6,9 @@
 #define KERN_HEAP_START 0xC0000000
 
 typedef struct {
-	unsigned pagesActive;
-	KMemPage *pageList;
+	void *pagePtr;
+	size_t size;
 } kSlab;
 
-void kSlabInit(unsigned long size);
+kSlab kSlabAlloc(unsigned long size);
+void kSlabFree(kSlab slab);

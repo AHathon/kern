@@ -9,7 +9,7 @@
 
 static KMemPage pages[MAX_PAGES];
 
-void InitMemoryManager();
+void PageAllocator_Init();
 void *PageAlloc(size_t size);
 void FreePages(void *ptr);
 

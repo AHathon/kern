@@ -1,11 +1,12 @@
 #include "kernel/kPageAllocator.h"
 
-void InitPageAllocator() {
+void PageAllocator_Init() {
 	kprintf("Total pages: %d\n", MAX_PAGES);
     for(int i = 0; i < MAX_PAGES; i++){
         pages[i].vaddr = i * PAGESIZE;
         pages[i].used = 0;
     }
+	kprintf("Initialized kPageAllocator\n");
 }
 
 int FindFreePages(uint32_t pageCnt) {

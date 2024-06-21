@@ -9,20 +9,12 @@
 #include "kernel/debug.h"
 
 void kMain(uint64_t dtb_ptr32){
-    init_uart1();
-    
-    kprintf("Initializing MMU\n");
+    UART1_Init();
     MMU_Init();
-    
-    kprintf("Initializing memory manager\n");
+
     kMemManager_Init();
 	
-	//kprintf("Allocating kernel heap\n");
-	
-    kprintf("Setting exception vectors\n");
-    SetExceptionVecTbl(&arm64_excep_vec_tbl);
-
-    kprintf("Starting kernel internal processes\n");
+    ExceptionVector_Init(&arm64_excep_vec_tbl);
 
 	InitProcessTable();
     startKIPs();

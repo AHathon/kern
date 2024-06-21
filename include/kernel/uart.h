@@ -16,7 +16,7 @@
 #define UART1_STAT      ((volatile unsigned int *)(MMIO_BASE+0x00215064))
 #define UART1_BAUD      ((volatile unsigned int *)(MMIO_BASE+0x00215068))
 
-void init_uart1();
+void UART1_Init();
 
 char uart1_getc();
 void uart1_send(unsigned int c);
