@@ -7,6 +7,6 @@
 extern char arm64_excep_vec_tbl[1];
 extern void (*swi_table[NR_SYSCALLS])(volatile unsigned* regs);
 
-void ExceptionVector_Init(uint64_t excepVec);
+extern void SetExceptionVec(uint64_t addr);
+
 void InvalidException(void* ex);
-void ExceptionHandler(uint64_t num);

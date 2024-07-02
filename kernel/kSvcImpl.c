@@ -7,10 +7,10 @@ void svcMapMem(void *addr, long size)
 
 void svcFreeMem(void *addr)
 {
-    //
+    kprintf("svcFreeMem()");
 }
 
 void svcDebug(void)
 {
-    //
+    kprintf("svcDebug()");
 }

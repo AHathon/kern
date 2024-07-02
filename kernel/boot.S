@@ -89,5 +89,9 @@ boot_kernel:
     mov x3, #0
     br x4
 
+loop:
+    wfi
+    b loop
+
 .section ".kips"
     .byte 0

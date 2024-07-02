@@ -7,7 +7,11 @@
 #include "kernel/kProcessManager.h"
 #include "kernel/exceptions.h"
 #include "kernel/debug.h"
-#include "kernel/cpu.h"
+
+void runSvc()
+{
+    __asm__("svc #0");
+}
 
 void kMain(uint64_t dtb_ptr32){
     UART1_Init();
@@ -15,7 +19,7 @@ void kMain(uint64_t dtb_ptr32){
 
     kMemManager_Init();
 	
-    ExceptionVector_Init((uint64_t)&arm64_excep_vec_tbl);
+    SetExceptionVec((uint64_t)&arm64_excep_vec_tbl);
 
 	InitProcessTable();
     startKIPs();
@@ -24,6 +28,6 @@ void kMain(uint64_t dtb_ptr32){
 	PrintDebugProc();
 
     kprintf("Initialization done!\n");
-    while (1)
-        cpuSleep(); //sleep and wait on interrupt
+
+    runSvc();
 }
