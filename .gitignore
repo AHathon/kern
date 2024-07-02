@@ -1,5 +1,7 @@
 .vscode/*
 build/*
 kernel8.elf
+kernel8.img
 KIPs/pm/build/*
 KIPs/fs/build/*
+KIPs/boot/build/*

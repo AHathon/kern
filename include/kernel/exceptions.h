@@ -1,15 +1,12 @@
 #pragma once
 
 #include "libraries/types.h"
+#include "kernel/svcDef.h"
+#include "debug.h"
 
 extern char arm64_excep_vec_tbl[1];
+extern void (*swi_table[NR_SYSCALLS])(volatile unsigned* regs);
 
 void ExceptionVector_Init(uint64_t excepVec);
-
-void current_el1_sync(void);
-void current_el1_irq(void);
-void current_el1_serr(void);
-void lower_el1_sync(void);
-void lower_el1_irq(void);
-void lower_el1_serr(void);
-void undef_vec_ent(void);
+void InvalidException(void* ex);
+void ExceptionHandler(uint64_t num);

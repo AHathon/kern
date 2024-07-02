@@ -7,6 +7,7 @@
 #include "kernel/kProcessManager.h"
 #include "kernel/exceptions.h"
 #include "kernel/debug.h"
+#include "kernel/cpu.h"
 
 void kMain(uint64_t dtb_ptr32){
     UART1_Init();
@@ -14,14 +15,14 @@ void kMain(uint64_t dtb_ptr32){
 
     kMemManager_Init();
 	
-    ExceptionVector_Init(&arm64_excep_vec_tbl);
+    ExceptionVector_Init((uint64_t)&arm64_excep_vec_tbl);
 
 	InitProcessTable();
     startKIPs();
 	
 	CreateKProc(0x10000, 0);
 	PrintDebugProc();
-	
+
     kprintf("Initialization done!\n");
     while (1)
         cpuSleep(); //sleep and wait on interrupt

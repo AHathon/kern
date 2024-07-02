@@ -1,6 +1,7 @@
 #pragma once
 
 #include "kernel/uart.h"
+#include "debug.h"
 
 #define PAGESIZE 4096
 

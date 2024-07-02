@@ -16,3 +16,4 @@ void InitProcessTable();
 void CreateKProc(size_t memory, unsigned flags);
 void KillProcess(unsigned ind);
 void startKIPs();
+void PrintDebugProc();

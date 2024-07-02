@@ -2,6 +2,7 @@
 
 #include "libraries/types.h"
 #include "kernel/memory/kMemoryPage.h"
+#include "kernel/kPageAllocator.h"
 
 #define KERN_HEAP_START 0xC0000000
 

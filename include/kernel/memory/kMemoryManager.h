@@ -1,6 +1,5 @@
 #pragma once
 
-#include <stddef.h>
 #include "kernel/kPageAllocator.h"
 #include "kernel/memory/kSlabAllocator.h"
 
