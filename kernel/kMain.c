@@ -8,18 +8,14 @@
 #include "kernel/exceptions.h"
 #include "kernel/debug.h"
 
-void runSvc()
-{
-    __asm__("svc #0");
-}
-
 void kMain(uint64_t dtb_ptr32){
     UART1_Init();
     MMU_Init();
 
     kMemManager_Init();
 	
-    SetExceptionVec((uint64_t)&arm64_excep_vec_tbl);
+    SetExceptionVec_El1((uint64_t)&arm64_excep_vec_tbl);
+    SetExceptionVec_El2((uint64_t)&arm64_excep_vec_tbl);
 
 	InitProcessTable();
     startKIPs();
@@ -28,6 +24,4 @@ void kMain(uint64_t dtb_ptr32){
 	PrintDebugProc();
 
     kprintf("Initialization done!\n");
-
-    runSvc();
 }

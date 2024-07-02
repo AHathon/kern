@@ -2,5 +2,5 @@
 
 void InvalidException(void* ex)
 {
-	kprintf("InvalidException!\n");
+	//kprintf("InvalidException!\n");
 }

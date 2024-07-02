@@ -107,11 +107,25 @@
 	eret
 .endm
 
-.globl SetExceptionVec
-SetExceptionVec:
+.global SetExceptionVec_El1
+SetExceptionVec_El1:
 	dsb ish
 	isb
 	msr vbar_el1, x0
+	ret
+
+.global SetExceptionVec_El2
+SetExceptionVec_El2:
+	dsb ish
+	isb
+	msr vbar_el2, x0
+	ret
+
+.global SetExceptionVec_El3
+SetExceptionVec_El3:
+	dsb ish
+	isb
+	msr vbar_el3, x0
 	ret
 
 vector_sync_el1h:
@@ -146,7 +160,7 @@ el1h_ret_from_syscall:
 .type arm64_excep_vec_tbl, %function;
 
 arm64_excep_vec_tbl:
-	ventry	sync_invalid_el1t			// Synchronous EL1t
+	ventry	vector_sync_el1h			// Synchronous EL1t
 	ventry	irq_invalid_el1t			// IRQ EL1t
 	ventry	fiq_invalid_el1t			// FIQ EL1t
 	ventry	error_invalid_el1t			// Error EL1t

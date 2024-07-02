@@ -3,5 +3,8 @@ build/*
 kernel8.elf
 kernel8.img
 KIPs/pm/build/*
+KIPs/pm/pm.elf
 KIPs/fs/build/*
+KIPs/fs/fs.elf
 KIPs/boot/build/*
+KIPs/boot/boot.elf
