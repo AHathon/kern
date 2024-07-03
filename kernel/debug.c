@@ -1,9 +1,9 @@
 #include "kernel/debug.h"
 
-static void print_dec(unsigned int value, unsigned int width, char * buf, int * ptr ) {
+static void print_dec(unsigned long value, unsigned int width, char * buf, int * ptr ) {
 	unsigned int n_width = 1;
-	unsigned int i = 9;
-	while (value > i && i < UINT32_MAX) {
+	unsigned long i = 9;
+	while (value > i && i < UINT64_MAX) {
 		n_width += 1;
 		i *= 10;
 		i += 9;
@@ -18,7 +18,7 @@ static void print_dec(unsigned int value, unsigned int width, char * buf, int * 
 
 	i = n_width;
 	while (i > 0) {
-		unsigned int n = value / 10;
+		unsigned long n = value / 10;
 		int r = value % 10;
 		buf[*ptr + i - 1] = r + '0';
 		i--;
@@ -27,15 +27,15 @@ static void print_dec(unsigned int value, unsigned int width, char * buf, int * 
 	*ptr += n_width;
 }
 
-static void print_hex(unsigned int value, unsigned int width, char * buf, int * ptr, char upper) {
-	int i = width;
+static void print_hex(unsigned long value, unsigned int width, char * buf, int * ptr, char upper) {
+	long i = width;
 	char *charset = upper ? "0123456789ABCDEF" : "0123456789abcdef";
 
 	if (i == 0) i = 8;
 
 	unsigned int n_width = 1;
-	unsigned int j = 0x0F;
-	while (value > j && j < UINT32_MAX) {
+	unsigned long j = 0x0F;
+	while (value > j && j < UINT64_MAX) {
 		n_width += 1;
 		j *= 0x10;
 		j += 0x0F;

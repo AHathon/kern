@@ -30,16 +30,19 @@ spin:
 
 
 _start:
+    ldr     x1, =el2_stack_end
+    mov     sp, x1
+
     // firmware *does not* ensure that this will only run on cpu0 
     // spin if this isnt cpu0
     mrs x6, mpidr_el1
     and x6, x6, #3
-    cbz x6, 2f
+    cbz x6, addr_setup
 
     adr x5, spin_cpu0
     b spin
 
-2:
+addr_setup:
     // set stack pointer to address of _start
     ldr x5, =_start
     mov sp, x5
@@ -47,13 +50,13 @@ _start:
     // zero bss for crt
     ldr x5, =__bss_start
     ldr x6, =__bss_size
-3:
-    cbz w6, 4f
+memset:
+    cbz w6, detect_hardware
     str xzr, [x5], #8
     sub w6, w6, #1
-    cbnz w6, 3b
+    cbnz w6, memset
 
-4:
+detect_hardware:
     // load address of MMIO_BASE into x10
     ldr x10, =MMIO_BASE
 
@@ -63,24 +66,26 @@ _start:
     and x9, x9, #0xFFF
     // compare and jump to corresponding branch
     cmp x9, #0xD03
-    beq 5f
+    beq raspi_3
     cmp x9, #0xD08
-    beq 6f
+    beq raspi_4
     // no match, halt
     mov x6, #0
     b spin
 
-5:
+raspi_3:
     // raspberry pi 3
     mov x9, #0x3F000000
-    b 7f
+    b set_mmio_base
 
-6:
+raspi_4:
     // raspberry pi 4
     mov x9, #0xFE000000
 
-7:
+set_mmio_base:
     str x9, [x10]           // write address to MMIO_BASE
+
+startMain:
     ldr x4, =kMain
 
 boot_kernel:

@@ -155,6 +155,7 @@ el1h_ni_sys:
 el1h_ret_from_syscall:
   str     x0, [sp, #0]                         // returned x0
   kernel_exit
+  eret
 
 .global arm64_excep_vec_tbl;
 .type arm64_excep_vec_tbl, %function;

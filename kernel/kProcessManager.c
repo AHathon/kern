@@ -48,6 +48,6 @@ void startKIPs(){
 	const char *start = &__kips_start;
 	const char *end = &__kips_end;
 	size_t kip_size = &end - &start;
-    kprintf("Kip size: %d\n", kip_size);
-	kprintf("Kip start: %d\n", start);
+    kprintf("Kip size: %X\n", kip_size);
+	kprintf("Kip start: %X\n", start);
 }

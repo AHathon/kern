@@ -8,6 +8,7 @@ typedef unsigned char uint8_t;
 typedef unsigned long uintptr_t;
 
 #define UINT32_MAX 0xFFFFFFFF
+#define UINT64_MAX 0xFFFFFFFFFFFFFFFF
 
 typedef __builtin_va_list va_list;
 #define va_start(ap,last) __builtin_va_start(ap, last)

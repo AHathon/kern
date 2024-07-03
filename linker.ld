@@ -38,6 +38,16 @@ SECTIONS
     . = ALIGN(4096);
     __bss_end = .;
 
+    /* EL1 stack */
+    . = ALIGN(16);
+    . += 0x10000; /* 64 KiB stack */
+    el1_stack_end = .;
+
+    /* EL2 stack */
+    . = ALIGN(16);
+    . += 0x10000; /* 64 KiB stack */
+    el2_stack_end = .;
+
     __kips_start = .;
     .kips : {
         KEEP(*(.kips))
