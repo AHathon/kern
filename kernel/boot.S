@@ -21,6 +21,19 @@ check_EL:
     bl GetCurrentEL
     cmp x0, #1
     b.eq addr_setup
+    cmp x0, #2
+    b.eq drop_EL2_to_EL1
+
+drop_EL3_to_EL2:
+    mov x2, #0x5b1
+    msr scr_el3, x2
+    mov x2, #0x3c9
+    msr spsr_el3, x2
+
+    //Set callback after switch to EL2
+    adr x2, drop_EL2_to_EL1
+    msr elr_el3, x2
+    eret
 
 drop_EL2_to_EL1:
     //Set callback after switch to EL1 
