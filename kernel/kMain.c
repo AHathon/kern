@@ -13,10 +13,7 @@ void kMain(uint64_t dtb_ptr32){
     UART1_Init();
     MMU_Init();
 
-    //EL1 = kernel (svc)
-    //EL2 = hypervisor (hvc)
-    SetExceptionVec_El1((uint64_t)&arm64_excep_vec_tbl);
-    //SetExceptionVec_El2((uint64_t)&arm64_excep_vec_tbl);
+    kprintf("Running at EL%d\n", GetCurrentEL());
 
     kMemManager_Init();
 	

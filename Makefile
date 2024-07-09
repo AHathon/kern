@@ -30,7 +30,7 @@ clean:
 	$(MAKE) -C KIPs clean
 
 qemu: $(kernel).elf
-	qemu-system-aarch64 -M raspi3b -serial null -serial stdio -kernel $(kernel).elf
+	qemu-system-aarch64 -M raspi3b -serial stdio -kernel $(kernel).img
 
 kernel: $(kernel).elf
 	$(OC) $^ -O binary $(kernel).img

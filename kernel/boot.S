@@ -1,55 +1,70 @@
 .section ".text.boot"
-// define where this code belongs in the compiled binary. 
-.globl _start
-// specifies that _start is a name that should be visible from outside of the assembly file
 
-.org 0xD8
-spin_cpu0:
-    .quad 0
-.org 0xE0
-spin_cpu1:
-    .quad 0
-.org 0xE8
-spin_cpu2:
-    .quad 0
-.org 0xF0
-spin_cpu3:
-    .quad 0
-
-.org 0x80000    // the address of kernel loading
-
-.globl MMIO_BASE
-
-// spin until function address is written to the corresponding address for this cpu
-spin:
-    wfe
-    ldr x4, [x5, x6, lsl #3]
-    cbz x4, spin
-    mov x0, #0
-    b boot_kernel
-
-
+.global _start
 _start:
-    ldr     x1, =el2_stack_end
-    mov     sp, x1
+    ldr x1, =el2_stack_end
+    mov sp, x1
 
-    // firmware *does not* ensure that this will only run on cpu0 
-    // spin if this isnt cpu0
-    mrs x6, mpidr_el1
-    and x6, x6, #3
-    cbz x6, addr_setup
+    //we only want core0
+    mrs x1, mpidr_el1
+    and x1, x1, #3
+    cbz x1, set_el1_exceptions
+    b loop
 
-    adr x5, spin_cpu0
-    b spin
+//EL1 = kernel (svc)
+//EL2 = hypervisor (hvc)
+set_el1_exceptions:
+    ldr x0, =arm64_excep_vec_tbl
+    bl SetExceptionVec_El1
+
+check_EL:
+    bl GetCurrentEL
+    cmp x0, #1
+    b.eq addr_setup
+
+drop_EL2_to_EL1:
+    //Set callback after switch to EL1 
+    mov x0, #0x3c5
+	msr spsr_el2, x0
+	adr x0, addr_setup
+	msr elr_el2, x0
+
+    //Enable aarch64
+    mov x0, xzr
+	orr x0, x0, #(1 << 31)
+	orr x0, x0, #(1 << 1)
+	msr hcr_el2, x0
+
+    //Enable CNTP for EL1
+    mrs     x0, cnthctl_el2
+    orr     x0, x0, #3
+    msr     cnthctl_el2, x0
+    msr     cntvoff_el2, xzr
+    
+    //Disable coprocessor traps
+    mov     x0, #0x33FF
+    msr     cptr_el2, x0
+    msr     hstr_el2, xzr
+    mov     x0, #(3 << 20)
+    msr     cpacr_el1, x0
+
+    //Setup SCTLR access
+    mov     x2, #0x0800
+    movk    x2, #0x30d0, lsl #16
+    msr     sctlr_el1, x2
+
+    //Set EL1 stack pointer
+    ldr x0, =el1_stack_end
+    msr SP_EL1, x0
+
+    //yolo
+	eret
 
 addr_setup:
-    // set stack pointer to address of _start
-    ldr x5, =_start
-    mov sp, x5
-
     // zero bss for crt
     ldr x5, =__bss_start
     ldr x6, =__bss_size
+
 memset:
     cbz w6, detect_hardware
     str xzr, [x5], #8
@@ -71,7 +86,7 @@ detect_hardware:
     beq raspi_4
     // no match, halt
     mov x6, #0
-    b spin
+    b loop
 
 raspi_3:
     // raspberry pi 3
@@ -98,5 +113,6 @@ loop:
     wfi
     b loop
 
+.global MMIO_BASE
 .section ".kips"
     .byte 0
