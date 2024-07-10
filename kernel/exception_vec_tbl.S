@@ -1,4 +1,4 @@
-#include "kernel/svcDef.h"
+#include "kernel/exceptionDef.h"
 
 .section .text
 
@@ -128,40 +128,53 @@ SetExceptionVec_El3:
 	msr vbar_el3, x0
 	ret
 
-vector_sync_el1h:
-  kernel_entry
-  mrs     x25, esr_el1				// read the syndrome register
-  lsr     x24, x25, #26             // exception class
-  cmp     x24, #0x15  				// SVC in 64-bit state
-  b.eq    el1h_svc
-  b sync_invalid_el1h						 //sync error
+vector_sync_el1t:
+	kernel_entry
+	mrs x25, esr_el1
+	lsr x24, x25, #26
+	cmp x24, #EC_DATA_ABORT_NC_EL
+	b.eq el1_data_abort
+	b sync_invalid_el1t
 
-  sc_nr   .req    x25                        // number of system calls
-  scno    .req    x26           			 // syscall number
-  stbl    .req    x27                        // syscall table pointer
+vector_sync_el1h:
+	kernel_entry
+	mrs x25, esr_el1				// read the syndrome register
+	lsr x24, x25, #26             	// exception class
+	cmp x24, #EC_SVC_64  			// SVC in 64-bit state
+	b.eq el1h_svc
+	cmp x24, #EC_DATA_ABORT_NC_EL 	//handle data aborts until mmu is solid
+	b.eq el1_data_abort
+	b sync_invalid_el1h				//sync error
 
 el1h_svc:
-  adr     stbl, swi_table                    // load syscall table pointer
-  uxtw    scno, w8                           // syscall number in w8
-  mov     sc_nr, #NR_SYSCALLS
-  cmp     scno, sc_nr                        // check upper syscall limit
-  b.hs    el1h_ni_sys
+	and x26, x25, 0xFFFF			//Extract svc immediate #
+	adr x27, swi_table              //Load syscall table pointer
+	mov x25, #NR_SYSCALLS
+	cmp x26, x25                    //Check upper syscall limit
+	b.hs el1h_ni_sys
+	ldr x16, [x27, x26, lsl #3]     // address in the syscall table
+	blr x16							// call sys_* routine
+	b el1h_ret_from_syscall
 
-  ldr     x16, [stbl, scno, lsl #3]          // address in the syscall table
-  blr     x16                                // call sys_* routine
-  b       el1h_ret_from_syscall
 el1h_ni_sys:
-  b sync_invalid_el1h		//syscall error
+	b sync_invalid_el1h				//syscall error
+
 el1h_ret_from_syscall:
-  str     x0, [sp, #0]                         // returned x0
-  kernel_exit
-  eret
+	str     x0, [sp, #0]            // returned x0
+	kernel_exit
+	eret
+
+el1_data_abort:
+	and x0, x25, #0x1F
+	bl data_abort_exception
+	kernel_exit
+	eret
 
 .global arm64_excep_vec_tbl;
 .type arm64_excep_vec_tbl, %function;
 
 arm64_excep_vec_tbl:
-	ventry	vector_sync_el1h			// Synchronous EL1t
+	ventry	vector_sync_el1t			// Synchronous EL1t
 	ventry	irq_invalid_el1t			// IRQ EL1t
 	ventry	fiq_invalid_el1t			// FIQ EL1t
 	ventry	error_invalid_el1t			// Error EL1t

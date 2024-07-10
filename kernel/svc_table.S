@@ -6,12 +6,12 @@ hndlr_svcMapMem:
 .extern svcFreeMem
 .globl hndlr_svcFreeMem
 hndlr_svcFreeMem:
-    b svcMapMem
+    b svcFreeMem
 
 .extern svcDebug
 .globl hndlr_svcDebug
 hndlr_svcDebug:
-    b svcMapMem
+    b svcDebug
 
 .globl swi_table
 swi_table:

@@ -2,15 +2,15 @@
 
 void svcMapMem(void *addr, long size)
 {
-    kprintf("svcMapMem()");
+    kprintf("svcMapMem()\n");
 }
 
 void svcFreeMem(void *addr)
 {
-    kprintf("svcFreeMem()");
+    kprintf("svcFreeMem()\n");
 }
 
 void svcDebug(void)
 {
-    kprintf("svcDebug()");
+    kprintf("svcDebug()\n");
 }

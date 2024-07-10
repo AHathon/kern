@@ -11,20 +11,20 @@ void initMMU() {
     }
     
     // set memory attributes array
-    r = ((0xFF << 0) | 
-        (0x04 << 8) | 
-        (0x44 << 16));
+    r = ((0b11111111 << 0) |   //Attrib0: Normal Memory, Inner+Outer Write-back non-transient
+         (0b00000100 << 8) |   //Attrib1: Device-nGnRE memory
+         (0b01000100 << 16));  //Attrib2: Normal memory, Inner+Outer Non-Cacheable
     asm volatile ("msr mair_el1, %0" : : "r" (r));
     
     // specify mapping characteristics in translate control register
-    r = (0b10 << 30) | 
-        (0b11 << 28) | 
-        (0b01 << 26) | 
-        (0b01 << 24) | 
-        (25 << 16) | 
-        (0b11 << 12) | 
-        (0b01 << 10) | 
-        (0b01 << 8) | 
+    r = (0b10 << 30) |
+        (0b11 << 28) |
+        (0b01 << 26) |
+        (0b01 << 24) |
+        (25 << 16)   |
+        (0b11 << 12) |
+        (0b01 << 10) |
+        (0b01 << 8)  |
         25;
     asm volatile ("msr tcr_el1, %0; isb" : : "r" (r));
     
@@ -32,14 +32,9 @@ void initMMU() {
     asm volatile ("msr ttbr0_el1, %0" : : "r" ((unsigned long)&__end + TTBR_CNP)); // lower half, user space
     asm volatile ("msr ttbr1_el1, %0" : : "r" ((unsigned long)&__end + TTBR_CNP + PAGESIZE)); // upper half, kernel space
     
-    // enable page translation
+    //Get system control reg and enable MMU
     asm volatile ("dsb ish; isb; mrs %0, sctlr_el1" : "=r" (r));
-    
-    // set mandatory bits
-    asm volatile ("dsb ish; isb; mrs %0, sctlr_el1" : "=r" (r));
-    r |= 0xC00800;
-    r &= ~0x308101E;
-    r |= 1;
+    r |= (1 << 0);   //MMU enable;
     asm volatile ("msr sctlr_el1, %0; isb" : : "r" (r));
 }
 
@@ -77,10 +72,10 @@ void initPageTables() {
 
     // identity L3
     for(r=0;r<512;r++)
-        paging[3*512+r]=(unsigned long)(r*PAGESIZE) |   // physical address
+        paging[3*512+r]=(unsigned long)(r*PAGESIZE) |   //paddr -> [0x00000000 - 0x00200000]
         PT_PAGE |     // map 4k
         PT_AF |       // accessed flag
-        PT_USER |     // non-privileged
+        ((r>0x80||r<__end) ? PT_KERNEL : PT_USER) |
         PT_ISH |      // inner shareable
         ((r<0x80||r>data_page)? PT_RW|PT_NX : PT_RO); // different for code and data
 
