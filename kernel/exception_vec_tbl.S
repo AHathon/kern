@@ -170,6 +170,15 @@ el1_data_abort:
 	kernel_exit
 	eret
 
+irq_el1h:
+	kernel_entry
+	ldr x0, =IRQ_PENDING_1
+	ldr x0, [x0]
+	cmp w0, #SYSTEM_TIMER_IRQ_1
+	b.eq timer_irq_handle
+	b irq_invalid_el1h
+	kernel_exit
+
 .global arm64_excep_vec_tbl;
 .type arm64_excep_vec_tbl, %function;
 
@@ -181,7 +190,7 @@ arm64_excep_vec_tbl:
 
 	// Current EL with SPx
 	ventry	vector_sync_el1h			// Synchronous EL1h
-	ventry	irq_invalid_el1h			// IRQ EL1h
+	ventry	irq_el1h					// IRQ EL1h
 	ventry	fiq_invalid_el1h			// FIQ EL1h
 	ventry	error_invalid_el1h			// Error EL1h
 

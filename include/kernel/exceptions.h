@@ -13,3 +13,4 @@ extern void SetExceptionVec_El3(uint64_t addr);
 
 void InvalidException(void* ex);
 void data_abort_exception(uint64_t status);
+void timer_irq_handle();
