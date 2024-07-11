@@ -10,8 +10,6 @@
 #include "kernel/cpu.h"
 
 void kMain(uint64_t dtb_ptr32){
-    UART1_Init();
-    MMU_Init();
 
     kprintf("Running at EL%d\n", GetCurrentEL());
 

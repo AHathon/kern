@@ -2,8 +2,11 @@
 
 .global _start
 _start:
-    ldr x1, =el2_stack_end
+    ldr x1, =_start
     mov sp, x1
+
+    //Init uart for debug
+    bl UART1_Init
 
     //we only want core0
     mrs x1, mpidr_el1
@@ -77,7 +80,7 @@ drop_EL2_to_EL1:
     msr sctlr_el1, x2
 
     //Set EL1 stack pointer
-    ldr x0, =el1_stack_end
+    ldr x0, =_start
     msr SP_EL1, x0
 
     //sync
@@ -125,15 +128,13 @@ raspi_4:
 
 set_mmio_base:
     str x9, [x10]           // write address to MMIO_BASE
-
-startMain:
-    ldr x4, =kMain
+    bl MMU_Init
 
 boot_kernel:
     mov x1, #0
     mov x2, #0
     mov x3, #0
-    br x4
+    bl kMain
 
 loop:
     wfi

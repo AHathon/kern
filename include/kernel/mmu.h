@@ -25,6 +25,6 @@
 #define TTBR_CNP 1
 
 extern volatile unsigned char __data_start;
-extern volatile unsigned char __end;
+extern volatile unsigned char __page_table;
 
 void MMU_Init(void);

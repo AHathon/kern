@@ -160,7 +160,7 @@ el1h_ni_sys:
 	b sync_invalid_el1h				//syscall error
 
 el1h_ret_from_syscall:
-	str     x0, [sp, #0]            // returned x0
+	str x0, [sp, #0]            // returned x0
 	kernel_exit
 	eret
 

@@ -6,7 +6,7 @@ void initMMU() {
     asm volatile ("mrs %0, id_aa64mmfr0_el1" : "=r" (r));
     b = r & 0xF;
     if(r & (0xF << 28) || b < 1) {
-        uart1_puts("ERROR: 4k granule or 36 bit address space not supported\n");
+        kprintf("ERROR: 4k granule or 36 bit address space not supported\n");
         return;
     }
     
@@ -17,20 +17,20 @@ void initMMU() {
     asm volatile ("msr mair_el1, %0" : : "r" (r));
     
     // specify mapping characteristics in translate control register
-    r = (0b10 << 30) |
-        (0b11 << 28) |
-        (0b01 << 26) |
-        (0b01 << 24) |
-        (25 << 16)   |
-        (0b11 << 12) |
-        (0b01 << 10) |
-        (0b01 << 8)  |
-        25;
+    r = (0b10 << 30) |  //64KB granularity
+        (0b11 << 28) |  //Inner shared
+        (0b01 << 26) |  //Norm,Outer WB/WA
+        (0b01 << 24) |  //Norm,Inner WB/WA
+        (25 << 16)   |  //Size offset of mem region addressed by TTBR1_EL1
+        (0b11 << 12) |  //Inner sharable
+        (0b01 << 10) |  //Norm,Outer WB/WA
+        (0b01 << 8)  |  //Norm,Inner WB/WA
+        25;             //Size offset of mem region addressed by TTBR0_EL1
     asm volatile ("msr tcr_el1, %0; isb" : : "r" (r));
     
     // tell MMU where translation tables are
-    asm volatile ("msr ttbr0_el1, %0" : : "r" ((unsigned long)&__end + TTBR_CNP)); // lower half, user space
-    asm volatile ("msr ttbr1_el1, %0" : : "r" ((unsigned long)&__end + TTBR_CNP + PAGESIZE)); // upper half, kernel space
+    asm volatile ("msr ttbr0_el1, %0" : : "r" ((unsigned long)&__page_table + TTBR_CNP)); // lower half, user space
+    asm volatile ("msr ttbr1_el1, %0" : : "r" ((unsigned long)&__page_table + TTBR_CNP + PAGESIZE)); // upper half, kernel space
     
     //Get system control reg and enable MMU
     asm volatile ("dsb ish; isb; mrs %0, sctlr_el1" : "=r" (r));
@@ -40,11 +40,11 @@ void initMMU() {
 
 void initPageTables() {
     unsigned long data_page = (unsigned long)&__data_start/PAGESIZE;
-    unsigned long *paging=(unsigned long*)&__end;
+    unsigned long *paging=(unsigned long*)&__page_table;
     unsigned b, r;
     
     // TTBR0, identity L1
-    paging[0]=(unsigned long)((unsigned char*)&__end+2*PAGESIZE) |    // physical address
+    paging[0]=(unsigned long)((unsigned char*)&__page_table+2*PAGESIZE) |    // physical address
         PT_PAGE |     // it has the "Present" flag, which must be set, and we have area in it mapped by pages
         PT_AF |       // accessed flag. Without this we're going to have a Data Abort exception
         PT_USER |     // non-privileged
@@ -52,7 +52,7 @@ void initPageTables() {
         PT_MEM;       // normal memory
 
     // identity L2, first 2M block
-    paging[2*512]=(unsigned long)((unsigned char*)&__end+3*PAGESIZE) | // physical address
+    paging[2*512]=(unsigned long)((unsigned char*)&__page_table+3*PAGESIZE) | // physical address
         PT_PAGE |     // we have area in it mapped by pages
         PT_AF |       // accessed flag
         PT_USER |     // non-privileged
@@ -75,12 +75,21 @@ void initPageTables() {
         paging[3*512+r]=(unsigned long)(r*PAGESIZE) |   //paddr -> [0x00000000 - 0x00200000]
         PT_PAGE |     // map 4k
         PT_AF |       // accessed flag
-        ((r>0x80||r<__end) ? PT_KERNEL : PT_USER) |
+        PT_USER |
         PT_ISH |      // inner shareable
         ((r<0x80||r>data_page)? PT_RW|PT_NX : PT_RO); // different for code and data
+    
+    //Overwrite .bss to be mem
+    paging[3*512 + 0x85] = (unsigned long)(0x85*PAGESIZE) |  // physical address of .bss section
+        PT_PAGE |    // map 4k page
+        PT_AF |      // accessed flag
+        PT_RW |      // read/write
+        PT_KERNEL |  // privileged (or PT_USER for non-privileged)
+        PT_ISH |     // inner shareable
+        PT_MEM;      // normal memory
 
     // TTBR1, kernel L1
-    paging[512+511]=(unsigned long)((unsigned char*)&__end+4*PAGESIZE) | // physical address
+    paging[512+511]=(unsigned long)((unsigned char*)&__page_table+4*PAGESIZE) | // physical address
         PT_PAGE |     // we have area in it mapped by pages
         PT_AF |       // accessed flag
         PT_KERNEL |   // privileged
@@ -88,7 +97,7 @@ void initPageTables() {
         PT_MEM;       // normal memory
 
     // kernel L2
-    paging[4*512+511]=(unsigned long)((unsigned char*)&__end+5*PAGESIZE) |   // physical address
+    paging[4*512+511]=(unsigned long)((unsigned char*)&__page_table+5*PAGESIZE) |   // physical address
         PT_PAGE |     // we have area in it mapped by pages
         PT_AF |       // accessed flag
         PT_KERNEL |   // privileged
@@ -103,10 +112,12 @@ void initPageTables() {
         PT_KERNEL |   // privileged
         PT_OSH |      // outter shareable
         PT_DEV;       // device memory
+
 }
 
 void MMU_Init() {
     initPageTables();    
     initMMU();
     kprintf("Initialized MMU\n");
+    kprintf("Page table at 0x%X\n", (unsigned long)&__page_table);
 }

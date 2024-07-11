@@ -38,15 +38,11 @@ SECTIONS
     . = ALIGN(4096);
     __bss_end = .;
 
-    /* EL1 stack */
-    . = ALIGN(16);
-    . += 0x10000; /* 64 KiB stack */
-    el1_stack_end = .;
+    __bss_size = __bss_end - __bss_start;
 
-    /* EL2 stack */
-    . = ALIGN(16);
-    . += 0x10000; /* 64 KiB stack */
-    el2_stack_end = .;
+    . = ALIGN(4096);
+    __page_table = .;
+    . += 0x2000; /* 2 pages */
 
     __kips_start = .;
     .kips : {
@@ -54,7 +50,4 @@ SECTIONS
     }
     . = ALIGN(8);
     __kips_end = .;
-
-    __bss_size = __bss_end - __bss_start;
-    __end = .;
 }
