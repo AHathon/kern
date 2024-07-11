@@ -3,12 +3,12 @@
 kSlab kSlabAlloc(unsigned long size)
 {
 	kSlab slab;
-	slab.pagePtr = AllocPages(size);
+	slab.pageIndex = AllocPages(size);
 	slab.size = size;
 	return slab;
 }
 
 void kSlabFree(kSlab slab)
 {
-	FreePages(slab.pagePtr);
+	FreePages(slab.pageIndex, slab.size);
 }

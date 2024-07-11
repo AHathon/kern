@@ -7,7 +7,7 @@
 #define KERN_HEAP_START 0xC0000000
 
 typedef struct {
-	void *pagePtr;
+	int pageIndex;
 	size_t size;
 } kSlab;
 

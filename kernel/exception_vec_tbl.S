@@ -175,8 +175,11 @@ irq_el1h:
 	ldr x0, =IRQ_PENDING_1
 	ldr x0, [x0]
 	cmp w0, #SYSTEM_TIMER_IRQ_1
-	b.eq timer_irq_handle
+	b.eq handle_irq
 	b irq_invalid_el1h
+
+handle_irq:
+	b timer_irq_handle
 	kernel_exit
 
 .global arm64_excep_vec_tbl;

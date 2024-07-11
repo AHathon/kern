@@ -10,7 +10,9 @@
 static KMemPage pages[MAX_PAGES];
 
 void PageAllocator_Init();
-void *AllocPages(size_t size);
-void FreePages(void *ptr);
+int AllocPages(size_t size);
+void FreePages(int index, size_t size);
+
+uintptr_t GetPageAddr(int index);
 
 void DebugPrintPagesUsed();
