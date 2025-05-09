@@ -2,7 +2,7 @@
 
 .global _start
 _start:
-    ldr x1, =_start
+    ldr x1, =__stack_top
     mov sp, x1
 
     //Init uart for debug
@@ -80,7 +80,7 @@ drop_EL2_to_EL1:
     msr sctlr_el1, x2
 
     //Set EL1 stack pointer
-    ldr x0, =_start
+    ldr x0, =__stack_top
     msr SP_EL1, x0
 
     //sync

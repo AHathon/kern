@@ -21,7 +21,7 @@ SRCS_C := $(call rwildcard, kernel, *.c) \
 OBJS := $(patsubst %.c, $(BUILD)/%.o, $(SRCS_C)) \
 		$(patsubst %.S, $(BUILD)/%.o, $(SRCS_S))
 
-.PHONY: all clean kernel qemu
+.PHONY: all clean kernel qemu qemu-gdb
 
 all: setup kernel packKips
 
@@ -31,6 +31,9 @@ clean:
 
 qemu: $(kernel).elf
 	qemu-system-aarch64 -M raspi3b -serial null -serial stdio -kernel $(kernel).elf
+
+qemu-gdb: $(kernel).elf
+	qemu-system-aarch64 -M raspi3b -serial null -serial stdio -kernel $(kernel).elf -s -S
 
 kernel: $(kernel).elf
 	$(OC) $^ -O binary $(kernel).img

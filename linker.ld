@@ -38,7 +38,9 @@ SECTIONS
     }
 
     __bss_size = __bss_end - __bss_start;
-
+    __stack_bottom = .;
+    . = . + 0x1000; /* 4KB stack for core 0 */
+    __stack_top = .;
     . = ALIGN(4096);
     __page_table = .;
     . += 0x2000; /* 2 pages */
