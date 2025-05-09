@@ -2,16 +2,16 @@
 
 void kMemManager_Init()
 {
-    PageAllocator_Init();
+    kSlabAllocInit();
     kprintf("Initialized kMemoryManager\n");
 }
 
-void *kMemAlloc(size_t size)
+kSlab kMemAlloc(size_t size)
 {
-    //
+    return kSlabAlloc(size);
 }
 
-void kMemFree(void *addr)
+void kMemFree(kSlab slab)
 {
-    //
+    kSlabFree(slab);
 }

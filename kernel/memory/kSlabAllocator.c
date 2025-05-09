@@ -1,5 +1,10 @@
 #include "kernel/memory/kSlabAllocator.h"
 
+void kSlabAllocInit()
+{
+	PageAllocator_Init();
+}
+
 kSlab kSlabAlloc(unsigned long size)
 {
 	kSlab slab;

@@ -11,5 +11,6 @@ typedef struct {
 	size_t size;
 } kSlab;
 
+void kSlabAllocInit();
 kSlab kSlabAlloc(unsigned long size);
 void kSlabFree(kSlab slab);

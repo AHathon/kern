@@ -8,7 +8,8 @@
 
 typedef struct {
     uint64_t PID;
-    uintptr_t *vaddr;
+    uintptr_t heap;
+    uint64_t heapSize;
     uint32_t flags;
     kCodeSet code;
 } KProcess;

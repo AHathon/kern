@@ -7,7 +7,7 @@ OC=llvm-objcopy
 LD=ld.lld
 INCLUDE := include
 
-CFLAGS := -I$(INCLUDE) -Wall -O2 -ffreestanding -nostdinc -nostdlib -mcpu=cortex-a53+nosimd
+CFLAGS := -I$(INCLUDE) -Wall -O0 -ffreestanding -nostdinc -nostdlib -mcpu=cortex-a53+nosimd
 ASFLAGS := -I$(INCLUDE) -D__ASSEMBLY__
 
 rwildcard = $(foreach d, $(wildcard $1*), $(filter $(subst *, %, $2), $d) $(call rwildcard, $d/, $2))
@@ -30,7 +30,7 @@ clean:
 	$(MAKE) -C KIPs clean
 
 qemu: $(kernel).elf
-	qemu-system-aarch64 -M raspi3b -serial null -serial stdio -kernel $(kernel).img
+	qemu-system-aarch64 -M raspi3b -serial null -serial stdio -kernel $(kernel).elf
 
 kernel: $(kernel).elf
 	$(OC) $^ -O binary $(kernel).img
@@ -40,6 +40,7 @@ $(kernel).elf:  $(OBJS)
 
 packKips: $(CURDIR)/KIPs/kip_blob
 	$(OC) --update-section .kips=$^ $(kernel).elf
+	$(OC) $(kernel).elf -O binary $(kernel).img
 
 $(CURDIR)/KIPs/kip_blob:
 	$(MAKE) -C KIPs

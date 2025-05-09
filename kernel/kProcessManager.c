@@ -20,14 +20,16 @@ void CreateKProc(size_t memory, unsigned flags) {
 	unsigned proc = FindFreeProcSpace();
 	processTable[proc].PID = ++lastPID;
 	processTable[proc].flags = flags | IS_ACTIVE_PROC;
-	processTable[proc].vaddr = kMemAlloc(memory);
+	processTable[proc].heap = (uintptr_t)0;
+	processTable[proc].heapSize = 0;
 }
 
 void KillProcess(unsigned ind) {
 	if(ind >= MAX_PROC) return;
 	processTable[ind].PID = 0;
 	processTable[ind].flags = IS_INACTIVE_PROC;
-	kMemFree(processTable[ind].vaddr);
+	if(processTable[ind].heapSize > 0)
+		FreePages(processTable[ind].heap % PAGESIZE, processTable[ind].heapSize);
 }
 
 void PrintDebugProc() {
@@ -36,9 +38,9 @@ void PrintDebugProc() {
 			kprintf(
 				"Process:\n"
 				"PID: %d\n"
-				"Memory Addr: %X\n",
+				"Heap Addr: %X\n",
 				processTable[i].PID,
-				processTable[i].vaddr
+				processTable[i].heap
 			);
 		}
 	}
