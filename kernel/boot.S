@@ -2,7 +2,7 @@
 
 .global _start
 _start:
-    ldr x1, =_start
+    ldr x1, =__stack_top
     mov sp, x1
 
     //Init uart for debug
