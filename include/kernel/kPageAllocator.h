@@ -7,7 +7,7 @@
 
 #define MAX_PAGES 256
 
-static KMemPage pages[MAX_PAGES];
+static KMemPage pages[MAX_PAGES] = {};
 
 void PageAllocator_Init();
 int AllocPages(size_t size);

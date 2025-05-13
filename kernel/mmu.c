@@ -17,11 +17,12 @@ void initMMU() {
     asm volatile ("msr mair_el1, %0" : : "r" (r));
     
     // specify mapping characteristics in translate control register
-    r = (0b10 << 30) |  //64KB granularity
+    r = (0b10 << 30) | // TG1=4k
         (0b11 << 28) |  //Inner shared
         (0b01 << 26) |  //Norm,Outer WB/WA
         (0b01 << 24) |  //Norm,Inner WB/WA
         (25 << 16)   |  //Size offset of mem region addressed by TTBR1_EL1
+        (0b00 << 14) |  //TG0=4k
         (0b11 << 12) |  //Inner sharable
         (0b01 << 10) |  //Norm,Outer WB/WA
         (0b01 << 8)  |  //Norm,Inner WB/WA
@@ -80,7 +81,7 @@ void initPageTables() {
         ((r<0x80||r>data_page)? PT_RW|PT_NX : PT_RO); // different for code and data
     
     //Overwrite .bss to be mem
-    paging[3*512 + 0x85] = (unsigned long)(0x85*PAGESIZE) |  // physical address of .bss section
+    paging[3*512 + 0x84] = (unsigned long)(0x84*PAGESIZE) |  // physical address of .bss section
         PT_PAGE |    // map 4k page
         PT_AF |      // accessed flag
         PT_RW |      // read/write
