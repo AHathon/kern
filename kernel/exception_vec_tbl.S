@@ -114,20 +114,6 @@ SetExceptionVec_El1:
 	msr vbar_el1, x0
 	ret
 
-.global SetExceptionVec_El2
-SetExceptionVec_El2:
-	dsb ish
-	isb
-	msr vbar_el2, x0
-	ret
-
-.global SetExceptionVec_El3
-SetExceptionVec_El3:
-	dsb ish
-	isb
-	msr vbar_el3, x0
-	ret
-
 vector_sync_el1t:
 	kernel_entry
 	mrs x25, esr_el1
@@ -182,10 +168,10 @@ handle_irq:
 	b timer_irq_handle
 	kernel_exit
 
-.global arm64_excep_vec_tbl;
-.type arm64_excep_vec_tbl, %function;
+.global el1_vector_base;
+.type el1_vector_base, %function;
 
-arm64_excep_vec_tbl:
+el1_vector_base:
 	ventry	vector_sync_el1t			// Synchronous EL1t
 	ventry	irq_invalid_el1t			// IRQ EL1t
 	ventry	fiq_invalid_el1t			// FIQ EL1t

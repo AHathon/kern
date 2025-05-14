@@ -26,5 +26,6 @@
 
 extern volatile unsigned char __data_start;
 extern volatile unsigned char __page_table;
+extern volatile unsigned char __bss_start;
 
 void MMU_Init(void);

@@ -11,13 +11,14 @@ _start:
     //we only want core0
     mrs x1, mpidr_el1
     and x1, x1, #3
-    cbz x1, set_el1_exceptions
+    cbz x1, set_exception_vectors
     b loop
 
 //EL1 = kernel (svc)
 //EL2 = hypervisor (hvc)
-set_el1_exceptions:
-    ldr x0, =arm64_excep_vec_tbl
+//EL3 = secure monitor (smd)
+set_exception_vectors:
+    ldr x0, =el1_vector_base
     bl SetExceptionVec_El1
 
 check_EL:
@@ -28,8 +29,6 @@ check_EL:
     b.eq drop_EL2_to_EL1
 
 drop_EL3_to_EL2:
-    mov x2, #0x5b1
-    msr scr_el3, x2
     mov x2, #0x3c9
     msr spsr_el3, x2
 

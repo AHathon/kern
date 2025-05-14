@@ -81,7 +81,8 @@ void initPageTables() {
         ((r<0x80||r>data_page)? PT_RW|PT_NX : PT_RO); // different for code and data
     
     //Overwrite .bss to be mem
-    paging[3*512 + 0x84] = (unsigned long)(0x84*PAGESIZE) |  // physical address of .bss section
+    unsigned long bss_page = (unsigned long)((unsigned char*)&__bss_start) >> 12;
+    paging[3*512 + bss_page] = (unsigned long)(bss_page*PAGESIZE) |  // physical address of .bss section
         PT_PAGE |    // map 4k page
         PT_AF |      // accessed flag
         PT_RW |      // read/write
