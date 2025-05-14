@@ -8,6 +8,7 @@
 #include "kernel/exceptions.h"
 #include "kernel/debug.h"
 #include "kernel/cpu.h"
+#include "kernel/kScheduler.h"
 
 void kMain(uint64_t dtb_ptr32){
 
@@ -18,6 +19,8 @@ void kMain(uint64_t dtb_ptr32){
 	InitProcessTable();
     startKIPs();
 	
+    kScheduler_init();
+
 	CreateKProc(0x10000, 0);
 	PrintDebugProc();
     

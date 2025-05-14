@@ -164,9 +164,27 @@ irq_el1h:
 	b.eq handle_irq
 	b irq_invalid_el1h
 
+irq_el0_64:
+	kernel_entry
+	ldr x0, =IRQ_PENDING_1
+	ldr x0, [x0]
+	cmp w0, #SYSTEM_TIMER_IRQ_1
+	b.eq handle_irq
+	b irq_invalid_el0_64
+
 handle_irq:
 	b timer_irq_handle
 	kernel_exit
+
+.global execute_EL0;
+.type execute_EL0, %function;
+execute_EL0:
+	msr ttbr0_el1, x0       // x0 = process->page_table_base
+	isb
+	msr sp_el0, x1          // x1 = process->sp_el0
+	msr elr_el1, x2         // x2 = process->pc
+	msr spsr_el1, xzr       // EL0t mode
+	eret
 
 .global el1_vector_base;
 .type el1_vector_base, %function;
@@ -185,7 +203,7 @@ el1_vector_base:
 
 	// Lower EL using AArch64
 	ventry	sync_invalid_el0_64			// Synchronous 64-bit EL0
-	ventry	irq_invalid_el0_64			// IRQ 64-bit EL0
+	ventry	irq_el0_64					// IRQ 64-bit EL0
 	ventry	fiq_invalid_el0_64			// FIQ 64-bit EL0
 	ventry	error_invalid_el0_64		// Error 64-bit EL0
 

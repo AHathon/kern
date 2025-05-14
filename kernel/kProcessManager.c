@@ -11,7 +11,7 @@ unsigned FindFreeProcSpace() {
 void InitProcessTable() {
 	for(int i = 0; i < MAX_PROC; i++) {
 		processTable[i].PID = 0;
-		processTable[i].flags = IS_INACTIVE_PROC;
+		processTable[i].flags = 0;
 	}
 }
 
@@ -27,7 +27,7 @@ void CreateKProc(size_t memory, unsigned flags) {
 void KillProcess(unsigned ind) {
 	if(ind >= MAX_PROC) return;
 	processTable[ind].PID = 0;
-	processTable[ind].flags = IS_INACTIVE_PROC;
+	processTable[ind].flags = 0;
 	if(processTable[ind].heapSize > 0)
 		FreePages(processTable[ind].heap % PAGESIZE, processTable[ind].heapSize);
 }
