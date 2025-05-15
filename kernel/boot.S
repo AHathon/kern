@@ -5,9 +5,6 @@ _start:
     ldr x1, =__stack_top
     mov sp, x1
 
-    //Init uart for debug
-    bl UART1_Init
-
     //we only want core0
     mrs x1, mpidr_el1
     and x1, x1, #3
@@ -128,6 +125,9 @@ raspi_4:
 set_mmio_base:
     str x9, [x10]           // write address to MMIO_BASE
     bl MMU_Init
+
+setup_uart:
+    bl UART1_Init
 
 boot_kernel:
     mov x1, #0

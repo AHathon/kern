@@ -2,6 +2,7 @@
 
 #include "libraries/types.h"
 #include "kernel/gpio.h"
+#include "kernel/debug.h"
 
 #define UART1_ENABLE    ((volatile unsigned int *)(MMIO_BASE+0x00215004))
 #define UART1_IO        ((volatile unsigned int *)(MMIO_BASE+0x00215040))

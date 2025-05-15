@@ -33,8 +33,8 @@
 	sub 	sp, sp, #288
 
 	// Caller-saved registers, FP
-	stp 	x0, x1, [sp, #16 * 0]
-	stp 	x2, x3, [sp, #16 * 1]
+	stp x0, x1, [sp, #16 * 0]
+	stp x2, x3, [sp, #16 * 1]
 	stp	x4, x5, [sp, #16 * 2]
 	stp	x6, x7, [sp, #16 * 3]
 	stp	x8, x9, [sp, #16 * 4]
@@ -166,6 +166,12 @@ irq_el1h:
 
 irq_el0_64:
 	kernel_entry
+
+	//push pstate and exception LR to stack as well
+	mrs	x0, SPSR_EL1
+	mrs	x1, ELR_EL1
+	stp	x0, x1, [sp, #16 * 16]
+
 	ldr x0, =IRQ_PENDING_1
 	ldr x0, [x0]
 	cmp w0, #SYSTEM_TIMER_IRQ_1
@@ -174,7 +180,14 @@ irq_el0_64:
 
 handle_irq:
 	b timer_irq_handle
+
+	//restore pstate and exception LR
+	ldp	x0, x1, [sp, #16 * 16]
+	msr SPSR_EL1, x0
+	msr ELR_EL1, x1
+
 	kernel_exit
+	eret
 
 .global execute_EL0;
 .type execute_EL0, %function;

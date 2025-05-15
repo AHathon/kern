@@ -21,7 +21,7 @@ void kMain(uint64_t dtb_ptr32){
 	
     kScheduler_init();
 
-	CreateKProc(0x10000, 0);
+	CreateKProc(0x1000, 0);
 	PrintDebugProc();
     
     kprintf("Initialization done!\n");

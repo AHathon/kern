@@ -13,7 +13,7 @@ static KProcess processTable[MAX_PROC];
 static unsigned lastPID = 0;
 
 void InitProcessTable();
-void CreateKProc(size_t memory, unsigned flags);
+void CreateKProc(size_t stackSize, unsigned flags);
 void KillProcess(unsigned ind);
 void startKIPs();
 void PrintDebugProc();
