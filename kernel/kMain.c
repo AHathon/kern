@@ -12,6 +12,7 @@
 
 void kMain(uint64_t dtb_ptr32){
 
+    kprintf("MMIO base: %X\n", MMIO_BASE);
     kprintf("Running at EL%d\n", GetCurrentEL());
 
     kMemManager_Init();

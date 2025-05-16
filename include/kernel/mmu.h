@@ -3,10 +3,15 @@
 #include "kernel/uart.h"
 #include "debug.h"
 
+#define KERNEL_VIRT_BASE 0xFFFFFF8000000000
+
 #define PAGESIZE 4096
+#define PAGE_TABLE_SIZE (PAGESIZE / sizeof(unsigned long))
+#define PAGE_TABLE_IDX(i, o) (i * PAGE_TABLE_SIZE + o)
 
 #define PT_PAGE  0b11
 #define PT_BLOCK 0b01
+#define PT_TABLE  0b11
 
 #define PT_KERNEL   (0 << 6)     // EL1 access level
 #define PT_USER     (1 << 6)     // EL0 access level

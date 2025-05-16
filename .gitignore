@@ -8,3 +8,4 @@ KIPs/fs/build/*
 KIPs/fs/fs.elf
 KIPs/boot/build/*
 KIPs/boot/boot.elf
+.gdb_history

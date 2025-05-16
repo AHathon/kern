@@ -7,7 +7,7 @@
 
 typedef struct {
     uint64_t PID;
-    uintptr_t memoryPool;
+    uintptr_t memoryPool; //pointer to L0 page
     uint64_t memoryPoolSize;
     uint32_t flags;
     kCodeSet code;

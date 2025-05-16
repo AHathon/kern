@@ -107,13 +107,6 @@
 	eret
 .endm
 
-.global SetExceptionVec_El1
-SetExceptionVec_El1:
-	dsb ish
-	isb
-	msr vbar_el1, x0
-	ret
-
 vector_sync_el1t:
 	kernel_entry
 	mrs x25, esr_el1

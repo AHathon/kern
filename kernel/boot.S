@@ -2,9 +2,6 @@
 
 .global _start
 _start:
-    ldr x1, =__stack_top
-    mov sp, x1
-
     //we only want core0
     mrs x1, mpidr_el1
     and x1, x1, #3
@@ -16,7 +13,8 @@ _start:
 //EL3 = secure monitor (smd)
 set_exception_vectors:
     ldr x0, =el1_vector_base
-    bl SetExceptionVec_El1
+    msr VBAR_EL1, x0
+    isb
 
 check_EL:
     bl GetCurrentEL
@@ -97,9 +95,6 @@ memset:
     cbnz w6, memset
 
 detect_hardware:
-    // load address of MMIO_BASE into x10
-    ldr x10, =MMIO_BASE
-
     // detect board type
     mrs x9, midr_el1
     lsr x9, x9, #4              // turn off all bits except 4:15
@@ -123,7 +118,8 @@ raspi_4:
     mov x9, #0xFE000000
 
 set_mmio_base:
-    str x9, [x10]           // write address to MMIO_BASE
+    ldr x10, =MMIO_BASE
+    str x9, [x10]
     bl MMU_Init
 
 setup_uart:
