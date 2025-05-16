@@ -3,11 +3,11 @@ SECTIONS
 
 . = 0x10000;
 
-.text : { *(.text) }
+.text : { *(.text) *(.text.*) }
 
 . = 0x8000000;
 
-.data : { *(.data) }
+.data : { *(.data) *(.data.*) }
 
 .bss : { *(.bss) }
 

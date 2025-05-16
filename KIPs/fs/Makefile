@@ -3,9 +3,9 @@ TARGET := fs
 BUILD := build
 SOURCES := src
 
-CC=aarch64-linux-gnu-g++
-OC=aarch64-linux-gnu-objcopy
-CFLAGS := -mcpu=cortex-a53 -O2 -nostdlib -no-pie
+CC=clang
+OC=llvm-objcopy
+CFLAGS := --target=aarch64-none-elf -mcpu=cortex-a53 -O2 -nostdlib -ffreestanding
 
 rwildcard = $(foreach d, $(wildcard $1*), $(filter $(subst *, %, $2), $d) $(call rwildcard, $d/, $2))
 OBJECTS := $(patsubst $(SOURCES)/%.cpp, $(BUILD)/%.o, $(call rwildcard, $(SOURCES), *.cpp))
