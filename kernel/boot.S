@@ -19,7 +19,7 @@ set_exception_vectors:
 check_EL:
     bl GetCurrentEL
     cmp x0, #1
-    b.eq addr_setup
+    b.eq EL1_start
     cmp x0, #2
     b.eq drop_EL2_to_EL1
 
@@ -41,7 +41,7 @@ drop_EL2_to_EL1:
     //Set callback after switch to EL1 
     mov x0, #0x3c5
 	msr spsr_el2, x0
-	adr x0, addr_setup
+	adr x0, EL1_start
 	msr elr_el2, x0
 
     //Enable aarch64
@@ -83,43 +83,26 @@ drop_EL2_to_EL1:
 
 	eret
 
-addr_setup:
+EL1_start:
+    nop
+
+clear_bss:
     // zero bss for crt
     ldr x5, =__bss_start
     ldr x6, =__bss_size
 
 memset:
-    cbz w6, detect_hardware
+    cbz w6, set_mmio_base
     str xzr, [x5], #8
     sub w6, w6, #1
     cbnz w6, memset
 
-detect_hardware:
-    // detect board type
-    mrs x9, midr_el1
-    lsr x9, x9, #4              // turn off all bits except 4:15
-    and x9, x9, #0xFFF
-    // compare and jump to corresponding branch
-    cmp x9, #0xD03
-    beq raspi_3
-    cmp x9, #0xD08
-    beq raspi_4
-    // no match, halt
-    mov x6, #0
-    b loop
-
-raspi_3:
-    // raspberry pi 3
-    mov x9, #0x3F000000
-    b set_mmio_base
-
-raspi_4:
-    // raspberry pi 4
-    mov x9, #0xFE000000
-
 set_mmio_base:
+    mov x9, #0x3F000000
     ldr x10, =MMIO_BASE
     str x9, [x10]
+
+setup_mmu:
     bl MMU_Init
 
 setup_uart:

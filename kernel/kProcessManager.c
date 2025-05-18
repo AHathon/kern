@@ -20,7 +20,7 @@ void CreateKProc(size_t stackSize, unsigned flags) {
 	unsigned proc = FindFreeProcSpace();
 	processTable[proc].PID = ++lastPID;
 	processTable[proc].flags = flags | IS_ACTIVE_PROC;
-	processTable[proc].memoryPool = AllocPages(stackSize); //stack
+	processTable[proc].memoryPool = PageAllocator_AllocPages(stackSize); //stack
 	processTable[proc].memoryPoolSize = stackSize;
 }
 
@@ -29,7 +29,7 @@ void KillProcess(unsigned ind) {
 	processTable[ind].PID = 0;
 	processTable[ind].flags = 0;
 	if(processTable[ind].memoryPoolSize > 0)
-		FreePages(processTable[ind].memoryPool % PAGESIZE, processTable[ind].memoryPoolSize);
+		PageAllocator_FreePages(processTable[ind].memoryPool % PAGE_SIZE, processTable[ind].memoryPoolSize);
 }
 
 void PrintDebugProc() {

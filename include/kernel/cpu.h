@@ -1,4 +1,3 @@
 #pragma once
 
-extern void DropToEL1();
-extern unsigned GetCurrentEL();
+static inline unsigned GetCurrentEL();

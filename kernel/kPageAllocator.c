@@ -4,13 +4,13 @@ void PageAllocator_Init()
 {
 	kprintf("Total pages: %d\n", MAX_PAGES);
     for(int i = 0; i < MAX_PAGES; i++){
-        pages[i].vaddr = i * PAGESIZE;
+        pages[i].vaddr = i * PAGE_SIZE;
         pages[i].used = 0;
     }
 	kprintf("Initialized kPageAllocator\n");
 }
 
-int FindFreePages(uint32_t pageCnt) 
+int32_t PageAllocator_FindFreePages(uint32_t pageCnt) 
 {
     uint32_t conseq = 0;
 	int index = -1;
@@ -30,11 +30,25 @@ int FindFreePages(uint32_t pageCnt)
 	return index;
 }
 
-int AllocPages(size_t size) 
+int32_t PageAllocator_FindFirstFreePage() 
 {
-    size_t numPages = (size / PAGESIZE) + 1;
+	int32_t index = -1;
+    for(int i = 0; i < MAX_PAGES; i++){
+        if(!pages[i].used) {
+            index = i;
+			break;
+        }
+    }
+	
+	return index;
+}
+
+int32_t PageAllocator_AllocPages(size_t size) 
+{
+    size_t numPages = (size + PAGE_SIZE - 1) / PAGE_SIZE;
+
 	kprintf("Allocating %d pages\n", numPages);
-    int ind = FindFreePages(numPages);
+    int32_t ind = PageAllocator_FindFreePages(numPages);
 	if(ind < 0) return -1;
 	
 	for(size_t i = 0; i < numPages; i++){
@@ -45,23 +59,23 @@ int AllocPages(size_t size)
     return ind;
 }
 
-void FreePages(int index, size_t size) 
+void PageAllocator_FreePages(uint32_t index, size_t size) 
 {	
-	size_t numPages = (size / PAGESIZE) + 1;
+	size_t numPages = (size + PAGE_SIZE - 1) / PAGE_SIZE;
 
-	int i = index;
+	uint32_t i = index;
 	while(i < numPages){
 		pages[i].used = 0;
 		pages[i].next = pages[i].prev = (KMemPage*)0;
 	}
 }
 
-uintptr_t GetPageAddr(int index)
+uintptr_t PageAllocator_GetPageAddr(uint32_t index)
 {
 	return pages[index].vaddr;
 }
 
-void DebugPrintPagesUsed() 
+void PageAllocator_DebugPrintPagesUsed() 
 {
 	kprintf("Pages in use:\n");
 	for(int i = 0; i < MAX_PAGES; i++){

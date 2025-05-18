@@ -7,10 +7,9 @@
 #define KERN_HEAP_START 0xC0000000
 
 typedef struct {
-	int pageIndex;
+	int32_t pageIndex;
 	size_t size;
 } kSlab;
 
-void kSlabAllocInit();
-kSlab kSlabAlloc(unsigned long size);
+kSlab kSlabAlloc(size_t size);
 void kSlabFree(kSlab slab);

@@ -8,7 +8,7 @@ OC=llvm-objcopy
 LD=ld.lld
 INCLUDE := include
 
-CFLAGS := -I$(INCLUDE) -Wall -O0 -ffreestanding -nostdinc -nostdlib -mcpu=cortex-a53+nosimd
+CFLAGS := -I$(INCLUDE) -Wall -O2 -ffreestanding -nostdinc -nostdlib -mcpu=cortex-a53+nosimd -fPIE
 ASFLAGS := -I$(INCLUDE) -D__ASSEMBLY__
 
 rwildcard = $(foreach d, $(wildcard $1*), $(filter $(subst *, %, $2), $d) $(call rwildcard, $d/, $2))

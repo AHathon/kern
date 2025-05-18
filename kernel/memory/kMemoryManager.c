@@ -2,7 +2,7 @@
 
 void kMemManager_Init()
 {
-    kSlabAllocInit();
+    PageAllocator_Init();
     kprintf("Initialized kMemoryManager\n");
 }
 

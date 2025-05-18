@@ -33,7 +33,7 @@ void initMMU() {
     unsigned long paging = (unsigned long)&__page_table;
     asm volatile ("msr ttbr0_el1, %0" : : "r" (paging + 0 |
                                                 TTBR_CNP)); // lower half, user space (set common-not-priv)
-    asm volatile ("msr ttbr1_el1, %0" : : "r" (paging + PAGESIZE | 
+    asm volatile ("msr ttbr1_el1, %0" : : "r" (paging + PAGE_SIZE | 
                                                 TTBR_CNP)); // upper half, kernel space (set common-not-priv)
     
     //sync
@@ -50,12 +50,12 @@ void initMMU() {
 
 void setupUserPageTables() {
     unsigned long *paging = (unsigned long *)&__page_table;
-    unsigned long data_page = (unsigned long)&__data_start / PAGESIZE;
-    unsigned long bss_page = (unsigned long)&__bss_start / PAGESIZE;
+    unsigned long data_page = (unsigned long)&__data_start / PAGE_SIZE;
+    unsigned long bss_page = (unsigned long)&__bss_start / PAGE_SIZE;
     unsigned b, r;
 
     // TTBR0, identity L1
-    paging[PAGE_TABLE_IDX(0, 0)] = (unsigned long)((unsigned char *)&__page_table + 2 * PAGESIZE) |
+    paging[PAGE_TABLE_IDX(0, 0)] = (unsigned long)((unsigned char *)&__page_table + 2 * PAGE_SIZE) |
         PT_TABLE | 
         PT_AF | 
         PT_USER | 
@@ -63,7 +63,7 @@ void setupUserPageTables() {
         PT_MEM;
 
     // Identity L2
-    paging[PAGE_TABLE_IDX(2, 0)] = (unsigned long)((unsigned char *)&__page_table + 3 * PAGESIZE) |
+    paging[PAGE_TABLE_IDX(2, 0)] = (unsigned long)((unsigned char *)&__page_table + 3 * PAGE_SIZE) |
         PT_TABLE | 
         PT_AF | 
         PT_USER | 
@@ -83,7 +83,7 @@ void setupUserPageTables() {
 
     // Identity L3: map first 2MB region as 4K pages
     for (r = 0; r < PAGE_TABLE_SIZE; r++) {
-        paging[PAGE_TABLE_IDX(3, r)] = (r * PAGESIZE) |
+        paging[PAGE_TABLE_IDX(3, r)] = (r * PAGE_SIZE) |
             PT_PAGE | 
             PT_AF | 
             PT_USER | 
@@ -92,7 +92,7 @@ void setupUserPageTables() {
     }
 
     // Overwrite .bss as readable/writable memory
-    paging[PAGE_TABLE_IDX(3, bss_page)] = (unsigned long)(bss_page * PAGESIZE) |
+    paging[PAGE_TABLE_IDX(3, bss_page)] = (unsigned long)(bss_page * PAGE_SIZE) |
         PT_PAGE | 
         PT_AF | 
         PT_RW | 
@@ -103,13 +103,13 @@ void setupUserPageTables() {
 
 void setupKernelPageTables() {
     unsigned long *paging = (unsigned long *)&__page_table;
-    unsigned long data_page = (unsigned long)&__data_start / PAGESIZE;
-    unsigned long bss_page = (unsigned long)&__bss_start / PAGESIZE;
-    unsigned long pageTableSize = PAGESIZE / sizeof(unsigned long);
+    unsigned long data_page = (unsigned long)&__data_start / PAGE_SIZE;
+    unsigned long bss_page = (unsigned long)&__bss_start / PAGE_SIZE;
+    unsigned long pageTableSize = PAGE_SIZE / sizeof(unsigned long);
     unsigned r, b;
 
     // TTBR1, kernel L1
-    paging[PAGE_TABLE_IDX(1, 0)] = (unsigned long)((unsigned char *)&__page_table + 4 * PAGESIZE) |
+    paging[PAGE_TABLE_IDX(1, 0)] = (unsigned long)((unsigned char *)&__page_table + 4 * PAGE_SIZE) |
         PT_TABLE | 
         PT_AF | 
         PT_KERNEL | 
@@ -117,7 +117,7 @@ void setupKernelPageTables() {
         PT_MEM;
 
     // Kernel L2
-    paging[PAGE_TABLE_IDX(4, 0)] = (unsigned long)((unsigned char *)&__page_table + 5 * PAGESIZE) |
+    paging[PAGE_TABLE_IDX(4, 0)] = (unsigned long)((unsigned char *)&__page_table + 5 * PAGE_SIZE) |
         PT_TABLE | 
         PT_AF | 
         PT_KERNEL | 
@@ -135,7 +135,7 @@ void setupKernelPageTables() {
 
     // Kernel L3: map a single page (e.g., MMIO or kernel stack)
     for (r = 0; r < PAGE_TABLE_SIZE; r++) 
-        paging[PAGE_TABLE_IDX(5, r)] = (r * PAGESIZE) |
+        paging[PAGE_TABLE_IDX(5, r)] = (r * PAGE_SIZE) |
             PT_PAGE | 
             PT_AF |
             PT_KERNEL | 

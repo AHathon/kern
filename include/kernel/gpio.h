@@ -2,9 +2,9 @@
 
 #include "libraries/types.h"
 
-#ifndef _GPIO_H_NO_EXTERNS
 extern uint64_t MMIO_BASE;
-#endif  // _GPIO_H_NO_EXTERNS
+
+#define MMIO_PADDR 0x3F000000
 
 #define GPFSEL0         ((volatile unsigned int*)(MMIO_BASE+0x00200000))
 #define GPFSEL1         ((volatile unsigned int*)(MMIO_BASE+0x00200004))

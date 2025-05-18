@@ -5,8 +5,8 @@
 
 #define KERNEL_VIRT_BASE 0xFFFFFF8000000000
 
-#define PAGESIZE 4096
-#define PAGE_TABLE_SIZE (PAGESIZE / sizeof(unsigned long))
+#define PAGE_SIZE 4096
+#define PAGE_TABLE_SIZE (PAGE_SIZE / sizeof(unsigned long))
 #define PAGE_TABLE_IDX(i, o) (i * PAGE_TABLE_SIZE + o)
 
 #define PT_PAGE  0b11
