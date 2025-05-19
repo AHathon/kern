@@ -1,6 +1,9 @@
 #pragma once
 
+#include "kCodeSection.h"
+
 typedef struct {
-    void *text;
-    void *data;
+    kCodeSection text;
+    kCodeSection data;
+    kCodeSection rodata;
 } kCodeSet;

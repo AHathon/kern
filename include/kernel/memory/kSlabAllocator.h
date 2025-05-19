@@ -2,14 +2,12 @@
 
 #include "libraries/types.h"
 #include "kernel/memory/kMemoryPage.h"
-#include "kernel/kPageAllocator.h"
-
-#define KERN_HEAP_START 0xC0000000
+#include "kernel/memory/kPageAllocator.h"
 
 typedef struct {
-	int32_t pageIndex;
-	size_t size;
+	struct kSlab *next;
 } kSlab;
 
-kSlab kSlabAlloc(size_t size);
-void kSlabFree(kSlab slab);
+void kSlabAlloc_Init(kSlab *slab, size_t objSize, size_t slabSize);
+void kSlabAlloc_Allocate(kSlab *slab, size_t size);
+void kSlabAlloc_Free(kSlab slab);

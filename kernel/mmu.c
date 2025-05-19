@@ -52,7 +52,7 @@ void setupUserPageTables() {
     unsigned long *paging = (unsigned long *)&__page_table;
     unsigned long data_page = (unsigned long)&__data_start / PAGE_SIZE;
     unsigned long bss_page = (unsigned long)&__bss_start / PAGE_SIZE;
-    unsigned b, r;
+    uint32_t r;
 
     // TTBR0, identity L1
     paging[PAGE_TABLE_IDX(0, 0)] = (unsigned long)((unsigned char *)&__page_table + 2 * PAGE_SIZE) |
@@ -71,14 +71,13 @@ void setupUserPageTables() {
         PT_MEM;
 
     // Identity L2 2MB blocks (except first block handled by L3)
-    b = MMIO_BASE >> 21;
-    for (r = 1; r < PAGE_TABLE_SIZE; r++) {
+    for (r = 1; r < (MMIO_BASE >> 21); r++) {
         paging[PAGE_TABLE_IDX(2, r)] = (r << 21) |
             PT_BLOCK | 
             PT_AF | 
             PT_NX | 
             PT_USER |
-            (r >= b ? PT_OSH | PT_DEV : PT_ISH | PT_MEM);
+            PT_ISH | PT_MEM;
     }
 
     // Identity L3: map first 2MB region as 4K pages
@@ -106,7 +105,7 @@ void setupKernelPageTables() {
     unsigned long data_page = (unsigned long)&__data_start / PAGE_SIZE;
     unsigned long bss_page = (unsigned long)&__bss_start / PAGE_SIZE;
     unsigned long pageTableSize = PAGE_SIZE / sizeof(unsigned long);
-    unsigned r, b;
+    uint32_t r;
 
     // TTBR1, kernel L1
     paging[PAGE_TABLE_IDX(1, 0)] = (unsigned long)((unsigned char *)&__page_table + 4 * PAGE_SIZE) |
@@ -123,15 +122,19 @@ void setupKernelPageTables() {
         PT_KERNEL | 
         PT_ISH | 
         PT_MEM;
-    b = MMIO_BASE >> 21;
     
     for (r = 1; r < PAGE_TABLE_SIZE; r++)
+    {
+        uint32_t flags = PT_ISH | PT_MEM;
+        if(r >= MMIO_BASE >> 21)
+            flags = PT_OSH | PT_DEV;
         paging[PAGE_TABLE_IDX(4, r)] = (r << 21) |
             PT_BLOCK | 
             PT_AF | 
             PT_NX | 
             PT_KERNEL | 
-            (r >= b ? PT_OSH | PT_DEV : PT_ISH | PT_MEM);
+            flags;
+    }
 
     // Kernel L3: map a single page (e.g., MMIO or kernel stack)
     for (r = 0; r < PAGE_TABLE_SIZE; r++) 

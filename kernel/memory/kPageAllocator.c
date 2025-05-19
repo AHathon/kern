@@ -1,4 +1,4 @@
-#include "kernel/kPageAllocator.h"
+#include "kernel/memory/kPageAllocator.h"
 
 void PageAllocator_Init() 
 {

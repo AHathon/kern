@@ -9,7 +9,7 @@ extern const char *__kips_end;
 
 #define MAX_PROC 256
 
-static KProcess processTable[MAX_PROC];
+static kProcess processTable[MAX_PROC];
 static unsigned lastPID = 0;
 
 void InitProcessTable();

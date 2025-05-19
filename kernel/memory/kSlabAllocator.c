@@ -1,14 +1,16 @@
 #include "kernel/memory/kSlabAllocator.h"
 
-kSlab kSlabAlloc(size_t size)
+void kSlabAlloc_Init(kSlab *slab, size_t objSize, size_t slabSize)
 {
-	kSlab slab;
-	slab.pageIndex = PageAllocator_AllocPages(size);
-	slab.size = size;
-	return slab;
+	//PageAllocator_AllocPages(slabSize);
 }
 
-void kSlabFree(kSlab slab)
+void kSlabAlloc_Allocate(kSlab *slab, size_t size)
 {
-	PageAllocator_FreePages(slab.pageIndex, slab.size);
+	//TODO
+}
+
+void kSlabAlloc_Free(kSlab slab)
+{
+	//PageAllocator_FreePages(slab.pageIndex, slab.size);
 }
