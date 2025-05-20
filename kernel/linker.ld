@@ -1,14 +1,18 @@
-ENTRY(_start)
+ENTRY(__start_kernel)
+
+BOOT_PHYS_BASE = 0x00080000;
+KERNEL_BASE    = 0xFFFFFF8000000000;
+PREKERNEL_SIZE = 0x1000;
 
 SECTIONS
 {
-    . = 0x00080000;
-    .text :
+    . = BOOT_PHYS_BASE + 0x1000;
+    .text : 
     {
-        __start = .;
+        __start_kernel = .;
         __text_start = .;
-        KEEP(*(.text.boot))
-        *(.text .text.*)
+        KEEP(*(.text.kernel))
+        *(.text.kernel)
         . = ALIGN(4096);
         __text_end = .;
     }
@@ -34,7 +38,7 @@ SECTIONS
     .bss :
     {
         __bss_start = .;
-        *(.bss)
+        *(.bss .COMMON)
         . = ALIGN(4096);
         __bss_end = .;
     }
