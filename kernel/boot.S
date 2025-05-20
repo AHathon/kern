@@ -41,4 +41,6 @@ loop:
     b loop
 
 .section ".kips"
+.align 12 
+__kips_start:
 .INCBIN "KIPs/kip_blob"

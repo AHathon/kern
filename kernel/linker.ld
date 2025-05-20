@@ -6,7 +6,7 @@ PREKERNEL_SIZE = 0x1000;
 
 SECTIONS
 {
-    . = BOOT_PHYS_BASE + 0x1000;
+    . = BOOT_PHYS_BASE + PREKERNEL_SIZE;
     .text : 
     {
         __start_kernel = .;
