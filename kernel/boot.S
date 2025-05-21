@@ -22,6 +22,7 @@ setup_mmu:
     str x9, [x10]
 
     bl VMM_Init
+    bl MMU_Start
 
 boot_kernel:
     mov x1, #0

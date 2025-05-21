@@ -1,7 +1,7 @@
 #pragma once
 
 #include "libraries/types.h"
-#include "kernel/exceptionDef.h"
+#include "libraries/hardware/exceptionDef.h"
 #include "libraries/hardware/debug.h"
 
 extern char el1_vector_base[1];

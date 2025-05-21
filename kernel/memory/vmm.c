@@ -1,4 +1,4 @@
-#include "kernel/mmu.h"
+#include "kernel/memory/vmm.h"
 
 inline void setupVMM() 
 {
@@ -42,11 +42,6 @@ inline void setupVMM()
 
     //Set mmio to virt addr
     MMIO_BASE = MMIO_PADDR + KERNEL_VIRT_BASE;
-
-    //Get system control reg and enable MMU
-    asm volatile ("mrs %0, sctlr_el1" : "=r" (r));
-    r |= (1 << 0);   //MMU enable;
-    asm volatile ("msr sctlr_el1, %0; isb" : : "r" (r));
 }
 
 inline void setupUserPageTables() 

@@ -1,6 +1,6 @@
 #include "libraries/types.h"
 
-#include "kernel/mmu.h"
+#include "kernel/memory/vmm.h"
 #include "kernel/memory/kMemoryManager.h"
 #include "kernel/kProcessManager.h"
 #include "kernel/exceptions.h"

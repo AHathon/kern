@@ -3,7 +3,7 @@
 #include "libraries/hardware/debug.h"
 #include "kernel/memory/kSlabAllocator.h"
 #include "kernel/memory/kMemoryPage.h"
-#include "kernel/mmu.h"
+#include "kernel/memory/vmm.h"
 
 #define MAX_PAGES 256
 
