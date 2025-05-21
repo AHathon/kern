@@ -1,14 +1,13 @@
 #include "libraries/types.h"
 
 #include "kernel/mmu.h"
-#include "kernel/gpio.h"
-#include "kernel/debug.h"
 #include "kernel/memory/kMemoryManager.h"
 #include "kernel/kProcessManager.h"
 #include "kernel/exceptions.h"
-#include "kernel/debug.h"
-#include "kernel/cpu.h"
 #include "kernel/kScheduler.h"
+#include "libraries/hardware/debug.h"
+#include "libraries/hardware/gpio.h"
+#include "libraries/hardware/cpu.h"
 
 void kMain(uint64_t dtb_ptr32){
 

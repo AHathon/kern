@@ -1,6 +1,6 @@
 #pragma once
 
-#include "kernel/debug.h"
+#include "libraries/hardware/debug.h"
 #include "kernel/memory/kSlabAllocator.h"
 #include "kernel/memory/kMemoryPage.h"
 #include "kernel/mmu.h"

@@ -1,6 +1,7 @@
 #include "kernel/mmu.h"
 
-inline void setupVMM() {
+inline void setupVMM() 
+{
     unsigned long r, b;
     
     asm volatile ("mrs %0, id_aa64mmfr0_el1" : "=r" (r));
@@ -40,7 +41,7 @@ inline void setupVMM() {
     asm volatile ("dsb ish; isb");
 
     //Set mmio to virt addr
-    MMIO_BASE += KERNEL_VIRT_BASE;
+    MMIO_BASE = MMIO_PADDR + KERNEL_VIRT_BASE;
 
     //Get system control reg and enable MMU
     asm volatile ("mrs %0, sctlr_el1" : "=r" (r));
@@ -48,7 +49,8 @@ inline void setupVMM() {
     asm volatile ("msr sctlr_el1, %0; isb" : : "r" (r));
 }
 
-inline void setupUserPageTables() {
+inline void setupUserPageTables() 
+{
     unsigned long *paging = (unsigned long *)&__page_table;
     unsigned long data_page = (unsigned long)&__data_start / PAGE_SIZE;
     unsigned long bss_page = (unsigned long)&__bss_start / PAGE_SIZE;
@@ -100,7 +102,8 @@ inline void setupUserPageTables() {
         PT_MEM;
 }
 
-inline void setupKernelPageTables() {
+inline void setupKernelPageTables() 
+{
     unsigned long *paging = (unsigned long *)&__page_table;
     unsigned long data_page = (unsigned long)&__data_start / PAGE_SIZE;
     unsigned long bss_page = (unsigned long)&__bss_start / PAGE_SIZE;
@@ -146,8 +149,10 @@ inline void setupKernelPageTables() {
             ((r < 0x81 || r > data_page) ? PT_RW | PT_NX : PT_RO);
 }
 
-void VMM_Init() {
+void VMM_Init() 
+{
     kprintf("Setting up VMM/MMU\n");
+
     setupUserPageTables();
     setupKernelPageTables();    
     

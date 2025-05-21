@@ -67,6 +67,10 @@ drop_EL2_to_EL1:
     orr x2, x2, #(1 << 29)  //FEAT_LSMAOC: The ordering and interrupt behavior of A32 and T32 Load Multiple and Store Multiple at EL0 is as defined for Armv8.0.
     msr sctlr_el1, x2
 
+    //Set EL1 stack pointer
+    ldr x0, =__stack_top
+    msr SP_EL1, x0
+
     //sync
     dsb ish
     isb
@@ -74,6 +78,25 @@ drop_EL2_to_EL1:
 	eret
 
 start_EL1:
+    // zero bss for crt
+    ldr x5, =__bss_start
+    ldr x6, =__bss_size
+
+memset:
+    cbz w6, start_uart
+    str xzr, [x5], #8
+    sub w6, w6, #1
+    cbnz w6, memset
+
+start_uart:
+    //setup UART
+    mov x9, #0x3F000000
+    ldr x10, =MMIO_BASE
+    str x9, [x10]
+    bl UART1_Init
+    isb
+
+    //Jump to kern
     ldr x0, =__kernel_blob
     br x0
 
@@ -81,7 +104,8 @@ loop:
     wfi
     b loop
 
-.section ".data.kernel_blob"
+.section ".kernel", "a"
 .align 12 
+.global __kernel_blob
 __kernel_blob:
-.INCBIN "kernel8.img"
+    .incbin "kernel8.img"

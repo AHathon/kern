@@ -8,7 +8,7 @@ $(TARGET):
 	$(MAKE) -C pm
 	$(MAKE) -C fs
 	$(MAKE) -C boot
-	@cat boot/boot pm/pm fs/fs > kip_blob
+	@cat boot/boot.kip pm/pm.kip fs/fs.kip > kip_blob
 
 clean:
 	@rm -f kip_blob

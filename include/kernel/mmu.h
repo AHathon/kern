@@ -1,7 +1,7 @@
 #pragma once
 
-#include "kernel/uart.h"
-#include "debug.h"
+#include "libraries/hardware/uart.h"
+#include "libraries/hardware/debug.h"
 
 #define KERNEL_VIRT_BASE 0xFFFFFF8000000000
 

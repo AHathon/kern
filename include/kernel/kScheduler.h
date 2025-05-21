@@ -1,7 +1,7 @@
 #pragma once
 
 #include "kernel/kProcessManager.h"
-#include "kernel/irq.h"
+#include "libraries/hardware/irq.h"
 
 static unsigned currProc;
 

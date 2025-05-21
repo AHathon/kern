@@ -1,53 +1,56 @@
 ENTRY(_start)
 
-BOOT_PHYS_BASE   = 0x00080000;
+BOOT_PHYS_BASE = 0x00080000;
+PREKERNEL_SIZE = 0x1000;
 
 SECTIONS
 {
     . = BOOT_PHYS_BASE;
-    .text : 
+    .text : ALIGN(4K)
     {
         __start = .;
         __text_start = .;
         KEEP(*(.text.boot))
-        *(.text.*)
-        . = ALIGN(4096);
+        *(.text .text.boot)
         __text_end = .;
     }
 
-    .rodata :
-    {
-        __rodata_start = .;
-        *(.rodata .rodata.*)
-        . = ALIGN(4096);
-        __rodata_end = .;
-    }
-    . = ALIGN(4096);
-    
-    PROVIDE(_data = .);
-    .data.kernel : 
-    {
+    . = BOOT_PHYS_BASE + PREKERNEL_SIZE;
+    .kernel : ALIGN(4K) {
         __kernel_blob = .;
-        *(.data.kernel)
+        KEEP(*(.kernel))
+        __kernel_blob_end = .;
     }
-    .data :
+
+    .data : ALIGN(4K)
     {
         __data_start = .;
-        *(.data .data.*)
-        . = ALIGN(4096);
+        *(.data)
         __data_end = .;
     }
 
-    .bss :
+    .rodata : ALIGN(4K)
+    {
+        __rodata_start = .;
+        *(.rodata .rodata.*)
+        __rodata_end = .;
+    }
+
+    .got : ALIGN(4K)
+    {
+        __got_start = .;
+        *(.got .got.*)
+        __got_end = .;
+    }
+
+    .bss : ALIGN(4K)
     {
         __bss_start = .;
         *(.bss .COMMON)
-        . = ALIGN(4096);
         __bss_end = .;
     }
 
     __bss_size = __bss_end - __bss_start;
-    . = ALIGN(4096);
     __stack_bottom = .;
     . = . + 0x1000; /* 4KB stack for core 0 */
     __stack_top = .;

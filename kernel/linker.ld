@@ -7,39 +7,35 @@ PREKERNEL_SIZE = 0x1000;
 SECTIONS
 {
     . = BOOT_PHYS_BASE + PREKERNEL_SIZE;
-    .text : 
+    .text : ALIGN(4K)
     {
         __start_kernel = .;
         __text_start = .;
         KEEP(*(.text.kernel))
-        *(.text.kernel)
-        . = ALIGN(4096);
+        *(.text .text.*)
         __text_end = .;
     }
 
-    .rodata :
+    .rodata : ALIGN(4K)
     {
         __rodata_start = .;
         *(.rodata .rodata.*)
-        . = ALIGN(4096);
         __rodata_end = .;
     }
     . = ALIGN(4096);
     
     PROVIDE(_data = .);
-    .data :
+    .data : ALIGN(4K)
     {
         __data_start = .;
         *(.data .data.*)
-        . = ALIGN(4096);
         __data_end = .;
     }
 
-    .bss :
+    .bss : ALIGN(4K)
     {
         __bss_start = .;
         *(.bss .COMMON)
-        . = ALIGN(4096);
         __bss_end = .;
     }
 
@@ -52,10 +48,10 @@ SECTIONS
     __page_table = .;
     . += 0x2000; /* 2 pages */
 
-    .kips : {
+    .kips : ALIGN(16)
+    {
         __kips_start = .;
         KEEP(*(.kips))
-        . = ALIGN(8);
         __kips_end = .;
     }
 }

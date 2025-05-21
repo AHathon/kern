@@ -14,7 +14,11 @@ OBJECTS := $(patsubst $(SOURCES)/%.cpp, $(BUILD)/%.o, $(call rwildcard, $(SOURCE
 
 all: $(TARGET)
 
-$(TARGET): $(OBJECTS)
+$(TARGET): $(TARGET).bin
+	$(CC) -c -x assembler-with-cpp $(CFLAGS) -DSERVICE_MAGIC="\"$(TARGET)\"" -DSERVICE_BIN="\"$(TARGET).bin\"" ../../include/libraries/services/container.S -o $(BUILD)/container.o
+	$(OC) -O binary $(BUILD)/container.o $(TARGET).kip
+
+$(TARGET).bin: $(OBJECTS)
 	@mkdir -p $(@D)
 	$(CC) -T linker.ld $(CFLAGS) -o $(TARGET).elf $^
 	$(OC) $(CURDIR)/$(TARGET).elf -O binary $@
@@ -24,4 +28,4 @@ $(BUILD)/%.o: $(SOURCES)/%.cpp
 	$(CC) -c $< $(CFLAGS) -o $@
 
 clean:
-	rm -rf $(BUILD) $(TARGET).elf $(TARGET)
+	rm -rf $(BUILD) $(TARGET).elf $(TARGET).bin $(TARGET)

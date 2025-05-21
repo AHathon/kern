@@ -11,26 +11,19 @@ clear_bss:
     ldr x6, =__bss_size
 
 memset:
-    cbz w6, set_mmio_base
+    cbz w6, setup_mmu
     str xzr, [x5], #8
     sub w6, w6, #1
     cbnz w6, memset
 
-set_mmio_base:
+setup_mmu:
     mov x9, #0x3F000000
     ldr x10, =MMIO_BASE
     str x9, [x10]
-    
-setup_uart:
-    bl UART1_Init
 
-setup_mmu:
     bl VMM_Init
 
 boot_kernel:
-    ldr x1, =__stack_top
-    mov sp, x1
-    
     mov x1, #0
     mov x2, #0
     mov x3, #0
@@ -40,7 +33,8 @@ loop:
     wfi
     b loop
 
-.section ".kips"
-.align 12 
+.section ".kips", "a"
+.align 12
+.global __kips_start
 __kips_start:
-.INCBIN "KIPs/kip_blob"
+    .incbin "KIPs/kip_blob"

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "kernel/kProcess.h"
-#include "kernel/debug.h"
+#include "libraries/hardware/debug.h"
 #include "kernel/memory/kMemoryManager.h"
 
 extern const char *__kips_start;
