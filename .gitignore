@@ -3,9 +3,9 @@ build/*
 kernel8.elf
 kernel8.img
 KIPs/pm/build/*
-KIPs/pm/pm.elf
+KIPs/pm/pm.*
 KIPs/fs/build/*
-KIPs/fs/fs.elf
+KIPs/fs/fs.*
 KIPs/boot/build/*
-KIPs/boot/boot.elf
+KIPs/boot/boot.*
 .gdb_history
