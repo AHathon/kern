@@ -1,11 +1,13 @@
 .vscode/*
 build/*
-kernel8.elf
-kernel8.img
 KIPs/pm/build/*
 KIPs/pm/pm.*
 KIPs/fs/build/*
 KIPs/fs/fs.*
 KIPs/boot/build/*
 KIPs/boot/boot.*
+KIPs/kip_blob
+*.bin
+*.elf
+*.img
 .gdb_history
