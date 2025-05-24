@@ -63,10 +63,10 @@ $(kernel).elf: $(OBJS_kern)
 	$(LD) -m aarch64elf -nostdlib -T kernel/linker.ld -o $@ $^
 
 $(BUILD)/kernel/%.o: kernel/%.S
-	$(CC) --target=aarch64-elf $(ASFLAGS) -fPIE -c -o $@ $^
+	$(CC) --target=aarch64-elf $(ASFLAGS) -c -o $@ $^
 
 $(BUILD)/kernel/%.o: kernel/%.c
-	$(CC) --target=aarch64-elf $(CFLAGS) -fPIE -c -o $@ $^
+	$(CC) --target=aarch64-elf $(CFLAGS) -c -o $@ $^
 
 $(BUILD)/boot/%.o: boot/%.S
 	$(CC) --target=aarch64-elf $(ASFLAGS) -c -o $@ $^

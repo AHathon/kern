@@ -3,8 +3,8 @@
 inline void SetupKernelVMM(unsigned long page_table) 
 {
     unsigned long *paging = (unsigned long*)page_table + PAGE_SIZE;
-    unsigned long data_page = ((unsigned long)&__data_start - KERNEL_VIRT_BASE) / PAGE_SIZE;
-    unsigned long bss_page = ((unsigned long)&__bss_start - KERNEL_VIRT_BASE) / PAGE_SIZE;
+    unsigned long data_page = ((unsigned long)&__data_start) / PAGE_SIZE;
+    unsigned long bss_page = ((unsigned long)&__bss_start) / PAGE_SIZE;
     uint32_t r;
 
     // TTBR1, kernel L1
