@@ -1,6 +1,6 @@
 #pragma once
 
-#include "kernel/memory/vmm.h"
+#include "libraries/types.h"
 
 typedef struct {
     uintptr_t vaddr;

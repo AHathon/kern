@@ -2,11 +2,11 @@ ENTRY(__start_kernel)
 
 BOOT_PHYS_BASE = 0x00080000;
 KERNEL_BASE    = 0xFFFFFF8000000000;
-PREKERNEL_SIZE = 0x1000;
+PREKERNEL_SIZE = 0x2000;
 
 SECTIONS
 {
-    . = BOOT_PHYS_BASE + PREKERNEL_SIZE;
+    . = KERNEL_BASE + BOOT_PHYS_BASE + PREKERNEL_SIZE;
     .text : ALIGN(4K)
     {
         __start_kernel = .;
@@ -38,17 +38,14 @@ SECTIONS
         *(.bss .COMMON)
         __bss_end = .;
     }
-
     __bss_size = __bss_end - __bss_start;
     . = ALIGN(4096);
     __stack_bottom = .;
     . = . + 0x1000; /* 4KB stack for core 0 */
     __stack_top = .;
     . = ALIGN(4096);
-    __page_table = .;
-    . += 0x2000; /* 2 pages */
-
-    .kips : ALIGN(16)
+    
+    .kips : ALIGN(4K)
     {
         __kips_start = .;
         KEEP(*(.kips))

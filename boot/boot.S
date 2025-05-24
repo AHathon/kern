@@ -89,16 +89,20 @@ memset:
     cbnz w6, memset
 
 start_uart:
-    //setup UART
-    mov x9, #0x3F000000
-    ldr x10, =MMIO_BASE
-    str x9, [x10]
     bl UART1_Init
     isb
 
-    //Jump to kern
-    ldr x0, =__kernel_blob
-    br x0
+start_mmu:
+    bl VMM_Init
+    mrs x1, sctlr_el1
+    orr x1, x1, #1
+    msr sctlr_el1, x1
+    isb
+
+jump_kern:
+    ldr x0, =__page_table
+    ldr x8, =__kernel_blob
+    br x8
 
 loop:
     wfi

@@ -1,7 +1,7 @@
 ENTRY(_start)
 
 BOOT_PHYS_BASE = 0x00080000;
-PREKERNEL_SIZE = 0x1000;
+PREKERNEL_SIZE = 0x2000;
 
 SECTIONS
 {
@@ -55,4 +55,6 @@ SECTIONS
     . = . + 0x1000; /* 4KB stack for core 0 */
     __stack_top = .;
     . = ALIGN(4096);
+    __page_table = .;
+    . += 0x2000; /* 2 pages */
 }

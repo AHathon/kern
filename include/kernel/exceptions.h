@@ -3,6 +3,7 @@
 #include "libraries/types.h"
 #include "libraries/hardware/exceptionDef.h"
 #include "libraries/hardware/debug.h"
+#include "libraries/hardware/uart.h"
 
 extern char el1_vector_base[1];
 extern void (*swi_table[NR_SYSCALLS])(volatile unsigned* regs);

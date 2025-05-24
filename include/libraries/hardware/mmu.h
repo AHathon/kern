@@ -19,5 +19,3 @@
 #define PT_NC       (2 << 2)  // non-cacheable
 
 #define TTBR_CNP 1
-
-void MMU_Start();
