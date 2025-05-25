@@ -5,6 +5,7 @@
 .global _start_kernel
 _start_kernel:
     mov x8, x0
+    //set stack to phys
     ldr x0, =__stack_top
     ldr x11, =KERNEL_VIRT_BASE
     sub x0, x0, x11
@@ -29,12 +30,16 @@ memset:
 setup_mmu:
     mov x0, x8
     bl SetupKernelVMM
+    dsb ish
+    tlbi vmalle1is
+    dsb ish
+    isb
 
+    //set stack to virtual
     ldr x11, =KERNEL_VIRT_BASE
-    ldr x9, =MMIO_PADDR
-    add x9, x9, x11
-    ldr x10, =MMIO_BASE
-    str x9, [x10]
+    mov x0, sp
+    add x0, x0, x11
+    mov sp, x0
 
 boot_kernel:
     mov x1, #0

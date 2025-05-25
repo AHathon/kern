@@ -2,7 +2,7 @@
 
 inline void SetupKernelVMM(unsigned long page_table) 
 {
-    unsigned long *paging = (unsigned long*)page_table;
+    unsigned long *paging = (unsigned long*)(page_table);
     unsigned long data_page = ((unsigned long)&__data_start) / PAGE_SIZE;
     unsigned long bss_page = ((unsigned long)&__bss_start) / PAGE_SIZE;
     unsigned long bss_end = ((unsigned long)&__bss_end) / PAGE_SIZE;
@@ -48,11 +48,5 @@ inline void SetupKernelVMM(unsigned long page_table)
             PT_ISH |
             PT_RW;
 
-
-
-    asm volatile ("dsb ish");          // Ensure page table writes complete
-    asm volatile ("tlbi vmalle1is");   // Invalidate all EL1 TLB entries
-    asm volatile ("dsb ish");          // Ensure TLB invalidation completes
-    asm volatile ("isb");              // Synchronize the instruction stream
-
+    MMIO_BASE = MMIO_PADDR + KERNEL_VIRT_BASE;
 }

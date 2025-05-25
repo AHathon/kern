@@ -44,6 +44,8 @@ SECTIONS
     . = . + 0x1000; /* 4KB stack for core 0 */
     __stack_top = .;
     . = ALIGN(4096);
+    __page_table = .;
+    . += 0x2000; /* 2 pages */
     
     .kips : ALIGN(4K)
     {

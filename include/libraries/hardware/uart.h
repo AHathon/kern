@@ -3,19 +3,20 @@
 #include "libraries/types.h"
 #include "libraries/hardware/gpio.h"
 #include "libraries/hardware/debug.h"
+#include "libraries/hardware/mapping.h"
 
-#define UART1_ENABLE    ((volatile unsigned int *)(MMIO_BASE+0x00215004))
-#define UART1_IO        ((volatile unsigned int *)(MMIO_BASE+0x00215040))
-#define UART1_IER       ((volatile unsigned int *)(MMIO_BASE+0x00215044))
-#define UART1_IIR       ((volatile unsigned int *)(MMIO_BASE+0x00215048))
-#define UART1_LCR       ((volatile unsigned int *)(MMIO_BASE+0x0021504C))
-#define UART1_MCR       ((volatile unsigned int *)(MMIO_BASE+0x00215050))
-#define UART1_LSR       ((volatile unsigned int *)(MMIO_BASE+0x00215054))
-#define UART1_MSR       ((volatile unsigned int *)(MMIO_BASE+0x00215058))
-#define UART1_SCRATCH   ((volatile unsigned int *)(MMIO_BASE+0x0021505C))
-#define UART1_CNTL      ((volatile unsigned int *)(MMIO_BASE+0x00215060))
-#define UART1_STAT      ((volatile unsigned int *)(MMIO_BASE+0x00215064))
-#define UART1_BAUD      ((volatile unsigned int *)(MMIO_BASE+0x00215068))
+#define UART1_ENABLE    ((volatile unsigned int *)(UART_BASE+0x5004))
+#define UART1_IO        ((volatile unsigned int *)(UART_BASE+0x5040))
+#define UART1_IER       ((volatile unsigned int *)(UART_BASE+0x5044))
+#define UART1_IIR       ((volatile unsigned int *)(UART_BASE+0x5048))
+#define UART1_LCR       ((volatile unsigned int *)(UART_BASE+0x504C))
+#define UART1_MCR       ((volatile unsigned int *)(UART_BASE+0x5050))
+#define UART1_LSR       ((volatile unsigned int *)(UART_BASE+0x5054))
+#define UART1_MSR       ((volatile unsigned int *)(UART_BASE+0x5058))
+#define UART1_SCRATCH   ((volatile unsigned int *)(UART_BASE+0x505C))
+#define UART1_CNTL      ((volatile unsigned int *)(UART_BASE+0x5060))
+#define UART1_STAT      ((volatile unsigned int *)(UART_BASE+0x5064))
+#define UART1_BAUD      ((volatile unsigned int *)(UART_BASE+0x5068))
 
 void UART1_Init();
 
