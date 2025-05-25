@@ -3,8 +3,7 @@
 #include "libraries/hardware/uart.h"
 #include "libraries/hardware/debug.h"
 #include "libraries/hardware/mmu.h"
-
-#define KERNEL_VIRT_BASE 0xFFFFFF8000000000
+#include "libraries/hardware/mapping.h"
 
 #define PAGE_SIZE 4096
 #define PAGE_TABLE_SIZE (PAGE_SIZE / sizeof(unsigned long))

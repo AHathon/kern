@@ -1,0 +1,5 @@
+#pragma once
+
+#define KERNEL_VIRT_BASE 0xFFFFFF8000000000
+
+#define MMIO_PADDR 0x3F000000

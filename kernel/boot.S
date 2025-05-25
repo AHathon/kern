@@ -1,10 +1,12 @@
+#include "libraries/hardware/mapping.h"
+
 .section ".text.kernel"
 
 .global _start_kernel
 _start_kernel:
     mov x8, x0
     ldr x0, =__stack_top
-    mov x11, #0xFFFFFF8000000000
+    ldr x11, =KERNEL_VIRT_BASE
     sub x0, x0, x11
     mov sp, x0
 
@@ -28,8 +30,8 @@ setup_mmu:
     mov x0, x8
     bl SetupKernelVMM
 
-    mov x11, #0xFFFFFF8000000000
-    mov x9, #0x3F000000
+    ldr x11, =KERNEL_VIRT_BASE
+    ldr x9, =MMIO_PADDR
     add x9, x9, x11
     ldr x10, =MMIO_BASE
     str x9, [x10]
