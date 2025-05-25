@@ -27,8 +27,6 @@ memset:
 setup_mmu:
     mov x0, x8
     bl SetupKernelVMM
-    ldr x0, =__stack_top
-    mov sp, x0
 
     mov x11, #0xFFFFFF8000000000
     mov x9, #0x3F000000
@@ -40,7 +38,8 @@ boot_kernel:
     mov x1, #0
     mov x2, #0
     mov x3, #0
-    bl kMain
+    ldr x8, =kMain
+    blr x8
 
 loop:
     wfi

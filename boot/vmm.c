@@ -38,6 +38,7 @@ inline void setupVMM()
     asm volatile ("msr ttbr1_el1, %0" : : "r" (paging + PAGE_SIZE | 
                                                 TTBR_CNP)); // upper half, kernel space (set common-not-priv)
     
+    asm volatile("tlbi vmalle1is");
     //sync
     asm volatile("dsb ish");
     asm volatile("isb");
@@ -46,7 +47,7 @@ inline void setupVMM()
     MMIO_BASE = MMIO_PADDR + KERNEL_VIRT_BASE;
 }
 
-inline void setupUserPageTables() 
+inline void setupIdentityMap() 
 {
     unsigned long *paging = (unsigned long *)&__page_table;
     unsigned long rodata_page = (unsigned long)&__rodata_start / PAGE_SIZE;
@@ -99,53 +100,8 @@ inline void setupUserPageTables()
             PT_MEM;
 }
 
-inline void setupKernelPageTables() 
-{
-    unsigned long *paging = (unsigned long *)&__page_table;
-    unsigned long rodata_page = (unsigned long)&__rodata_start / PAGE_SIZE;
-    unsigned long bss_page = (unsigned long)&__bss_start / PAGE_SIZE;
-    uint32_t r;
-
-    // TTBR1, kernel L1
-    paging[PAGE_TABLE_IDX(1, 0)] = (unsigned long)((unsigned char *)&__page_table + 4 * PAGE_SIZE) |
-        PT_TABLE | 
-        PT_AF | 
-        PT_KERNEL | 
-        PT_ISH | 
-        PT_MEM;
-
-    // Kernel L2
-    paging[PAGE_TABLE_IDX(4, 0)] = (unsigned long)((unsigned char *)&__page_table + 5 * PAGE_SIZE) |
-        PT_TABLE | 
-        PT_AF | 
-        PT_KERNEL | 
-        PT_ISH | 
-        PT_MEM;
-    
-    for (r = 1; r < PAGE_TABLE_SIZE; r++)
-    {
-        paging[PAGE_TABLE_IDX(4, r)] = (r << 21) |
-            PT_BLOCK | 
-            PT_AF | 
-            PT_NX | 
-            PT_KERNEL | 
-            PT_ISH | PT_MEM;
-    }
-
-    // Kernel L3: map a single page (e.g., MMIO or kernel stack)
-    for (r = 0; r < PAGE_TABLE_SIZE; r++) 
-        paging[PAGE_TABLE_IDX(5, r)] = (r * PAGE_SIZE) |
-            PT_PAGE | 
-            PT_AF |
-            PT_KERNEL | 
-            PT_ISH |
-            PT_RW;
-}
-
 void VMM_Init() 
 {
-    setupUserPageTables();
-    setupKernelPageTables();    
-    
+    setupIdentityMap();
     setupVMM();
 }

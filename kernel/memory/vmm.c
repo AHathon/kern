@@ -2,9 +2,11 @@
 
 inline void SetupKernelVMM(unsigned long page_table) 
 {
-    unsigned long *paging = (unsigned long*)page_table + PAGE_SIZE;
+    unsigned long *paging = (unsigned long*)page_table;
     unsigned long data_page = ((unsigned long)&__data_start) / PAGE_SIZE;
     unsigned long bss_page = ((unsigned long)&__bss_start) / PAGE_SIZE;
+    unsigned long bss_end = ((unsigned long)&__bss_end) / PAGE_SIZE;
+    unsigned long text_end_page = ((unsigned long)&__text_end) / PAGE_SIZE;
     uint32_t r;
 
     // TTBR1, kernel L1
@@ -36,6 +38,7 @@ inline void SetupKernelVMM(unsigned long page_table)
             flags;
     }
 
+    // Overwrite .bss as readable/writable memory
     // Kernel L3: map a single page (e.g., MMIO or kernel stack)
     for (r = 0; r < PAGE_TABLE_SIZE; r++) 
         paging[PAGE_TABLE_IDX(5, r)] = (r * PAGE_SIZE) |
@@ -43,14 +46,13 @@ inline void SetupKernelVMM(unsigned long page_table)
             PT_AF |
             PT_KERNEL | 
             PT_ISH |
-            ((r < 0x80 || r > data_page) ? PT_RW | PT_NX : PT_RO);
+            PT_RW;
 
-    // Overwrite .bss as readable/writable memory
-    paging[PAGE_TABLE_IDX(5, bss_page)] = (unsigned long)(bss_page * PAGE_SIZE) |
-        PT_PAGE | 
-        PT_AF | 
-        PT_RW | 
-        PT_KERNEL | 
-        PT_ISH | 
-        PT_MEM;
+
+
+    asm volatile ("dsb ish");          // Ensure page table writes complete
+    asm volatile ("tlbi vmalle1is");   // Invalidate all EL1 TLB entries
+    asm volatile ("dsb ish");          // Ensure TLB invalidation completes
+    asm volatile ("isb");              // Synchronize the instruction stream
+
 }

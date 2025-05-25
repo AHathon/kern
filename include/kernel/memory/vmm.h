@@ -12,6 +12,7 @@
 
 extern volatile unsigned char __data_start;
 extern volatile unsigned char __bss_start;
-extern volatile uint64_t __bss_size;
+extern volatile unsigned char __bss_end;
+extern volatile unsigned char __text_end;
 
 void SetupKernelVMM(unsigned long page_table);
