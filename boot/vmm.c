@@ -38,9 +38,10 @@ inline void setupVMM()
     asm volatile ("msr ttbr1_el1, %0" : : "r" (paging + PAGE_SIZE | 
                                                 TTBR_CNP)); // upper half, kernel space (set common-not-priv)
     
+    //clear TLB
     asm volatile("tlbi vmalle1is");
     //sync
-    asm volatile("dsb ish");
+    asm volatile("dsb sy");
     asm volatile("isb");
 
     //Set mmio to virt addr
