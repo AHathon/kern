@@ -7,13 +7,13 @@
 
 #define MAX_PAGES 256
 
-static KMemPage pages[MAX_PAGES] = {};
+static char pageBitmap[MAX_PAGES / 8] = {};
 
 void PageAllocator_Init();
-int32_t PageAllocator_AllocPages(size_t size);
-int32_t PageAllocator_FindFirstFreePage();
-void PageAllocator_FreePages(uint32_t index, size_t size);
+int64_t PageAllocator_AllocPages(size_t pageCnt);
+void PageAllocator_FreePages(uint32_t page, size_t count);
 
-uintptr_t PageAllocator_GetPageAddr(uint32_t index);
+uint8_t PageAllocator_GetPageStatus(uint64_t page);
+uint64_t PageAllocator_UsedPagesCount();
 
 void PageAllocator_DebugPrintPagesUsed();

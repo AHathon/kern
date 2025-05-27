@@ -20,7 +20,7 @@ void CreateKProc(size_t stackSize, unsigned flags) {
 	unsigned proc = FindFreeProcSpace();
 	processTable[proc].PID = ++lastPID;
 	processTable[proc].flags = flags | IS_ACTIVE_PROC;
-	processTable[proc].memoryPool = PageAllocator_AllocPages(stackSize); //stack
+	//processTable[proc].memoryPool = PageAllocator_AllocPages(stackSize); //stack
 	processTable[proc].memoryPoolSize = stackSize;
 }
 
@@ -28,8 +28,8 @@ void KillProcess(unsigned ind) {
 	if(ind >= MAX_PROC) return;
 	processTable[ind].PID = 0;
 	processTable[ind].flags = 0;
-	if(processTable[ind].memoryPoolSize > 0)
-		PageAllocator_FreePages(processTable[ind].memoryPool % PAGE_SIZE, processTable[ind].memoryPoolSize);
+	//if(processTable[ind].memoryPoolSize > 0)
+	//	PageAllocator_FreePages(processTable[ind].memoryPool % PAGE_SIZE, processTable[ind].memoryPoolSize);
 }
 
 void PrintDebugProc() {
@@ -37,10 +37,8 @@ void PrintDebugProc() {
 		if(processTable[i].PID){
 			kprintf(
 				"Process:\n"
-				"PID: %d\n"
-				"Memory Pool Addr: %X\n",
-				processTable[i].PID,
-				processTable[i].memoryPool
+				"PID: %d\n",
+				processTable[i].PID
 			);
 		}
 	}

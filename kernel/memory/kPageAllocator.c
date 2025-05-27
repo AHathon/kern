@@ -3,84 +3,92 @@
 void PageAllocator_Init() 
 {
     kprintf("Total pages: %d\n", MAX_PAGES);
-    for(int i = 0; i < MAX_PAGES; i++) {
-        pages[i].vaddr = i * PAGE_SIZE;
-        pages[i].used = 0;
-        pages[i].next = 0;
-        pages[i].prev = 0;
-    }
+    for(int i = 0; i < MAX_PAGES / 8; i++)
+        pageBitmap[i] = 0;
     kprintf("Initialized kPageAllocator\n");
 }
 
-int32_t PageAllocator_FindFreePages(uint32_t pageCnt) 
+uint8_t PageAllocator_GetPageStatus(uint64_t page) 
 {
-    if (pageCnt == 0 || pageCnt > MAX_PAGES) return -1;
+    return (pageBitmap[page / 8] >> (page % 8)) & 1;
+}
 
-    uint32_t conseq = 0;
-    for(int i = 0; i < MAX_PAGES; i++) {
-        if(!pages[i].used) {
-            conseq++;
-            if(conseq >= pageCnt) {
-                return i - (pageCnt - 1);
+void PageAllocator_SetPageUsed(uint64_t page)
+{
+    pageBitmap[page / 8] |= 1 << (page % 8);
+}
+
+void PageAllocator_SetPageFree(uint64_t page)
+{
+    pageBitmap[page / 8] &= ~(1 << (page % 8));
+}
+
+int64_t PageAllocator_FindFirstFreePage(size_t pageCnt) 
+{
+    int64_t fpage = -1;
+    size_t contig = 0;
+    for(int i = 0; i < MAX_PAGES/8; i++) 
+	{
+        for (int j = 0; j < 8; j++)
+            if (!((pageBitmap[i] >> j) & 1))
+            {
+                if(fpage < 0)
+                    fpage = ((i * 8) + j);
+                if(contig++ == pageCnt)
+                    return fpage;
             }
-        } else {
-            conseq = 0;
-        }
+            else 
+            {
+                contig = 0;
+                fpage = -1;
+            }
     }
+
     return -1;
 }
 
-int32_t PageAllocator_FindFirstFreePage() 
+int64_t PageAllocator_AllocPages(size_t pageCnt)
 {
-    for(int i = 0; i < MAX_PAGES; i++) 
-	{
-        if(!pages[i].used)
-            return i;
-    }
-    return -1;
-}
+    uint64_t count = PageAllocator_UsedPagesCount();
+    if (pageCnt + count > MAX_PAGES) return -1;
 
-int32_t PageAllocator_AllocPages(size_t size) 
-{
-    if (size == 0) return -1;
-
-    size_t numPages = (size + PAGE_SIZE - 1) / PAGE_SIZE;
-    if (numPages > MAX_PAGES) return -1;
-
-    kprintf("Allocating %d pages\n", numPages);
-    int32_t ind = PageAllocator_FindFreePages(numPages);
-    if(ind < 0) return -1;
+    int64_t firstPage = PageAllocator_FindFirstFreePage(pageCnt);
+    if(firstPage < 0) return -1;
     
-    // Mark pages as used and set up links
-    for(size_t i = 0; i < numPages; i++) 
-	{
-        pages[ind + i].used = 1;
-        pages[ind + i].prev = (i == 0) ? 0 : &pages[ind + i - 1];
-        pages[ind + i].next = (i == numPages - 1) ? 0 : &pages[ind + i + 1];
-    }
-    return ind;
+    // Mark pages as used
+    for(size_t i = 0; i < pageCnt; i++)
+        PageAllocator_SetPageUsed(firstPage + i);
+
+    return firstPage;
 }
 
-void PageAllocator_FreePages(uint32_t index, size_t size) 
+void PageAllocator_FreePages(uint32_t page, size_t count)
 {
-    if (index >= MAX_PAGES || size == 0) return;
+    if (page + count >= MAX_PAGES || count <= 0) return;
     
-    size_t numPages = (size + PAGE_SIZE - 1) / PAGE_SIZE;
-    if (numPages > MAX_PAGES || (index + numPages) > MAX_PAGES) return;
-
-    for(size_t i = 0; i < numPages; i++) {
-        if (index + i >= MAX_PAGES) 
-			break;
-        pages[index + i].used = 0;
-        pages[index + i].next = 0;
-        pages[index + i].prev = 0;
+    for(size_t i = 0; i < count; i++) 
+    {
+        PageAllocator_SetPageFree(page + i);
     }
 }
 
-uintptr_t PageAllocator_GetPageAddr(uint32_t index)
+uint64_t PageAllocator_UsedPagesCount()
 {
-    if (index >= MAX_PAGES) return 0;
-    return pages[index].vaddr;
+    uint32_t *page32 = (uint32_t*)pageBitmap;
+    uint64_t count = 0;
+    for(int i = 0; i < MAX_PAGES / 32; i++)
+    {
+        //collapsing sums series
+        uint32_t x = page32[i];
+        x = (x >> 1 & 0x55555555) + (x & 0x55555555);
+        x = (x >> 2 & 0x33333333) + (x & 0x33333333);
+        x = (x >> 4 & 0x0f0f0f0f) + (x & 0x0f0f0f0f);
+        x = (x >> 8 & 0x00ff00ff) + (x & 0x00ff00ff);
+        x = (x >> 16) + (x & 0x0000ffff);
+        count += x;
+    }
+
+    return count;
 }
 
 void PageAllocator_DebugPrintPagesUsed() 
@@ -88,8 +96,9 @@ void PageAllocator_DebugPrintPagesUsed()
     kprintf("Pages in use:\n");
     for(int i = 0; i < MAX_PAGES; i++) 
 	{
-        if(pages[i].used) 
+        if(PageAllocator_GetPageStatus(i)) 
 			kprintf("%d, ", i);
     }
     kprintf("\n");
+    kprintf("Total pages: %d\n", PageAllocator_UsedPagesCount());
 }
