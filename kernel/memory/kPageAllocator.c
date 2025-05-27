@@ -6,8 +6,8 @@ void PageAllocator_Init()
     for(int i = 0; i < MAX_PAGES; i++) {
         pages[i].vaddr = i * PAGE_SIZE;
         pages[i].used = 0;
-        pages[i].next = NULL;
-        pages[i].prev = NULL;
+        pages[i].next = 0;
+        pages[i].prev = 0;
     }
     kprintf("Initialized kPageAllocator\n");
 }
@@ -55,8 +55,8 @@ int32_t PageAllocator_AllocPages(size_t size)
     for(size_t i = 0; i < numPages; i++) 
 	{
         pages[ind + i].used = 1;
-        pages[ind + i].prev = (i == 0) ? NULL : &pages[ind + i - 1];
-        pages[ind + i].next = (i == numPages - 1) ? NULL : &pages[ind + i + 1];
+        pages[ind + i].prev = (i == 0) ? 0 : &pages[ind + i - 1];
+        pages[ind + i].next = (i == numPages - 1) ? 0 : &pages[ind + i + 1];
     }
     return ind;
 }
@@ -72,8 +72,8 @@ void PageAllocator_FreePages(uint32_t index, size_t size)
         if (index + i >= MAX_PAGES) 
 			break;
         pages[index + i].used = 0;
-        pages[index + i].next = NULL;
-        pages[index + i].prev = NULL;
+        pages[index + i].next = 0;
+        pages[index + i].prev = 0;
     }
 }
 

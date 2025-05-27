@@ -1,11 +1,9 @@
 .vscode/*
 build/*
-KIPs/pm/build/*
-KIPs/pm/pm.*
-KIPs/fs/build/*
-KIPs/fs/fs.*
-KIPs/boot/build/*
-KIPs/boot/boot.*
+KIPs/**/build/
+KIPs/**/pm.*
+KIPs/**/fs.*
+KIPs/**/init.*
 KIPs/kip_blob
 *.bin
 *.elf

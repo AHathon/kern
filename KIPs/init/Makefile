@@ -1,4 +1,4 @@
-TARGET := boot
+TARGET := init
 
 BUILD := build
 SOURCES := src

@@ -7,11 +7,11 @@ all: $(TARGET)
 $(TARGET):
 	$(MAKE) -C pm
 	$(MAKE) -C fs
-	$(MAKE) -C boot
-	@cat boot/boot.kip pm/pm.kip fs/fs.kip > kip_blob
+	$(MAKE) -C init
+	@cat init/init.kip pm/pm.kip fs/fs.kip > kip_blob
 
 clean:
 	@rm -f kip_blob
 	$(MAKE) -C pm clean
 	$(MAKE) -C fs clean
-	$(MAKE) -C boot clean
+	$(MAKE) -C init clean
