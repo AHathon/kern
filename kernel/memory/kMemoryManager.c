@@ -3,17 +3,19 @@
 void kMemManager_Init()
 {
     PageAllocator_Init();
-    kSlabAlloc_Init(&slab, 0, 0);
     kprintf("Initialized kMemoryManager\n");
 }
 
-kSlab kMemAlloc(size_t size)
+void *kMemAlloc(size_t size)
 {
-    kSlabAlloc_Allocate(&slab, size);
-    return slab;
+    size_t pageCnt = (size + PAGE_SIZE - 1) / PAGE_SIZE;
+	int64_t page = PageAllocator_AllocPages(pageCnt);
+    return (void*)(page * PAGE_SIZE);
 }
 
-void kMemFree(kSlab slab)
+void kMemFree(void *ptr, size_t size)
 {
-    kSlabAlloc_Free(slab);
+    size_t pageCnt = (size + PAGE_SIZE - 1) / PAGE_SIZE;
+    int64_t page = (uintptr_t)ptr / PAGE_SIZE;
+    PageAllocator_FreePages(page, pageCnt);
 }

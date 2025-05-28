@@ -114,3 +114,8 @@ void kprintf(char *fmt, ...) {
 	uart1_puts(buf);
 	va_end(list);
 }
+
+void kstrcpy(char *dest, char *src)
+{
+	while ((*dest++ = *src++) != '\0');
+}

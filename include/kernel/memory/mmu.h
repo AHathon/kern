@@ -15,4 +15,5 @@ extern volatile unsigned char __bss_end;
 extern volatile unsigned char __text_end;
 extern volatile unsigned char __page_table;
 
-void SetupKernelVMM(unsigned long page_table);
+void MMU_SetupVirtKernelSpace(unsigned long page_table);
+void MMU_mapMem(uintptr_t paddr, uintptr_t vaddr);

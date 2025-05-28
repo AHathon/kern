@@ -1,7 +1,10 @@
-#include "kernel/memory/vmm.h"
+#include "kernel/memory/mmu.h"
 
-inline void SetupKernelVMM(unsigned long page_table) 
+static uintptr_t pageTable;
+
+inline void MMU_SetupVirtKernelSpace(unsigned long page_table) 
 {
+    pageTable = page_table;
     unsigned long *paging = (unsigned long*)(page_table);
     unsigned long data_page = ((unsigned long)&__data_start) / PAGE_SIZE;
     unsigned long bss_page = ((unsigned long)&__bss_start) / PAGE_SIZE;
@@ -49,4 +52,10 @@ inline void SetupKernelVMM(unsigned long page_table)
             PT_RW;
 
     MMIO_BASE = MMIO_PADDR + KERNEL_VIRT_BASE;
+}
+
+void MMU_mapMem(uintptr_t paddr, uintptr_t vaddr)
+{
+    unsigned long *paging = (unsigned long*)(pageTable);
+    //TODO
 }

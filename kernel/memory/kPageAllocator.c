@@ -62,7 +62,7 @@ int64_t PageAllocator_AllocPages(size_t pageCnt)
     return firstPage;
 }
 
-void PageAllocator_FreePages(uint32_t page, size_t count)
+void PageAllocator_FreePages(uint64_t page, size_t count)
 {
     if (page + count >= MAX_PAGES || count <= 0) return;
     

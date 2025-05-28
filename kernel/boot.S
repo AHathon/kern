@@ -29,7 +29,7 @@ memset:
 
 setup_mmu:
     mov x0, x8
-    bl SetupKernelVMM
+    bl MMU_SetupVirtKernelSpace
     dsb ish
     tlbi vmalle1is
     dsb ish
