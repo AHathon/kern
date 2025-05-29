@@ -1,6 +1,6 @@
 #include "kernel/kProcessManager.h"
 
-unsigned FindFreeProcSpace() {
+unsigned kProcessManager_FindFreeProcSpace() {
 	unsigned i;
 	for(i = 0; i < MAX_PROC; i++){
 		if(!processTable[i].PID) break;
@@ -8,23 +8,23 @@ unsigned FindFreeProcSpace() {
 	return i;
 }
 
-void InitProcessTable() {
+void kProcessManager_Init() {
 	for(int i = 0; i < MAX_PROC; i++) {
 		processTable[i].PID = 0;
 		processTable[i].flags = 0;
 	}
 }
 
-void CreateKProc(size_t stackSize, unsigned flags) {
+void kProcessManager_CreateKProc(size_t stackSize, unsigned flags) {
 	kprintf("Creating process\n");
-	unsigned proc = FindFreeProcSpace();
+	unsigned proc = kProcessManager_FindFreeProcSpace();
 	processTable[proc].PID = ++lastPID;
 	processTable[proc].flags = flags | IS_ACTIVE_PROC;
 	//processTable[proc].memoryPool = PageAllocator_AllocPages(stackSize); //stack
 	processTable[proc].memoryPoolSize = stackSize;
 }
 
-void KillProcess(unsigned ind) {
+void kProcessManager_KillProcess(unsigned ind) {
 	if(ind >= MAX_PROC) return;
 	processTable[ind].PID = 0;
 	processTable[ind].flags = 0;
@@ -32,7 +32,7 @@ void KillProcess(unsigned ind) {
 	//	PageAllocator_FreePages(processTable[ind].memoryPool % PAGE_SIZE, processTable[ind].memoryPoolSize);
 }
 
-void PrintDebugProc() {
+void kProcessManager_PrintDebugProc() {
 	for(int i = 0; i < MAX_PROC; i++){
 		if(processTable[i].PID){
 			kprintf(
@@ -42,11 +42,4 @@ void PrintDebugProc() {
 			);
 		}
 	}
-}
-
-void startKIPs(){
-	const char *start = &__kips_start;
-	const char *end = &__kips_end;
-	size_t kip_size = end - start;
-    kprintf("Kip blob size: %X\n", kip_size);
 }

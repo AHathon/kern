@@ -5,5 +5,5 @@
 
 static unsigned currThread;
 
-void kScheduler_init();
+void kScheduler_Init();
 void context_switch();

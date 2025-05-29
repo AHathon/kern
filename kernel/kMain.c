@@ -4,6 +4,7 @@
 #include "kernel/kProcessManager.h"
 #include "kernel/exceptions.h"
 #include "kernel/kScheduler.h"
+#include "kernel/kInitialProcess.h"
 #include "libraries/hardware/debug.h"
 #include "libraries/hardware/gpio.h"
 #include "libraries/hardware/cpu.h"
@@ -18,13 +19,12 @@ void kMain(uint64_t dtb_ptr32)
 
     kMemManager_Init();
 
-    InitProcessTable();
-    startKIPs();
+    kProcessManager_Init();
+    kScheduler_Init();
 
-    kScheduler_init();
+    kInitialProcess_Setup();
 
-    CreateKProc(0x1000, 0);
-    PrintDebugProc();
+    kProcessManager_PrintDebugProc();
 
     kprintf("Initialization done!\n");
 }

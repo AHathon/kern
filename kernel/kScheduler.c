@@ -1,6 +1,6 @@
 #include "kernel/kScheduler.h"
 
-void kScheduler_init()
+void kScheduler_Init()
 {
     currThread = 0;
     setup_irq_timer();
