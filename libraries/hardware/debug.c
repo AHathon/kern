@@ -115,7 +115,19 @@ void kprintf(char *fmt, ...) {
 	va_end(list);
 }
 
-void kstrcpy(char *dest, char *src)
+void kstrcpy(uint8_t *dest, uint8_t *src)
 {
 	while ((*dest++ = *src++) != '\0');
+}
+
+void kmemcpy(uint8_t *dest, uint8_t *src, size_t size)
+{
+	for(int i = 0; i < size; i++)
+		*dest++ = *src++;
+}
+
+void kmemset(uint8_t *src, size_t size)
+{
+	for(int i = 0; i < size; i++)
+		*src++ = 0;
 }

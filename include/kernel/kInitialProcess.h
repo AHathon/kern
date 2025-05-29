@@ -1,5 +1,8 @@
 #pragma once
 
+#include "kernel/kProcessManager.h"
+#include "kernel/kScheduler.h"
+#include "kernel/kThread.h"
 #include "libraries/types.h"
 #include "libraries/hardware/debug.h"
 

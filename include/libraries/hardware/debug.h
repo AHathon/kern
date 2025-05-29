@@ -4,4 +4,6 @@
 #include "libraries/hardware/uart.h"
 
 void kprintf(char *fmt, ...);
-void kstrcpy(char *dest, char *src);
+void kstrcpy(uint8_t *dest, uint8_t *src);
+void kmemcpy(uint8_t *dest, uint8_t *src, size_t size);
+void kmemset(uint8_t *src, size_t size);

@@ -15,7 +15,15 @@ void kInitialProcess_Setup()
         kprintf("Size: %X\n", hdr->totalSize);
         uintptr_t entry = off + hdr->headerSize;
         size_t codeSize = hdr->codeSize;
-        //TODO
+        
+        uint8_t *code = (uint8_t*)kMemAlloc(codeSize);
+        kmemcpy(code, (uint8_t*)entry, codeSize);
+        kProcess *proc = kProcess_Create(hdr->magic, code, codeSize, code);
+        kProcessManager_AddProc(proc);
+
+        //Add main thread to scheduler
+        kScheduler_AddThread(proc->mainThread);
+
         off += hdr->totalSize;
     }
 }

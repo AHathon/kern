@@ -6,10 +6,10 @@
 
 #define MAX_PROC 256
 
-static kProcess processTable[MAX_PROC];
+static kProcess *processTable[MAX_PROC];
 static unsigned lastPID = 0;
 
 void kProcessManager_Init();
-void kProcessManager_CreateKProc(size_t stackSize, unsigned flags);
+void kProcessManager_AddProc(kProcess *proc);
 void kProcessManager_KillProcess(unsigned ind);
 void kProcessManager_PrintDebugProc();

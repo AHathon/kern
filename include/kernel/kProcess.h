@@ -8,7 +8,8 @@
 #define IS_ACTIVE_PROC 1 << 0
 
 typedef struct{
-    uint64_t PID;
+    int64_t PID;
+    char name[8];
     uintptr_t pageTables; //pointer to L0 page
     uint64_t pagesOwned[MAX_PAGES_OWNED];
     uint64_t memoryPoolSize;
@@ -17,5 +18,6 @@ typedef struct{
     kCodeSet code;
 } kProcess;
 
-void kProcess_Initialize(kProcess *proc);
+kProcess *kProcess_Create(char *name, uint8_t *code, size_t codeSize, void *entry);
+void kProcess_Destroy(kProcess *proc);
 void kProcess_Start(kProcess *proc);

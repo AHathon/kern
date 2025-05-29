@@ -1,8 +1,11 @@
 #pragma once
 
 #include "libraries/types.h"
+#include "kernel/memory/kMemoryManager.h"
 
 #define MAX_THREADS 256
+
+static uint64_t newId = 0;
 
 typedef enum
 {
@@ -12,17 +15,22 @@ typedef enum
 
 typedef enum
 {
-    FLAG_IS_ACTIVE,
-} ThreadFlags;
+    STATE_READY,
+    STATE_RUNNING,
+    STATE_TERMINATED
+} ThreadState;
 
 typedef struct
 {
-    uintptr_t stack;
+    uint64_t id;
+    void *funcPtr;
+    void *stackPtr;
+    size_t stackSize;
     ThreadType threadType;
-    uint32_t flags;
+    ThreadState state;
 } kThread;
 
 static kThread threadList[MAX_THREADS];
 
-kThread kThread_Create();
-void kThread_Destroy();
+kThread kThread_Create(void *funcPtr, size_t stackSize, ThreadType type);
+void kThread_Destroy(kThread thread);

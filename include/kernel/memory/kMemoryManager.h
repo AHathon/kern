@@ -4,4 +4,5 @@
 
 void kMemManager_Init();
 void *kMemAlloc(size_t size);
+void *kMemCalloc(size_t size);
 void kMemFree(void *ptr, size_t size);
