@@ -1,5 +1,6 @@
 .vscode/*
-build/*
+build/
+secmon/build/
 KIPs/**/build/
 KIPs/**/pm.*
 KIPs/**/fs.*
