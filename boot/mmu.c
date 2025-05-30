@@ -45,7 +45,7 @@ inline void setupVMM()
     asm volatile("isb");
 
     //Set mmio to virt addr
-    MMIO_BASE = MMIO_PADDR + KERNEL_VIRT_BASE;
+    MMIO_ADDR = MMIO_BASE + KERNEL_VIRT_BASE;
 }
 
 inline void setupIdentityMap() 
@@ -59,7 +59,7 @@ inline void setupIdentityMap()
     paging[PAGE_TABLE_IDX(0, 0)] = (unsigned long)((unsigned char *)&__page_table + 2 * PAGE_SIZE) |
         PT_TABLE | 
         PT_AF | 
-        PT_USER | 
+        PT_KERNEL | 
         PT_ISH | 
         PT_MEM;
     
@@ -68,7 +68,7 @@ inline void setupIdentityMap()
             PT_BLOCK | 
             PT_AF | 
             PT_NX | 
-            PT_USER |
+            PT_KERNEL |
             PT_ISH | PT_MEM;
     }
 
@@ -76,7 +76,7 @@ inline void setupIdentityMap()
     paging[PAGE_TABLE_IDX(2, 0)] = (unsigned long)((unsigned char *)&__page_table + 3 * PAGE_SIZE) |
         PT_TABLE | 
         PT_AF | 
-        PT_USER | 
+        PT_KERNEL | 
         PT_ISH | 
         PT_MEM;
 
@@ -86,28 +86,26 @@ inline void setupIdentityMap()
             PT_BLOCK | 
             PT_AF | 
             PT_NX | 
-            PT_USER |
+            PT_KERNEL |
             PT_ISH | PT_MEM;
     }
 
     // Identity L3: map first 2MB region as 4K pages
     for (r = 0; r < PAGE_TABLE_SIZE; r++) {
+        unsigned flags = 0;
+        if(r < 0x80 || r >= rodata_page)
+            flags = PT_RW | PT_NX;
+        else
+            flags = PT_RO;
+        if(r >= 0x87)
+            flags = PT_MEM;
         paging[PAGE_TABLE_IDX(3, r)] = (r << L3_SHIFT) |
             PT_PAGE | 
             PT_AF | 
-            PT_USER | 
-            PT_ISH |
-            ((r < 0x80 || r >= rodata_page) ? PT_RW | PT_NX : PT_RO);
-    }
-
-    for (r = 0x87; r < PAGE_TABLE_SIZE; r++) 
-        paging[PAGE_TABLE_IDX(3, r)] = (unsigned long)(r * PAGE_SIZE) |
-            PT_PAGE | 
-            PT_AF | 
-            PT_RW | 
             PT_KERNEL | 
-            PT_ISH | 
-            PT_MEM;
+            PT_ISH |
+            flags;
+    }
 }
 
 void VMM_Init() 

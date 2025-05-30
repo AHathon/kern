@@ -1,9 +1,9 @@
 #pragma once
 
 #include "libraries/types.h"
-#include "libraries/hardware/gpio.h"
 #include "libraries/hardware/debug.h"
 #include "libraries/hardware/mmio.h"
+#include "libraries/hardware/mmio_vars.h"
 
 void UART1_Init();
 

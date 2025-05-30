@@ -1,5 +1,7 @@
 #pragma once
 
+#include "libraries/hardware/mmio_vars.h"
+
 #define PT_PAGE     0b11
 #define PT_BLOCK    0b01
 #define PT_TABLE    0b11

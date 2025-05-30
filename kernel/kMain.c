@@ -8,13 +8,14 @@
 #include "libraries/hardware/debug.h"
 #include "libraries/hardware/gpio.h"
 #include "libraries/hardware/cpu.h"
+#include "libraries/hardware/mmio_vars.h"
 
 void kMain(uint64_t dtb_ptr32)
 {
     uint64_t vbar;
     asm volatile ("mrs %0, vbar_el1" : "=r" (vbar));
     kprintf("Exception vector: %X\n", vbar);
-    kprintf("MMIO base: %X\n", MMIO_BASE);
+    kprintf("MMIO base: %X\n", MMIO_ADDR);
     kprintf("Running at EL%d\n", GetCurrentEL());
 
     kMemManager_Init();

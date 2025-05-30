@@ -151,9 +151,9 @@ el1_data_abort:
 
 irq_el1h:
 	kernel_entry
-	ldr x0, =IRQ_PENDING_1
-	ldr x0, [x0]
-	cmp w0, #2
+	ldr x0, =GICC_IAR
+	ldr w0, [x0]
+	cmp w0, #SYSTEM_TIMER_IRQ_0
 	b.eq handle_irq
 	b irq_invalid_el1h
 
@@ -165,9 +165,9 @@ irq_el0_64:
 	mrs	x1, ELR_EL1
 	stp	x0, x1, [sp, #16 * 16]
 
-	ldr x0, =IRQ_PENDING_1
-	ldr x0, [x0]
-	cmp w0, #2
+	ldr x0, =GICC_IAR
+	ldr w0, [x0]
+	cmp w0, #SYSTEM_TIMER_IRQ_0
 	b.eq handle_irq
 	b irq_invalid_el0_64
 

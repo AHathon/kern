@@ -1,5 +1,5 @@
 #pragma once
 
 #include "libraries/types.h"
-#include "libraries/hardware/mmio.h"
 
+void setup_gic(uint32_t irq);

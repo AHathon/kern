@@ -1,10 +1,13 @@
 #include "kernel/kScheduler.h"
+#include "libraries/hardware/gic.h"
+#include "libraries/hardware/timer.h"
 
 void kScheduler_Init()
 {
     currThread = 0;
     maxThread = 0;
-    setup_irq_timer();
+    setup_timer();
+    setup_gic(SYSTEM_TIMER_IRQ_0);
     kprintf("Initialzed scheduler\n");
 }
 
