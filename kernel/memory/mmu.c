@@ -20,6 +20,19 @@ inline void MMU_SetupVirtKernelSpace(unsigned long page_table)
         PT_ISH | 
         PT_MEM;
 
+    for (r = 1; r < PAGE_TABLE_SIZE; r++)
+    {
+        uint32_t flags = PT_ISH | PT_MEM;
+        if(r >= (MMIO_PADDR >> 30) & 0x1FF)
+            flags = PT_OSH | PT_DEV;
+        paging[PAGE_TABLE_IDX(1, r)] = (r << 30) |
+            PT_BLOCK | 
+            PT_AF | 
+            PT_NX | 
+            PT_KERNEL | 
+            flags;
+    }
+
     // Kernel L2
     paging[PAGE_TABLE_IDX(4, 0)] = (unsigned long)((unsigned char *)page_table + 5 * PAGE_SIZE) |
         PT_TABLE | 
@@ -31,7 +44,7 @@ inline void MMU_SetupVirtKernelSpace(unsigned long page_table)
     for (r = 1; r < PAGE_TABLE_SIZE; r++)
     {
         uint32_t flags = PT_ISH | PT_MEM;
-        if(r >= MMIO_PADDR >> 21)
+        if(r >= (MMIO_PADDR >> 21) & 0x1FF)
             flags = PT_OSH | PT_DEV;
         paging[PAGE_TABLE_IDX(4, r)] = (r << 21) |
             PT_BLOCK | 

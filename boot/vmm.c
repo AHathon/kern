@@ -62,6 +62,15 @@ inline void setupIdentityMap()
         PT_USER | 
         PT_ISH | 
         PT_MEM;
+    
+    for (r = 1; r < (MMIO_BASE >> 30) & 0x1FF; r++) {
+        paging[PAGE_TABLE_IDX(0, r)] = (r << 30) |
+            PT_BLOCK | 
+            PT_AF | 
+            PT_NX | 
+            PT_USER |
+            PT_ISH | PT_MEM;
+    }
 
     // Identity L2
     paging[PAGE_TABLE_IDX(2, 0)] = (unsigned long)((unsigned char *)&__page_table + 3 * PAGE_SIZE) |
@@ -72,7 +81,7 @@ inline void setupIdentityMap()
         PT_MEM;
 
     // Identity L2 2MB blocks (except first block handled by L3)
-    for (r = 1; r < (MMIO_BASE >> 21); r++) {
+    for (r = 1; r < (MMIO_BASE >> 21) & 0x1FF; r++) {
         paging[PAGE_TABLE_IDX(2, r)] = (r << 21) |
             PT_BLOCK | 
             PT_AF | 
