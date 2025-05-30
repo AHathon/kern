@@ -1,7 +1,7 @@
 #pragma once
 
 #include "libraries/types.h"
-#include "libraries/hardware/exceptionDef.h"
+#include "libraries/hardware/mmio.h"
 #include "libraries/hardware/debug.h"
 #include "libraries/hardware/uart.h"
 

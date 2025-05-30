@@ -1,4 +1,4 @@
-#include "libraries/hardware/exceptionDef.h"
+#include "libraries/hardware/mmio.h"
 
 .section .text
 
@@ -153,7 +153,7 @@ irq_el1h:
 	kernel_entry
 	ldr x0, =IRQ_PENDING_1
 	ldr x0, [x0]
-	cmp w0, #SYSTEM_TIMER_IRQ_1
+	cmp w0, #2
 	b.eq handle_irq
 	b irq_invalid_el1h
 
@@ -167,7 +167,7 @@ irq_el0_64:
 
 	ldr x0, =IRQ_PENDING_1
 	ldr x0, [x0]
-	cmp w0, #SYSTEM_TIMER_IRQ_1
+	cmp w0, #2
 	b.eq handle_irq
 	b irq_invalid_el0_64
 

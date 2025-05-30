@@ -15,6 +15,8 @@ void kScheduler_Start()
 
 void kScheduler_AddThread(kThread thread)
 {
+    if(maxThread >= MAX_THREADS)
+        return;
     threadList[maxThread++] = thread;
 }
 
