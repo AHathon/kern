@@ -23,9 +23,9 @@ inline void MMU_SetupVirtKernelSpace(unsigned long page_table)
     for (r = 1; r < PAGE_TABLE_SIZE; r++)
     {
         uint32_t flags = PT_ISH | PT_MEM;
-        if(r >= (MMIO_PADDR >> 30) & 0x1FF)
+        if(r >= L1_IDX(MMIO_BASE))
             flags = PT_OSH | PT_DEV;
-        paging[PAGE_TABLE_IDX(1, r)] = (r << 30) |
+        paging[PAGE_TABLE_IDX(1, r)] = (r << L1_SHIFT) |
             PT_BLOCK | 
             PT_AF | 
             PT_NX | 
@@ -44,9 +44,9 @@ inline void MMU_SetupVirtKernelSpace(unsigned long page_table)
     for (r = 1; r < PAGE_TABLE_SIZE; r++)
     {
         uint32_t flags = PT_ISH | PT_MEM;
-        if(r >= (MMIO_PADDR >> 21) & 0x1FF)
+        if(r >= L2_IDX(MMIO_BASE))
             flags = PT_OSH | PT_DEV;
-        paging[PAGE_TABLE_IDX(4, r)] = (r << 21) |
+        paging[PAGE_TABLE_IDX(4, r)] = (r << L2_SHIFT) |
             PT_BLOCK | 
             PT_AF | 
             PT_NX | 
@@ -57,7 +57,7 @@ inline void MMU_SetupVirtKernelSpace(unsigned long page_table)
     // Overwrite .bss as readable/writable memory
     // Kernel L3: map a single page (e.g., MMIO or kernel stack)
     for (r = 0; r < PAGE_TABLE_SIZE; r++) 
-        paging[PAGE_TABLE_IDX(5, r)] = (r * PAGE_SIZE) |
+        paging[PAGE_TABLE_IDX(5, r)] = (r << L3_SHIFT) |
             PT_PAGE | 
             PT_AF |
             PT_KERNEL | 

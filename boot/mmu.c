@@ -1,4 +1,4 @@
-#include "vmm.h"
+#include "mmu.h"
 
 inline void setupVMM() 
 {
@@ -63,8 +63,8 @@ inline void setupIdentityMap()
         PT_ISH | 
         PT_MEM;
     
-    for (r = 1; r < (MMIO_BASE >> 30) & 0x1FF; r++) {
-        paging[PAGE_TABLE_IDX(0, r)] = (r << 30) |
+    for (r = 1; r < L1_IDX(MMIO_BASE); r++) {
+        paging[PAGE_TABLE_IDX(0, r)] = (r << L1_SHIFT) |
             PT_BLOCK | 
             PT_AF | 
             PT_NX | 
@@ -81,8 +81,8 @@ inline void setupIdentityMap()
         PT_MEM;
 
     // Identity L2 2MB blocks (except first block handled by L3)
-    for (r = 1; r < (MMIO_BASE >> 21) & 0x1FF; r++) {
-        paging[PAGE_TABLE_IDX(2, r)] = (r << 21) |
+    for (r = 1; r < L2_IDX(MMIO_BASE); r++) {
+        paging[PAGE_TABLE_IDX(2, r)] = (r << L2_SHIFT) |
             PT_BLOCK | 
             PT_AF | 
             PT_NX | 
@@ -92,7 +92,7 @@ inline void setupIdentityMap()
 
     // Identity L3: map first 2MB region as 4K pages
     for (r = 0; r < PAGE_TABLE_SIZE; r++) {
-        paging[PAGE_TABLE_IDX(3, r)] = (r * PAGE_SIZE) |
+        paging[PAGE_TABLE_IDX(3, r)] = (r << L3_SHIFT) |
             PT_PAGE | 
             PT_AF | 
             PT_USER | 

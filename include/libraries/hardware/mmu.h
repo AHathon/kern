@@ -18,4 +18,11 @@
 #define PT_DEV      (1 << 2)  // MMIO
 #define PT_NC       (2 << 2)  // non-cacheable
 
+#define L1_SHIFT 30
+#define L2_SHIFT 21
+#define L3_SHIFT 12
+#define L1_IDX(x) ((x >> L1_SHIFT) & 0x1FF)
+#define L2_IDX(x) ((x >> L2_SHIFT) & 0x1FF)
+#define L3_IDX(x) ((x >> L3_SHIFT) & 0x1FF)
+
 #define TTBR_CNP 1
