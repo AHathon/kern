@@ -2,4 +2,5 @@
 
 #include "libraries/types.h"
 
-void setup_gic(uint32_t irq);
+void GicSetup(uint32_t irq);
+void GicInit();

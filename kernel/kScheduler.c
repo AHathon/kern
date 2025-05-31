@@ -6,8 +6,13 @@ void kScheduler_Init()
 {
     currThread = 0;
     maxThread = 0;
-    setup_timer();
-    setup_gic(SYSTEM_TIMER_IRQ_1); //Only C1/C3 should be used for OS
+    BCMTimerSetup();
+    GicInit();
+    //Only C1/C3 should be used for OS
+    GicSetup(SYSTEM_TIMER_IRQ_1);
+    GicSetup(SYSTEM_TIMER_IRQ_3);
+    //unmask irq
+    enable_irq();
     kprintf("Initialzed scheduler\n");
 }
 
