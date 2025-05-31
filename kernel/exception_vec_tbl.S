@@ -150,53 +150,63 @@ el1_data_abort:
 	eret
 
 irq_el1h:
-	kernel_entry
-	ldr x0, =GICC_IAR
-	ldr w0, [x0]
-	cmp w0, #SYSTEM_TIMER_IRQ_1
-	b.eq handle_irq
-	b irq_invalid_el1h
+    kernel_entry
+    ldr x0, =GICC_IAR
+    ldr w0, [x0]
+    cmp w0, #SYSTEM_TIMER_IRQ_1
+    b.eq handle_irq_el1
+    cmp w0, #SYSTEM_TIMER_IRQ_3
+    b.eq handle_irq_el1
+    b cleanup_irq_el1
+
+handle_irq_el1:
+    str w0, [sp, #16 * 17]
+    bl timer_irq_handle
+    bl BCMTimerReset
+
+    // End of interrupt
+    ldr w0, [sp, #16 * 17]
+    ldr x1, =GICC_EOIR
+    str w0, [x1]
+
+cleanup_irq_el1:
+    kernel_exit
+    eret
 
 irq_el0_64:
-	kernel_entry
+    kernel_entry
 
-	//push pstate and exception LR to stack as well
-	mrs	x0, SPSR_EL1
-	mrs	x1, ELR_EL1
-	stp	x0, x1, [sp, #16 * 16]
+    // Save return context
+    mrs	x0, SPSR_EL1
+    mrs	x1, ELR_EL1
+    stp	x0, x1, [sp, #16 * 16]
 
-	ldr x0, =GICC_IAR
-	ldr w0, [x0]
-	cmp w0, #SYSTEM_TIMER_IRQ_1
-	b.eq handle_irq
-	b irq_invalid_el0_64
+    ldr x0, =GICC_IAR
+    ldr w0, [x0]
+    cmp w0, #SYSTEM_TIMER_IRQ_1
+    b.eq handle_irq_el0
+    cmp w0, #SYSTEM_TIMER_IRQ_3
+    b.eq handle_irq_el0
+    b cleanup_irq_el0
 
-handle_irq:
-	str w0, [sp, #16 * 17]
-	b timer_irq_handle
+handle_irq_el0:
+    str w0, [sp, #16 * 17]
+    bl timer_irq_handle
+    bl BCMTimerReset
 
-	//restore pstate and exception LR
-	ldp	x0, x1, [sp, #16 * 16]
-	msr SPSR_EL1, x0
-	msr ELR_EL1, x1
+    // End of interrupt
+    ldr w0, [sp, #16 * 17]
+    ldr x1, =GICC_EOIR
+    str w0, [x1]
 
-	//mark interrupt as non-active
-	ldr w0, [sp, #16 * 17]
-	ldr x1, =GICC_EOIR
-	str w0, [x1]
+cleanup_irq_el0:
+    // Restore return context
+    ldp	x0, x1, [sp, #16 * 16]
+    msr SPSR_EL1, x0
+    msr ELR_EL1, x1	
 
-	kernel_exit
-	eret
-
-.global execute_EL0;
-.type execute_EL0, %function;
-execute_EL0:
-	msr ttbr0_el1, x0       // x0 = process->page_table_base
-	isb
-	msr sp_el0, x1          // x1 = process->sp_el0
-	msr elr_el1, x2         // x2 = process->pc
-	msr spsr_el1, xzr       // EL0t mode
-	eret
+    kernel_exit
+    eret
 
 .global el1_vector_base;
 .type el1_vector_base, %function;
@@ -240,9 +250,6 @@ error_invalid_el1t:
 sync_invalid_el1h:
 	handle_interrupt  SYNC_INVALID_EL1h
 
-irq_invalid_el1h:
-	handle_interrupt  IRQ_INVALID_EL1h
-
 fiq_invalid_el1h:
 	handle_interrupt  FIQ_INVALID_EL1h
 
@@ -251,9 +258,6 @@ error_invalid_el1h:
 
 sync_invalid_el0_64:
 	handle_interrupt  SYNC_INVALID_EL0_64
-
-irq_invalid_el0_64:
-	handle_interrupt  IRQ_INVALID_EL0_64
 
 fiq_invalid_el0_64:
 	handle_interrupt  FIQ_INVALID_EL0_64

@@ -87,6 +87,10 @@
 #define GICD_ISPENDR(n)         (GICD_DIST_BASE+0x00000200 + (n * 4))
 #define GICD_IPRIORITYR(n)      (GICD_DIST_BASE+0x00000400 + (n * 4))
 #define GICD_ITARGETSR(n)       (GICD_DIST_BASE+0x00000800 + (n * 4))
+#define GICD_ICFGR(n)           (GICD_DIST_BASE+0x00000C00 + (n * 4))
+#define GICD_SGIR               (GICD_DIST_BASE+0x00000F00)
+#define GICD_CPENDSGIR(n)       (GICD_DIST_BASE+0x00000F10 + (n * 4))
+#define GICD_SPENDSGIR(n)       (GICD_DIST_BASE+0x00000F20 + (n * 4))
 #define GICD_PIDR2V2            (GICD_DIST_BASE+0x00000FE8)
 
 #define GICC_CPU_BASE (GICC_ADDR+0x00002000)
@@ -97,7 +101,7 @@
 #define GICC_IAR    (GICC_CPU_BASE+0x0000000C)
 #define GICC_EOIR   (GICC_CPU_BASE+0x00000010)
 
-//BCM specific
+//Video core shared IRQs
 #define SYSTEM_TIMER_IRQ_0 (0x60) //96
 #define SYSTEM_TIMER_IRQ_1 (0x61) //97
 #define SYSTEM_TIMER_IRQ_2 (0x62) //98
@@ -108,6 +112,9 @@
 #define GIC_PRI_DEFAULT 0xA0
 
 #define GICD_ITARGETSR_CORE0 (1 << 0)
+#define GICD_ITARGETSR_CORE1 (1 << 1)
+#define GICD_ITARGETSR_CORE2 (1 << 2)
+#define GICD_ITARGETSR_CORE3 (1 << 3)
 
 //GICD_PIDR2V2
 #define GIC_REV_OFFSET  0x4

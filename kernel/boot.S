@@ -36,6 +36,7 @@ setup_mmu:
     isb
 
     //set stack to virtual
+    msr  spsel, #1
     ldr x11, =KERNEL_VIRT_BASE
     mov x0, sp
     add x0, x0, x11

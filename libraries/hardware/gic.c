@@ -29,26 +29,30 @@ uint32_t GetGicMaxIRQs()
 
 void GicSetup(uint32_t irq)
 {
+    //Set level-triggered
+    *(volatile uint32_t *)GICD_ICFGR(irq / 16) = (*(volatile uint32_t *)GICD_ICFGR(irq / 16) & ~(0b11 << ((irq % 16) * 2))) | (0b10 << ((irq % 16) * 2));
+
     //Set target CPU
-    ((volatile uint8_t *)GICD_ITARGETSR(irq / 4))[irq % 4] = GICD_ITARGETSR_CORE0;
+    ((volatile uint8_t *)GICD_ITARGETSR(irq >> 2))[irq % 4] = GICD_ITARGETSR_CORE0;
 
     //Set priority
-    ((volatile uint8_t *)GICD_IPRIORITYR(irq / 4))[irq % 4] = GIC_PRI_HIGHEST_NONSECURE;
+    ((volatile uint8_t *)GICD_IPRIORITYR(irq >> 2))[irq % 4] = GIC_PRI_HIGHEST_NONSECURE;
 
-    // Enable the IRQ bit
+    //Enable the IRQ bit
     volatile uint32_t *isenabler = (volatile uint32_t *)(GICD_ISENABLER(irq >> 5));
-    *isenabler |= (1 << (irq % 32));
+    *isenabler = (1 << (irq % 32));
 
     kprintf("Enabling GIC IRQ #%d\n", irq);
 }
 
-void GicInit()
+void GicEnable()
 {
-    // Enable GIC Distributor (do this once globally, better outside)
+    //Enable GIC Distributor
     *(volatile uint32_t *)GICD_CTLR = 1;
 
-    // Enable GIC CPU Interface (do this once globally)
+    //Enable GIC CPU Interface
     *(volatile uint32_t *)GICC_PMR = 0xFF;
+    *(volatile uint32_t *)GICC_BPR = 7;
     *(volatile uint32_t *)GICC_CTLR = 1;
 
     kprintf("Initialized GIC [%s] (%d IRQs)\n", GetGicVersion(), GetGicMaxIRQs());
