@@ -7,7 +7,7 @@ void kScheduler_Init()
     currThread = 0;
     maxThread = 0;
     setup_timer();
-    setup_gic(SYSTEM_TIMER_IRQ_0);
+    setup_gic(SYSTEM_TIMER_IRQ_1); //Only C1/C3 should be used for OS
     kprintf("Initialzed scheduler\n");
 }
 

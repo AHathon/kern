@@ -153,7 +153,7 @@ irq_el1h:
 	kernel_entry
 	ldr x0, =GICC_IAR
 	ldr w0, [x0]
-	cmp w0, #SYSTEM_TIMER_IRQ_0
+	cmp w0, #SYSTEM_TIMER_IRQ_1
 	b.eq handle_irq
 	b irq_invalid_el1h
 
@@ -167,17 +167,23 @@ irq_el0_64:
 
 	ldr x0, =GICC_IAR
 	ldr w0, [x0]
-	cmp w0, #SYSTEM_TIMER_IRQ_0
+	cmp w0, #SYSTEM_TIMER_IRQ_1
 	b.eq handle_irq
 	b irq_invalid_el0_64
 
 handle_irq:
+	str w0, [sp, #16 * 17]
 	b timer_irq_handle
 
 	//restore pstate and exception LR
 	ldp	x0, x1, [sp, #16 * 16]
 	msr SPSR_EL1, x0
 	msr ELR_EL1, x1
+
+	//mark interrupt as non-active
+	ldr w0, [sp, #16 * 17]
+	ldr x1, =GICC_EOIR
+	str w0, [x1]
 
 	kernel_exit
 	eret

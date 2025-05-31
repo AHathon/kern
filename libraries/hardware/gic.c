@@ -14,4 +14,6 @@ void setup_gic(uint32_t irq)
     *(volatile uint8_t *)(GICD_ITARGETSR(irqn)) = 1;
     //Enable interrupt
     *(volatile uint32_t *)(GICD_ISENABLER(irq >> 5)) = (1 << irqn);
+    //Set priority
+    *(volatile uint8_t *)GICD_IPRIORITYR(irqn) = GIC_PRI_HIGHEST_NONSECURE;
 }

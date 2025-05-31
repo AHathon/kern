@@ -1,5 +1,7 @@
+.section .data
 _container_start:
 .ascii SERVICE_MAGIC                    //magic
+.byte 0x00
 .balign 8, 0x0
 .dword _container_end - _container_start //container size
 .dword _payload_end - _payload_start     //code size
