@@ -10,7 +10,7 @@ void UART1_Init() {
     *UART1_MCR = 0;
     *UART1_IER = 0;
     *UART1_IIR = 0xC6;
-    *UART1_BAUD = 270;
+    *UART1_BAUD = UART_BAUD;
 
     // map to gpio pins
     r = *GPFSEL1;

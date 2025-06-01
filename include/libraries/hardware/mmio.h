@@ -22,6 +22,7 @@
 #define GPSET0          ((volatile unsigned int*)(GPIO_BASE+0x001C))
 #define GPSET1          ((volatile unsigned int*)(GPIO_BASE+0x0020))
 #define GPCLR0          ((volatile unsigned int*)(GPIO_BASE+0x0028))
+#define GPCLR1          ((volatile unsigned int*)(GPIO_BASE+0x002C))
 #define GPLEV0          ((volatile unsigned int*)(GPIO_BASE+0x0034))
 #define GPLEV1          ((volatile unsigned int*)(GPIO_BASE+0x0038))
 #define GPEDS0          ((volatile unsigned int*)(GPIO_BASE+0x0040))
