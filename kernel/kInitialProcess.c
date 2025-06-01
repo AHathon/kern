@@ -22,7 +22,7 @@ void kInitialProcess_Setup()
         kProcessManager_AddProc(proc);
 
         //Add main thread to scheduler
-        kScheduler_AddThread(proc->mainThread);
+        kScheduler_AddThread(&proc->mainThread);
 
         off += hdr->totalSize;
     }

@@ -14,10 +14,9 @@ typedef struct{
     uint64_t pagesOwned[MAX_PAGES_OWNED];
     uint64_t memoryPoolSize;
     uint32_t flags;
-    kThread mainThread;
+    kThread *mainThread;
     kCodeSet code;
 } kProcess;
 
 kProcess *kProcess_Create(char *name, uint8_t *code, size_t codeSize, void *entry);
 void kProcess_Destroy(kProcess *proc);
-void kProcess_Start(kProcess *proc);

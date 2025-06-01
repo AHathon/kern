@@ -5,7 +5,7 @@
 #include "kernel/memory/kMemoryPage.h"
 #include "kernel/memory/mmu.h"
 
-#define MAX_PAGES 256
+#define MAX_PAGES 4096
 
 static char pageBitmap[MAX_PAGES / 8] = {};
 

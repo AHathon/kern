@@ -1,4 +1,5 @@
 #include "kernel/exceptions.h"
+#include "kernel/kScheduler.h"
 #include "libraries/hardware/timer.h"
 
 void InvalidException(void* ex)
@@ -23,7 +24,7 @@ void timer_irq_handle()
 	{
 		case LOCAL_TIMER_IRQ_PNS:
 		{
-			//TODO
+			kScheduler_schedule();
 			localTimerReset();
 			break;
 		}

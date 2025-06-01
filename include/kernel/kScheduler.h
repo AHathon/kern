@@ -2,11 +2,16 @@
 
 #include "kernel/kProcessManager.h"
 #include "libraries/hardware/irq.h"
+#include "kernel/kThread.h"
 
-static unsigned currThread;
-static unsigned maxThread;
+typedef struct {
+    kThread *queue[MAX_THREADS];
+    int front;
+    int back;
+    int size;
+} run_queue_t;
 
 void kScheduler_Init();
-void kScheduler_Start();
-void kScheduler_AddThread(kThread thread);
+void kScheduler_AddThread(kThread *thread);
+void kScheduler_schedule();
 void context_switch();

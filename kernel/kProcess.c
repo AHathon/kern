@@ -12,11 +12,6 @@ kProcess *kProcess_Create(char *name, uint8_t *code, size_t codeSize, void *entr
 
 void kProcess_Destroy(kProcess *proc)
 {
-    //TODO
+    kThread_Destroy(proc->mainThread);
     kMemFree(proc, sizeof(kProcess));
-}
-
-void kProcess_Start(kProcess *proc)
-{
-    //TODO
 }

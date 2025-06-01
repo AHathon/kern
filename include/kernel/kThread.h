@@ -5,7 +5,7 @@
 
 #define MAX_THREADS 256
 
-static uint64_t newId = 0;
+static uint64_t newId = 1;
 
 typedef enum
 {
@@ -30,7 +30,5 @@ typedef struct
     ThreadState state;
 } kThread;
 
-static kThread threadList[MAX_THREADS];
-
-kThread kThread_Create(void *funcPtr, size_t stackSize, ThreadType type);
-void kThread_Destroy(kThread thread);
+kThread *kThread_Create(void *funcPtr, size_t stackSize, ThreadType type);
+void kThread_Destroy(kThread *thread);
