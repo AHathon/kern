@@ -27,9 +27,8 @@ uint32_t GetGicMaxIRQs()
     return max_irqs;
 }
 
-void GicSetup(uint32_t irq)
+void GicRouteIRQ(uint32_t irq)
 {
-    //Set level-triggered
     *(volatile uint32_t *)GICD_ICFGR(irq / 16) = (*(volatile uint32_t *)GICD_ICFGR(irq / 16) & ~(0b11 << ((irq % 16) * 2))) | (0b10 << ((irq % 16) * 2));
 
     //Set target CPU

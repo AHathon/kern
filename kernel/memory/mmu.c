@@ -23,10 +23,10 @@ inline void MMU_SetupVirtKernelSpace(unsigned long page_table)
     for (r = 1; r < PAGE_TABLE_SIZE; r++)
     {
         uint32_t flags = PT_ISH | PT_MEM;
-        if(r == L1_IDX(MMIO_BASE))
-            flags = PT_OSH | PT_DEV;
-        if(r == L1_IDX(GIC_BASE))
-            flags = PT_OSH | PT_DEV;
+        if(r == L1_IDX(MMIO_BASE) ||
+            r == L1_IDX(GIC_BASE) ||
+            r == L1_IDX(ARM_LOCAL_BASE))
+                flags = PT_OSH | PT_DEV;
         paging[PAGE_TABLE_IDX(1, r)] = (r << L1_SHIFT) |
             PT_BLOCK | 
             PT_AF | 
@@ -46,10 +46,10 @@ inline void MMU_SetupVirtKernelSpace(unsigned long page_table)
     for (r = 1; r < PAGE_TABLE_SIZE; r++)
     {
         uint32_t flags = PT_ISH | PT_MEM;
-        if(r == L2_IDX(MMIO_BASE))
-            flags = PT_OSH | PT_DEV;
-        if(r == L2_IDX(GIC_BASE))
-            flags = PT_OSH | PT_DEV;
+        if(r == L2_IDX(MMIO_BASE) ||
+            r == L2_IDX(GIC_BASE) ||
+            r == L2_IDX(ARM_LOCAL_BASE))
+                flags = PT_OSH | PT_DEV;
         paging[PAGE_TABLE_IDX(4, r)] = (r << L2_SHIFT) |
             PT_BLOCK | 
             PT_AF | 
@@ -69,6 +69,7 @@ inline void MMU_SetupVirtKernelSpace(unsigned long page_table)
 
     MMIO_ADDR = MMIO_BASE + KERNEL_VIRT_BASE;
     GICC_ADDR = GIC_BASE + KERNEL_VIRT_BASE;
+    ARM_LOCAL_ADDR = ARM_LOCAL_BASE + KERNEL_VIRT_BASE;
 }
 
 void MMU_mapMem(uintptr_t paddr, uintptr_t vaddr)

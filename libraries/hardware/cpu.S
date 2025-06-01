@@ -4,3 +4,9 @@ GetCurrentEL:
     and x0, x0, #12
     lsr x0, x0, #2
     ret
+
+.global GetCoreID
+GetCoreID:
+    mrs x0, mpidr_el1
+    and x0, x0, #3
+    ret

@@ -2,3 +2,4 @@
 
 uint64_t MMIO_ADDR;
 uint64_t GICC_ADDR;
+uint64_t ARM_LOCAL_ADDR;

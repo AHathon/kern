@@ -151,25 +151,7 @@ el1_data_abort:
 
 irq_el1h:
     kernel_entry
-    ldr x0, =GICC_IAR
-    ldr w0, [x0]
-    cmp w0, #SYSTEM_TIMER_IRQ_1
-    b.eq handle_irq_el1
-    cmp w0, #SYSTEM_TIMER_IRQ_3
-    b.eq handle_irq_el1
-    b cleanup_irq_el1
-
-handle_irq_el1:
-    str w0, [sp, #16 * 17]
-    bl timer_irq_handle
-    bl BCMTimerReset
-
-    // End of interrupt
-    ldr w0, [sp, #16 * 17]
-    ldr x1, =GICC_EOIR
-    str w0, [x1]
-
-cleanup_irq_el1:
+	bl timer_irq_handle
     kernel_exit
     eret
 
@@ -181,25 +163,8 @@ irq_el0_64:
     mrs	x1, ELR_EL1
     stp	x0, x1, [sp, #16 * 16]
 
-    ldr x0, =GICC_IAR
-    ldr w0, [x0]
-    cmp w0, #SYSTEM_TIMER_IRQ_1
-    b.eq handle_irq_el0
-    cmp w0, #SYSTEM_TIMER_IRQ_3
-    b.eq handle_irq_el0
-    b cleanup_irq_el0
-
-handle_irq_el0:
-    str w0, [sp, #16 * 17]
     bl timer_irq_handle
-    bl BCMTimerReset
-
-    // End of interrupt
-    ldr w0, [sp, #16 * 17]
-    ldr x1, =GICC_EOIR
-    str w0, [x1]
-
-cleanup_irq_el0:
+	
     // Restore return context
     ldp	x0, x1, [sp, #16 * 16]
     msr SPSR_EL1, x0

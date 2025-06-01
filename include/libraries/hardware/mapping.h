@@ -9,12 +9,13 @@
 #define EC_SVC_64               0b010101
 #define EC_DATA_ABORT_NC_EL     0b100101
 
-#define KERNEL_VIRT_BASE 0xFFFFFF8000000000
-#define USERLAND_VIRT_BASE 0x01000000
+#define KERNEL_VIRT_BASE        0xFFFFFF8000000000
+#define USERLAND_VIRT_BASE      0x01000000
 
-#define MMIO_BASE   0xFE000000
-#define GIC_BASE    0xFF840000
-#define RAM_PADDR   0x01000000
+#define MMIO_BASE               0xFE000000
+#define ARM_LOCAL_BASE          0xFF800000
+#define GIC_BASE                0xFF840000
+#define RAM_PADDR               0x01000000
 
 #define GPIO_BASE (MMIO_ADDR + 0x200000)
 #define UART_BASE (MMIO_ADDR + 0x210000)

@@ -2,6 +2,7 @@
 
 #include "libraries/hardware/mapping.h"
 
+//Legacy interrupt controller
 #define IRQ_BASIC_PENDING	(MMIO_ADDR+0x0000B200)
 #define IRQ_PENDING_1		(MMIO_ADDR+0x0000B204)
 #define IRQ_PENDING_2		(MMIO_ADDR+0x0000B208)
@@ -13,6 +14,7 @@
 #define DISABLE_IRQS_2		(MMIO_ADDR+0x0000B220)
 #define DISABLE_BASIC_IRQS	(MMIO_ADDR+0x0000B224)
 
+//GPIO
 #define GPFSEL0         ((volatile unsigned int*)(GPIO_BASE+0x0000))
 #define GPFSEL1         ((volatile unsigned int*)(GPIO_BASE+0x0004))
 #define GPFSEL2         ((volatile unsigned int*)(GPIO_BASE+0x0008))
@@ -33,6 +35,7 @@
 #define GPPUDCLK0       ((volatile unsigned int*)(GPIO_BASE+0x0098))
 #define GPPUDCLK1       ((volatile unsigned int*)(GPIO_BASE+0x009C))
 
+//UART1
 #define UART1_ENABLE    ((volatile unsigned int *)(UART_BASE+0x5004))
 #define UART1_IO        ((volatile unsigned int *)(UART_BASE+0x5040))
 #define UART1_IER       ((volatile unsigned int *)(UART_BASE+0x5044))
@@ -46,26 +49,26 @@
 #define UART1_STAT      ((volatile unsigned int *)(UART_BASE+0x5064))
 #define UART1_BAUD      ((volatile unsigned int *)(UART_BASE+0x5068))
 
-#define TIMERS_INTERUPTS_BASE 0x40000000
+//Local interrupts
+#define CONTROL_REGISTER                (ARM_LOCAL_ADDR+0x00)
+#define CORE0_TIMER_INTERRUPT_CTRL      (ARM_LOCAL_ADDR+0x40)
+#define CORE1_TIMER_INTERRUPT_CTRL      (ARM_LOCAL_ADDR+0x44)
+#define CORE2_TIMER_INTERRUPT_CTRL      (ARM_LOCAL_ADDR+0x48)
+#define CORE3_TIMER_INTERRUPT_CTRL      (ARM_LOCAL_ADDR+0x4C)
+#define CORE0_MAILBOX_INTERRUPT_CTRL    (ARM_LOCAL_ADDR+0x50)
+#define CORE1_MAILBOX_INTERRUPT_CTRL    (ARM_LOCAL_ADDR+0x54)
+#define CORE2_MAILBOX_INTERRUPT_CTRL    (ARM_LOCAL_ADDR+0x58)
+#define CORE3_MAILBOX_INTERRUPT_CTRL    (ARM_LOCAL_ADDR+0x5C)
+#define CORE0_IRQ_SOURCE                (ARM_LOCAL_ADDR+0x60)
+#define CORE1_IRQ_SOURCE                (ARM_LOCAL_ADDR+0x64)
+#define CORE2_IRQ_SOURCE                (ARM_LOCAL_ADDR+0x68)
+#define CORE3_IRQ_SOURCE                (ARM_LOCAL_ADDR+0x6C)
+#define CORE0_FIQ_SOURCE                (ARM_LOCAL_ADDR+0x70)
+#define CORE1_FIQ_SOURCE                (ARM_LOCAL_ADDR+0x74)
+#define CORE2_FIQ_SOURCE                (ARM_LOCAL_ADDR+0x78)
+#define CORE3_FIQ_SOURCE                (ARM_LOCAL_ADDR+0x7C)
 
-#define CONTROL_REGISTER                (TIMERS_INTERUPTS_BASE+0x00)
-#define CORE0_TIMER_INTERRUPT_CTRL      (TIMERS_INTERUPTS_BASE+0x40)
-#define CORE1_TIMER_INTERRUPT_CTRL      (TIMERS_INTERUPTS_BASE+0x44)
-#define CORE2_TIMER_INTERRUPT_CTRL      (TIMERS_INTERUPTS_BASE+0x48)
-#define CORE3_TIMER_INTERRUPT_CTRL      (TIMERS_INTERUPTS_BASE+0x4C)
-#define CORE0_MAILBOX_INTERRUPT_CTRL    (TIMERS_INTERUPTS_BASE+0x50)
-#define CORE1_MAILBOX_INTERRUPT_CTRL    (TIMERS_INTERUPTS_BASE+0x54)
-#define CORE2_MAILBOX_INTERRUPT_CTRL    (TIMERS_INTERUPTS_BASE+0x58)
-#define CORE3_MAILBOX_INTERRUPT_CTRL    (TIMERS_INTERUPTS_BASE+0x5C)
-#define CORE0_IRQ_SOURCE                (TIMERS_INTERUPTS_BASE+0x60)
-#define CORE1_IRQ_SOURCE                (TIMERS_INTERUPTS_BASE+0x64)
-#define CORE2_IRQ_SOURCE                (TIMERS_INTERUPTS_BASE+0x68)
-#define CORE3_IRQ_SOURCE                (TIMERS_INTERUPTS_BASE+0x6C)
-#define CORE0_FIQ_SOURCE                (TIMERS_INTERUPTS_BASE+0x70)
-#define CORE1_FIQ_SOURCE                (TIMERS_INTERUPTS_BASE+0x74)
-#define CORE2_FIQ_SOURCE                (TIMERS_INTERUPTS_BASE+0x78)
-#define CORE3_FIQ_SOURCE                (TIMERS_INTERUPTS_BASE+0x7C)
-
+//BCM timer
 #define SYS_TIMER_BASE  (MMIO_ADDR + 0x3000)
 #define SYS_TIMER_CS    (SYS_TIMER_BASE + 0x00)
 #define SYS_TIMER_CS_M0 (1 << 0)
@@ -79,6 +82,7 @@
 #define SYS_TIMER_C2    (SYS_TIMER_BASE + 0x14)
 #define SYS_TIMER_C3    (SYS_TIMER_BASE + 0x18)
 
+//GIC Distributer
 #define GICD_DIST_BASE (GICC_ADDR+0x00001000)
 
 #define GICD_CTLR               (GICD_DIST_BASE+0x00000000)
@@ -94,6 +98,7 @@
 #define GICD_SPENDSGIR(n)       (GICD_DIST_BASE+0x00000F20 + (n * 4))
 #define GICD_PIDR2V2            (GICD_DIST_BASE+0x00000FE8)
 
+//GIC CPU interface
 #define GICC_CPU_BASE (GICC_ADDR+0x00002000)
 
 #define GICC_CTLR   (GICC_CPU_BASE+0x00000000)
@@ -101,6 +106,10 @@
 #define GICC_BPR    (GICC_CPU_BASE+0x00000008)
 #define GICC_IAR    (GICC_CPU_BASE+0x0000000C)
 #define GICC_EOIR   (GICC_CPU_BASE+0x00000010)
+
+//Local IRQ
+#define LOCAL_TIMER_IRQ_PS      29
+#define LOCAL_TIMER_IRQ_PNS     30
 
 //Video core shared IRQs
 #define SYSTEM_TIMER_IRQ_0 (0x60) //96

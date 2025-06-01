@@ -2,5 +2,5 @@
 
 #include "libraries/types.h"
 
-void GicSetup(uint32_t irq);
+void GicRouteIRQ(uint32_t irq);
 void GicEnable();

@@ -1,4 +1,5 @@
 #include "kernel/exceptions.h"
+#include "libraries/hardware/timer.h"
 
 void InvalidException(void* ex)
 {
@@ -17,5 +18,15 @@ void data_abort_exception(uint64_t status)
 
 void timer_irq_handle()
 {
-	kprintf("timer_irq_handle()\n");
+	uint32_t irq = *(volatile uint32_t *)GICC_IAR;
+	switch(irq)
+	{
+		case LOCAL_TIMER_IRQ_PNS:
+		{
+			//TODO
+			localTimerReset();
+			break;
+		}
+	}
+	*(volatile uint32_t *)GICC_EOIR = irq;
 }
