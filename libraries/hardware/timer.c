@@ -31,7 +31,7 @@ void localTimerIrqInit()
 {
     //Reset timer
     localTimerReset();
-    
+
     //Enable local timer
     asm volatile("msr cntp_ctl_el0, %0" :: "r"(1));
 

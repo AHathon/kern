@@ -7,7 +7,8 @@
 #define MAX_PAGES_OWNED 32
 #define IS_ACTIVE_PROC 1 << 0
 
-typedef struct{
+typedef struct
+{
     int64_t PID;
     char name[8];
     uintptr_t pageTables; //pointer to L0 page
@@ -17,6 +18,3 @@ typedef struct{
     kThread *mainThread;
     kCodeSet code;
 } kProcess;
-
-kProcess *kProcess_Create(char *name, uint8_t *code, size_t codeSize, void *entry);
-void kProcess_Destroy(kProcess *proc);

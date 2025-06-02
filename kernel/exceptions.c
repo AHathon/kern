@@ -1,6 +1,8 @@
 #include "kernel/exceptions.h"
 #include "kernel/kScheduler.h"
 #include "libraries/hardware/timer.h"
+#include "libraries/hardware/mmio.h"
+#include "libraries/hardware/debug.h"
 
 void InvalidException(void* ex)
 {
@@ -17,14 +19,14 @@ void data_abort_exception(uint64_t status)
 	while(1);
 }
 
-void timer_irq_handle()
+void timer_irq_handle(void *sp)
 {
 	uint32_t irq = *(volatile uint32_t *)GICC_IAR;
 	switch(irq)
 	{
 		case LOCAL_TIMER_IRQ_PNS:
 		{
-			kScheduler_schedule();
+			kScheduler_schedule(sp);
 			localTimerReset();
 			break;
 		}

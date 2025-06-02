@@ -1,4 +1,8 @@
 #include "kernel/kInitialProcess.h"
+#include "kernel/kProcessManager.h"
+#include "kernel/kScheduler.h"
+#include "kernel/kThread.h"
+#include "libraries/hardware/debug.h"
 
 void kInitialProcess_Setup()
 {
@@ -18,11 +22,7 @@ void kInitialProcess_Setup()
         
         uint8_t *code = (uint8_t*)kMemAlloc(codeSize);
         kmemcpy(code, (uint8_t*)entry, codeSize);
-        kProcess *proc = kProcess_Create(hdr->magic, code, codeSize, code);
-        kProcessManager_AddProc(proc);
-
-        //Add main thread to scheduler
-        kScheduler_AddThread(&proc->mainThread);
+        kProcessManager_CreateProcess(hdr->magic, code, codeSize, code);
 
         off += hdr->totalSize;
     }

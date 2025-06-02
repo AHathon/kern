@@ -7,5 +7,5 @@
 
 void resetSystemTimers();
 uint64_t GetCounterFreq();
-inline void localTimerReset();
+void localTimerReset();
 void localTimerIrqInit();

@@ -52,8 +52,7 @@ inline void setupIdentityMap()
 {
     unsigned long *paging = (unsigned long *)&__page_table;
     unsigned long rodata_page = (unsigned long)&__rodata_start / PAGE_SIZE;
-    unsigned long bss_page = (unsigned long)&__bss_start / PAGE_SIZE;
-    uint32_t r;
+    uint64_t r;
 
     // TTBR0, identity L1
     paging[PAGE_TABLE_IDX(0, 0)] = (unsigned long)((unsigned char *)&__page_table + 2 * PAGE_SIZE) |
@@ -92,7 +91,7 @@ inline void setupIdentityMap()
 
     // Identity L3: map first 2MB region as 4K pages
     for (r = 0; r < PAGE_TABLE_SIZE; r++) {
-        unsigned flags = 0;
+        uint64_t flags = 0;
         if(r < 0x80 || r >= rodata_page)
             flags = PT_RW | PT_NX;
         else

@@ -1,10 +1,9 @@
 #pragma once
 
-#include "kernel/kProcessManager.h"
-#include "libraries/hardware/irq.h"
 #include "kernel/kThread.h"
 
-typedef struct {
+typedef struct 
+{
     kThread *queue[MAX_THREADS];
     int front;
     int back;
@@ -13,5 +12,5 @@ typedef struct {
 
 void kScheduler_Init();
 void kScheduler_AddThread(kThread *thread);
-void kScheduler_schedule();
-void context_switch();
+void kScheduler_schedule(void *sp);
+void context_switch(state_ctxt_t curr, state_ctxt_t next);

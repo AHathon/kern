@@ -2,7 +2,6 @@
 
 #include "kernel/memory/kMemoryManager.h"
 #include "kernel/kProcessManager.h"
-#include "kernel/exceptions.h"
 #include "kernel/kScheduler.h"
 #include "kernel/kInitialProcess.h"
 #include "libraries/hardware/debug.h"

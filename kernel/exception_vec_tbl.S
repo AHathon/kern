@@ -151,6 +151,7 @@ el1_data_abort:
 
 irq_el1h:
     kernel_entry
+	mov x0, sp
 	bl timer_irq_handle
     kernel_exit
     eret
@@ -163,8 +164,9 @@ irq_el0_64:
     mrs	x1, ELR_EL1
     stp	x0, x1, [sp, #16 * 16]
 
+	mov x0, sp
     bl timer_irq_handle
-	
+
     // Restore return context
     ldp	x0, x1, [sp, #16 * 16]
     msr SPSR_EL1, x0

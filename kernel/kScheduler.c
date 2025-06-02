@@ -1,5 +1,8 @@
 #include "kernel/kScheduler.h"
+#include "kernel/kProcess.h"
 #include "libraries/hardware/timer.h"
+#include "kernel/kProcessManager.h"
+#include "libraries/hardware/irq.h"
 
 static run_queue_t runqueue;
 kThread *current = 0;
@@ -32,7 +35,7 @@ void kScheduler_AddThread(kThread *thread)
     runq_push(&runqueue, thread);
 }
 
-void kScheduler_schedule()
+void kScheduler_schedule(void *sp)
 {
     kThread *next = runq_pop(&runqueue);
 
@@ -44,11 +47,14 @@ void kScheduler_schedule()
     }
 
     //Switch tasks
+    kThread *old = current;
     current = next;
     if (current)
     {
         current->state = STATE_RUNNING;
-        //kprintf("switching: %d\n", current->id);
-        context_switch(current);
+        //kProcess *parent = (kProcess*)(current->parent);
+        //kprintf("switching: %s\n", parent->name);
+        //context_switch(old->ctxt.data, current->ctxt.data);
+        //TODO copy stored regs in sp to current ctxt
     }
 }

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "libraries/types.h"
-#include "kernel/memory/kMemoryManager.h"
 
 #define MAX_THREADS 256
 
@@ -22,13 +21,20 @@ typedef enum
 
 typedef struct
 {
+    uint8_t data[0x20];
+} state_ctxt_t;
+
+typedef struct
+{
     uint64_t id;
+    uintptr_t parent;
     void *funcPtr;
     void *stackPtr;
     size_t stackSize;
     ThreadType threadType;
     ThreadState state;
+    state_ctxt_t ctxt;
 } kThread;
 
-kThread *kThread_Create(void *funcPtr, size_t stackSize, ThreadType type);
+kThread *kThread_Create(void *parent, void *funcPtr, size_t stackSize, ThreadType type);
 void kThread_Destroy(kThread *thread);

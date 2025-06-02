@@ -10,7 +10,7 @@ inline void MMU_SetupVirtKernelSpace(unsigned long page_table)
     unsigned long bss_page = ((unsigned long)&__bss_start) / PAGE_SIZE;
     unsigned long bss_end = ((unsigned long)&__bss_end) / PAGE_SIZE;
     unsigned long text_end_page = ((unsigned long)&__text_end) / PAGE_SIZE;
-    uint32_t r;
+    uint64_t r;
 
     // TTBR1, kernel L1
     paging[PAGE_TABLE_IDX(1, 0)] = (unsigned long)((unsigned char *)page_table + 4 * PAGE_SIZE) |
@@ -22,7 +22,7 @@ inline void MMU_SetupVirtKernelSpace(unsigned long page_table)
 
     for (r = 1; r < PAGE_TABLE_SIZE; r++)
     {
-        uint32_t flags = PT_ISH | PT_MEM;
+        uint64_t flags = PT_ISH | PT_MEM;
         if(r == L1_IDX(MMIO_BASE) ||
             r == L1_IDX(GIC_BASE) ||
             r == L1_IDX(ARM_LOCAL_BASE))
@@ -45,7 +45,7 @@ inline void MMU_SetupVirtKernelSpace(unsigned long page_table)
     
     for (r = 1; r < PAGE_TABLE_SIZE; r++)
     {
-        uint32_t flags = PT_ISH | PT_MEM;
+        uint64_t flags = PT_ISH | PT_MEM;
         if(r == L2_IDX(MMIO_BASE) ||
             r == L2_IDX(GIC_BASE) ||
             r == L2_IDX(ARM_LOCAL_BASE))
