@@ -6,6 +6,10 @@ hndlr_svcMapMem:
 hndlr_svcFreeMem:
     b svcImpl_FreeMem
 
+.globl hndlr_svcExitProcess
+hndlr_svcExitProcess:
+    b svcImpl_ExitProcess
+
 .globl hndlr_svcDebug
 hndlr_svcDebug:
     b svcImpl_Debug
@@ -14,4 +18,10 @@ hndlr_svcDebug:
 swi_table:
     .dword hndlr_svcMapMem
     .dword hndlr_svcFreeMem
+    .dword hndlr_svcExitProcess
+
+    .rept 0xFF - 3
+    .dword 0
+    .endr
+    
     .dword hndlr_svcDebug

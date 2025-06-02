@@ -10,6 +10,11 @@ void svcImpl_FreeMem(void *addr)
     kprintf("svcFreeMem()\n");
 }
 
+void svcImpl_ExitProcess()
+{
+    kprintf("svcExitProcess()\n");
+}
+
 void svcImpl_Debug(void)
 {
     kprintf("svcDebug()\n");

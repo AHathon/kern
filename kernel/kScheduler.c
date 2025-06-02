@@ -35,7 +35,7 @@ void kScheduler_AddThread(kThread *thread)
     runq_push(&runqueue, thread);
 }
 
-void kScheduler_schedule(void *sp)
+void kScheduler_schedule(state_ctxt_t ctxt)
 {
     kThread *next = runq_pop(&runqueue);
 

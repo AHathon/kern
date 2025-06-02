@@ -26,7 +26,9 @@ void timer_irq_handle(void *sp)
 	{
 		case LOCAL_TIMER_IRQ_PNS:
 		{
-			kScheduler_schedule(sp);
+			state_ctxt_t ctxt;
+			//copy sp over
+			kScheduler_schedule(ctxt);
 			localTimerReset();
 			break;
 		}

@@ -8,7 +8,12 @@ svcMapMem:
 svcFreeMem:
     svc 1
 
+.globl svcExitProcess
+.type svcExitProcess, %function;
+svcExitProcess:
+    svc 2
+
 .globl svcDebug
 .type svcDebug, %function;
 svcDebug:
-    svc 2
+    svc 0xFF
