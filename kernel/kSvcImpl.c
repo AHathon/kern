@@ -1,16 +1,16 @@
 #include "kernel/kSvcImpl.h"
 
-void svcMapMem(void *addr, long size)
+void svcImpl_MapMem(void *addr, long size)
 {
     kprintf("svcMapMem()\n");
 }
 
-void svcFreeMem(void *addr)
+void svcImpl_FreeMem(void *addr)
 {
     kprintf("svcFreeMem()\n");
 }
 
-void svcDebug(void)
+void svcImpl_Debug(void)
 {
     kprintf("svcDebug()\n");
 }

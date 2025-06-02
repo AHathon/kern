@@ -84,4 +84,5 @@ setup:
 	mkdir -p $(BUILD)/kernel/memory
 	mkdir -p $(BUILD)/boot
 	mkdir -p $(BUILD)/libraries/hardware
+	mkdir -p $(BUILD)/libraries/services
 	$(MAKE) -C KIPs

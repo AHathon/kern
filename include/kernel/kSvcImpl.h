@@ -2,6 +2,6 @@
 
 #include "libraries/hardware/debug.h"
 
-void svcMapMem(void *addr, long size);
-void svcFreeMem(void *addr);
-void svcDebug(void);
+void svcImpl_MapMem(void *addr, long size);
+void svcImpl_FreeMem(void *addr);
+void svcImpl_Debug(void);

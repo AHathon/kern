@@ -1,0 +1,28 @@
+BUILD := build
+SOURCES := src
+
+CC=clang
+OC=llvm-objcopy
+CFLAGS := --target=aarch64-none-elf -mcpu=cortex-a53 -O2 -nostdlib -ffreestanding
+
+rwildcard = $(foreach d, $(wildcard $1*), $(filter $(subst *, %, $2), $d) $(call rwildcard, $d/, $2))
+OBJECTS := $(patsubst $(SOURCES)/%.cpp, $(BUILD)/%.o, $(call rwildcard, $(SOURCES), *.cpp)) \
+			$(patsubst $(SOURCES)/%.S, $(BUILD)/%.o, $(call rwildcard, $(SOURCES), *.S))
+OBJECTS += ../../misc/ctr0.S
+
+$(TARGET).kip: $(TARGET).bin
+	$(CC) -c -x assembler-with-cpp $(CFLAGS) -DSERVICE_MAGIC="\"$(TARGET)\"" -DSERVICE_BIN="\"$(TARGET).bin\"" ../../misc/container.S -o $(BUILD)/container.o
+	$(OC) -O binary $(BUILD)/container.o $@
+
+$(TARGET).bin: $(TARGET).elf
+	$(OC) $< -O binary $@
+
+$(TARGET).elf: $(OBJECTS)
+	$(CC) -T ../../misc/linker.ld $(CFLAGS) -o $@ $^
+
+$(BUILD)/%.o: $(SOURCES)/%.cpp
+	@mkdir -p $(@D)
+	$(CC) -c $< $(CFLAGS) -o $@
+
+$(BUILD)/%.o: $(SOURCES)/%.S
+	$(CC) --target=aarch64-elf $(ASFLAGS) -c -o $@ $^

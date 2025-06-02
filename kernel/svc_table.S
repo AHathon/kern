@@ -1,17 +1,14 @@
-.extern svcMapMem
 .globl hndlr_svcMapMem
 hndlr_svcMapMem:
-    b svcMapMem
+    b svcImpl_MapMem
 
-.extern svcFreeMem
 .globl hndlr_svcFreeMem
 hndlr_svcFreeMem:
-    b svcFreeMem
+    b svcImpl_FreeMem
 
-.extern svcDebug
 .globl hndlr_svcDebug
 hndlr_svcDebug:
-    b svcDebug
+    b svcImpl_Debug
 
 .globl swi_table
 swi_table:
