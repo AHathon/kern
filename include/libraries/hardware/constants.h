@@ -2,7 +2,7 @@
 
 #define NR_SYSCALLS 4
 
-#define SCHEDULE_TIMER_INTERVAL 1000000  // 1 million µs = 1s
+#define SCHEDULE_TIMER_INTERVAL 1000000L  // 1 million µs = 1s
 
 #define EC_UNKNOWN              0b000000
 #define EC_TRAPPED_WF           0b000001
@@ -11,7 +11,7 @@
 #define EC_SVC_64               0b010101
 #define EC_DATA_ABORT_NC_EL     0b100101
 
-#define KERNEL_VIRT_BASE        0xFFFFFF8000000000
+#define KERNEL_VIRT_BASE        0xFFFFFF8000000000ULL
 #define USERLAND_VIRT_BASE      0x01000000
 
 #define MMIO_BASE               0xFE000000

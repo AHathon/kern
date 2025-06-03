@@ -28,7 +28,7 @@ void localTimerIrqInit()
     asm volatile("msr cntp_tval_el0, %0" :: "r"(SCHEDULE_TIMER_INTERVAL));
 
     //Enable local timer
-    asm volatile("msr cntp_ctl_el0, %0" :: "r"(1));
+    asm volatile("msr cntp_ctl_el0, %0" :: "r"(1L));
 
     //Tie IRQ to timer
     *(volatile uint32_t *)CORE0_TIMER_INTERRUPT_CTRL |= (1 << 1); //CNT_PNS_IRQ

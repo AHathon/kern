@@ -9,7 +9,7 @@ void InvalidException(void* ex)
 	kprintf("-----Invalid Exception-----\nStack:\n");
 	
 	InvalidException_t *except = (InvalidException_t*)ex;
-	kHexDump(except->x, sizeof(except->x));
+	kHexDump((uint8_t*)except->x, sizeof(except->x));
 	kprintf("ESR_EL1: %016X\n", except->esr_el1);
 	kprintf("ELR_EL1: %016X\n", except->elr_el1);
 	kprintf("FAR_EL1: %016X\n", except->far_el1);

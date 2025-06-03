@@ -6,13 +6,14 @@
 _start_kernel:
     //skip setup if virt mem is setup
     cmp x1, #1
-    beq setup_virt_stack
+    beq clear_tbl
     
     mov x8, x0
     //set stack to phys
     ldr x0, =__stack_top
     ldr x11, =KERNEL_VIRT_BASE
     sub x0, x0, x11
+    msr spsel, #1
     mov sp, x0
 
 set_exceptions:
@@ -34,15 +35,21 @@ memset:
 setup_mmu:
     mov x0, x8
     bl MMU_SetupVirtKernelSpace
-    b MMU_ClearIdentityMap
 
 setup_virt_stack:
     //set stack to virtual
-    msr  spsel, #1
     ldr x11, =KERNEL_VIRT_BASE
+    msr spsel, #1
     mov x0, sp
     add x0, x0, x11
     mov sp, x0
+
+    b MMU_ClearIdentityMap
+
+clear_tbl:
+    tlbi vmalle1
+    dsb ish
+    isb
 
 boot_kernel:
     mov x1, #0

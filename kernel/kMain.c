@@ -30,7 +30,6 @@ void kMain(uint64_t dtb_ptr32)
     kScheduler_Init();
 
     kInitialProcess_Setup();
-    kProcessManager_PrintDebugProc();
 
     kprintf("Initialization done!\n");
 }

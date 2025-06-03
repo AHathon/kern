@@ -6,8 +6,8 @@
 
 void kInitialProcess_Setup()
 {
-    const char *start = &__kips_start;
-	const char *end = &__kips_end;
+    const uintptr_t start = (uintptr_t)&__kips_start;
+	const uintptr_t end = (uintptr_t)&__kips_end;
 	size_t kip_size = end - start;
     kprintf("Kip blob size: %X\n", kip_size);
 

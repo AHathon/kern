@@ -3,8 +3,8 @@
 #include "libraries/types.h"
 
 
-extern const char *__kips_start;
-extern const char *__kips_end;
+extern volatile unsigned char __kips_start;
+extern volatile unsigned char __kips_end;
 
 typedef struct
 {

@@ -127,7 +127,7 @@ void kHexDump(uint8_t *buf, size_t size)
 	}
 }
 
-void kstrcpy(uint8_t *dest, uint8_t *src)
+void kstrcpy(char *dest, const char *src)
 {
 	while ((*dest++ = *src++) != '\0');
 }

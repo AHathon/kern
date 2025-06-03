@@ -22,7 +22,6 @@ void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, v
 	kstrcpy(processTable[p].name, name);
 	processTable[p].PID = ++lastPID;
 	processTable[p].mainThread = kThread_Create(&processTable[p], entry, 0x1000, THREAD_KERNEL);
-	kprintf("Creating main thread [id:%d]\n", processTable[p].mainThread->id);
 	processTable[p].flags |= IS_ACTIVE_PROC;
 	processTable[p].code.text.addr = (uintptr_t)code;
     processTable[p].code.text.size = codeSize;

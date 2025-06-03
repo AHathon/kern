@@ -51,14 +51,13 @@ void kScheduler_schedule()
     }
 
     //Switch tasks
-    kThread *old = current;
     current = next;
     if (current)
     {
         uint8_t isNew = current->state == STATE_READY;
         uint8_t isKernel = current->threadType == THREAD_KERNEL;
-        //kProcess *parent = (kProcess*)(current->parent);
-        //kprintf("switching: %s\n", parent->name);
+        kProcess *parent = (kProcess*)(current->parent);
+        kprintf("switching: %s\n", parent->name);
         context_switch(current->sp, isKernel, isNew);
     }
 }
