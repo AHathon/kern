@@ -28,4 +28,4 @@ _restore:
 
     add	sp, sp, #288
 
-    ret
+    eret

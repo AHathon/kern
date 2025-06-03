@@ -6,7 +6,8 @@
 
 void InvalidException(void* ex)
 {
-	kprintf("InvalidException\n");
+	kprintf("-----Invalid Exception-----\nStack:\n");
+	kHexDump(ex, 0x50);
 }
 
 void data_abort_exception(uint64_t status)
@@ -28,8 +29,8 @@ void timer_irq_handle(void *sp)
 		{
 			kThread *curr = GetCurrentThread();
 			curr->sp = (uintptr_t)sp;
-			kScheduler_schedule();
 			localTimerReset();
+			kScheduler_schedule();
 			break;
 		}
 	}

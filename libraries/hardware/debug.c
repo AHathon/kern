@@ -115,6 +115,18 @@ void kprintf(char *fmt, ...) {
 	va_end(list);
 }
 
+void kHexDump(uint8_t *buf, size_t size)
+{
+	for(int i = 0; i < size; i++)
+	{
+		if(i % 16 == 0)
+			kprintf("%08X | ", ((uintptr_t)buf) + i);
+		kprintf("%02X ", buf[i]);
+		if(i % 16 == 15) 
+			kprintf("\n");
+	}
+}
+
 void kstrcpy(uint8_t *dest, uint8_t *src)
 {
 	while ((*dest++ = *src++) != '\0');
