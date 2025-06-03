@@ -21,7 +21,7 @@ void kInitialProcess_Setup()
         size_t codeSize = hdr->codeSize;
         
         uint8_t *code = (uint8_t*)kMemAlloc(codeSize);
-        kmemcpy(code, (uint8_t*)entry, codeSize);
+        kmemcpy(code, (uint8_t*)(start + entry), codeSize);
         kProcessManager_CreateProcess(hdr->magic, code, codeSize, code);
 
         off += hdr->totalSize;
