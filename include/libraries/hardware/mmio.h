@@ -1,6 +1,6 @@
 #pragma once
 
-#include "libraries/hardware/mapping.h"
+#include "libraries/hardware/constants.h"
 
 //Legacy interrupt controller
 #define IRQ_BASIC_PENDING	(MMIO_ADDR+0x0000B200)

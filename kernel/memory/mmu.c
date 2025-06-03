@@ -69,11 +69,21 @@ inline void MMU_SetupVirtKernelSpace(unsigned long page_table)
 
     MMIO_ADDR = MMIO_BASE + KERNEL_VIRT_BASE;
     GICC_ADDR = GIC_BASE + KERNEL_VIRT_BASE;
-    ARM_LOCAL_ADDR = ARM_LOCAL_BASE + KERNEL_VIRT_BASE;
+    ARM_LOCAL_ADDR = ARM_LOCAL_BASE + KERNEL_VIRT_BASE;    
+}
+
+void MMU_ClearIdentityMap()
+{
+    unsigned long *paging = (unsigned long*)(pageTable + KERNEL_VIRT_BASE);
+    paging[PAGE_TABLE_IDX(0, 0)] = 0;
+
+    //jump back to kernel base signaling virt mem setup
+    ((void (*)(uint64_t, uint8_t))(KERNEL_VIRT_BASE + &__text_start))(0,1); 
+    __builtin_unreachable();
 }
 
 void MMU_mapMem(uintptr_t paddr, uintptr_t vaddr)
 {
-    unsigned long *paging = (unsigned long*)(pageTable);
+    unsigned long *paging = (unsigned long*)(pageTable + KERNEL_VIRT_BASE);
     //TODO
 }

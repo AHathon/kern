@@ -7,11 +7,11 @@ void resetSystemTimers()
     uint32_t now = *(volatile uint32_t *)(SYS_TIMER_CLO);
 
     // Setup timer 1 (IRQ 97)
-    *(volatile uint32_t *)(SYS_TIMER_C1) = now + TIMER_INTERVAL;
+    *(volatile uint32_t *)(SYS_TIMER_C1) = now + SCHEDULE_TIMER_INTERVAL;
     *(volatile uint32_t *)(SYS_TIMER_CS) = (1 << 1);
 
     // Setup timer 3 (IRQ 99)
-    *(volatile uint32_t *)(SYS_TIMER_C3) = now + TIMER_INTERVAL;
+    *(volatile uint32_t *)(SYS_TIMER_C3) = now + SCHEDULE_TIMER_INTERVAL;
     *(volatile uint32_t *)(SYS_TIMER_CS) = (1 << 3);
 }
 
@@ -22,15 +22,10 @@ uint64_t GetCounterFreq()
     return freq;
 }
 
-void localTimerReset()
-{
-    asm volatile("msr cntp_tval_el0, %0" :: "r"(TIMER_INTERVAL));
-}
-
 void localTimerIrqInit() 
 {
     //Reset timer
-    localTimerReset();
+    asm volatile("msr cntp_tval_el0, %0" :: "r"(SCHEDULE_TIMER_INTERVAL));
 
     //Enable local timer
     asm volatile("msr cntp_ctl_el0, %0" :: "r"(1));

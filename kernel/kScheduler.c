@@ -45,9 +45,8 @@ void kScheduler_schedule()
     kThread *next = runq_pop(&runqueue);
 
     //If theres a task currently, and its still good, push it back
-    if (current && current->state == STATE_RUNNING)
+    if (current && current->state != STATE_TERMINATED)
     {
-        current->state = STATE_READY;
         runq_push(&runqueue, current);
     }
 
@@ -56,9 +55,10 @@ void kScheduler_schedule()
     current = next;
     if (current)
     {
-        current->state = STATE_RUNNING;
+        uint8_t isNew = current->state == STATE_READY;
+        uint8_t isKernel = current->threadType == THREAD_KERNEL;
         //kProcess *parent = (kProcess*)(current->parent);
         //kprintf("switching: %s\n", parent->name);
-        context_switch(current->sp, current->threadType == THREAD_USER);
+        context_switch(current->sp, isKernel, isNew);
     }
 }

@@ -3,7 +3,7 @@
 #include "libraries/hardware/uart.h"
 #include "libraries/hardware/debug.h"
 #include "libraries/hardware/mmu.h"
-#include "libraries/hardware/mapping.h"
+#include "libraries/hardware/constants.h"
 #include "libraries/hardware/mmio_vars.h"
 
 #define PAGE_SIZE 4096

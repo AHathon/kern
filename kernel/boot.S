@@ -1,9 +1,13 @@
-#include "libraries/hardware/mapping.h"
+#include "libraries/hardware/constants.h"
 
 .section ".text.kernel"
 
 .global _start_kernel
 _start_kernel:
+    //skip setup if virt mem is setup
+    cmp x1, #1
+    beq setup_virt_stack
+    
     mov x8, x0
     //set stack to phys
     ldr x0, =__stack_top
@@ -30,11 +34,9 @@ memset:
 setup_mmu:
     mov x0, x8
     bl MMU_SetupVirtKernelSpace
-    dsb ish
-    tlbi vmalle1is
-    dsb ish
-    isb
+    b MMU_ClearIdentityMap
 
+setup_virt_stack:
     //set stack to virtual
     msr  spsel, #1
     ldr x11, =KERNEL_VIRT_BASE

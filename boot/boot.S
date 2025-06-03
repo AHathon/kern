@@ -102,6 +102,7 @@ start_mmu:
 jump_kern:
     ldr x0, =__page_table
     ldr x8, =__kernel_blob
+    mov x1, #0
     br x8
 
 loop:

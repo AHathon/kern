@@ -1,6 +1,6 @@
 #pragma once
 
-#include "libraries/hardware/mapping.h"
+#include "libraries/hardware/constants.h"
 #include "libraries/types.h"
 
 extern uint64_t MMIO_ADDR;

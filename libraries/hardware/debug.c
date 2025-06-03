@@ -122,7 +122,7 @@ void kHexDump(uint8_t *buf, size_t size)
 		if(i % 16 == 0)
 			kprintf("%08X | ", ((uintptr_t)buf) + i);
 		kprintf("%02X ", buf[i]);
-		if(i % 16 == 15) 
+		if(i % 16 == 15 || i >= size - 1) 
 			kprintf("\n");
 	}
 }

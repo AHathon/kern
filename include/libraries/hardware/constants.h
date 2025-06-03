@@ -1,6 +1,8 @@
 #pragma once
 
-#define NR_SYSCALLS 3
+#define NR_SYSCALLS 4
+
+#define SCHEDULE_TIMER_INTERVAL 1000000  // 1 million µs = 1s
 
 #define EC_UNKNOWN              0b000000
 #define EC_TRAPPED_WF           0b000001

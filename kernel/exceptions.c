@@ -7,7 +7,14 @@
 void InvalidException(void* ex)
 {
 	kprintf("-----Invalid Exception-----\nStack:\n");
-	kHexDump(ex, 0x50);
+	
+	InvalidException_t *except = (InvalidException_t*)ex;
+	kHexDump(except->x, sizeof(except->x));
+	kprintf("ESR_EL1: %016X\n", except->esr_el1);
+	kprintf("ELR_EL1: %016X\n", except->elr_el1);
+	kprintf("FAR_EL1: %016X\n", except->far_el1);
+	kprintf("Error Type: %s\n", exceptionTypes[except->err_type]);
+	while(1);
 }
 
 void data_abort_exception(uint64_t status)
@@ -29,7 +36,6 @@ void timer_irq_handle(void *sp)
 		{
 			kThread *curr = GetCurrentThread();
 			curr->sp = (uintptr_t)sp;
-			localTimerReset();
 			kScheduler_schedule();
 			break;
 		}
