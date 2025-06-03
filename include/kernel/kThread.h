@@ -21,19 +21,14 @@ typedef enum
 
 typedef struct
 {
-    uint8_t data[0x20];
-} state_ctxt_t;
-
-typedef struct
-{
     uint64_t id;
     uintptr_t parent;
     void *funcPtr;
-    void *stackPtr;
+    void *stackBase;
+    uintptr_t sp;
     size_t stackSize;
     ThreadType threadType;
     ThreadState state;
-    state_ctxt_t ctxt;
 } kThread;
 
 kThread *kThread_Create(void *parent, void *funcPtr, size_t stackSize, ThreadType type);

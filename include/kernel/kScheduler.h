@@ -12,5 +12,6 @@ typedef struct
 
 void kScheduler_Init();
 void kScheduler_AddThread(kThread *thread);
-void kScheduler_schedule(state_ctxt_t ctxt);
-void context_switch(state_ctxt_t curr, state_ctxt_t next);
+void kScheduler_schedule();
+kThread *GetCurrentThread();
+void context_switch(uintptr_t sp, uint8_t isUser);

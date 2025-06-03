@@ -153,8 +153,8 @@ irq_el1h:
     kernel_entry
 	mov x0, sp
 	bl timer_irq_handle
-    kernel_exit
-    eret
+	kernel_exit
+	eret
 
 irq_el0_64:
     kernel_entry
@@ -166,12 +166,6 @@ irq_el0_64:
 
 	mov x0, sp
     bl timer_irq_handle
-
-    // Restore return context
-    ldp	x0, x1, [sp, #16 * 16]
-    msr SPSR_EL1, x0
-    msr ELR_EL1, x1	
-
     kernel_exit
     eret
 

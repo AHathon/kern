@@ -11,7 +11,7 @@ kThread *kThread_Create(void *parent, void *funcPtr, size_t stackSize, ThreadTyp
     thread->state = STATE_READY;
     thread->threadType = type;
     thread->stackSize = stackSize;
-    thread->stackPtr = kMemAlloc(stackSize);
+    thread->stackBase = kMemAlloc(stackSize);
     thread->funcPtr = funcPtr;
 
     return thread;
@@ -20,7 +20,7 @@ kThread *kThread_Create(void *parent, void *funcPtr, size_t stackSize, ThreadTyp
 void kThread_Destroy(kThread *thread)
 {
     thread->state = STATE_TERMINATED;
-    kMemFree(thread->stackPtr, thread->stackSize);
-    thread->stackPtr = 0;
+    kMemFree(thread->stackBase, thread->stackSize);
+    thread->stackBase = 0;
     kMemFree(thread, sizeof(kThread));
 }

@@ -35,7 +35,12 @@ void kScheduler_AddThread(kThread *thread)
     runq_push(&runqueue, thread);
 }
 
-void kScheduler_schedule(state_ctxt_t ctxt)
+kThread *GetCurrentThread()
+{
+    return current;
+}
+
+void kScheduler_schedule()
 {
     kThread *next = runq_pop(&runqueue);
 
@@ -54,7 +59,6 @@ void kScheduler_schedule(state_ctxt_t ctxt)
         current->state = STATE_RUNNING;
         //kProcess *parent = (kProcess*)(current->parent);
         //kprintf("switching: %s\n", parent->name);
-        //context_switch(old->ctxt.data, current->ctxt.data);
-        //TODO copy stored regs in sp to current ctxt
+        context_switch(current->sp, current->threadType == THREAD_USER);
     }
 }

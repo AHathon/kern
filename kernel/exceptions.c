@@ -6,7 +6,7 @@
 
 void InvalidException(void* ex)
 {
-	//kprintf("InvalidException!\n");
+	kprintf("InvalidException\n");
 }
 
 void data_abort_exception(uint64_t status)
@@ -26,9 +26,9 @@ void timer_irq_handle(void *sp)
 	{
 		case LOCAL_TIMER_IRQ_PNS:
 		{
-			state_ctxt_t ctxt;
-			//copy sp over
-			kScheduler_schedule(ctxt);
+			kThread *curr = GetCurrentThread();
+			curr->sp = (uintptr_t)sp;
+			kScheduler_schedule();
 			localTimerReset();
 			break;
 		}
