@@ -1,6 +1,6 @@
 #include "mmu.h"
 
-inline void setupVMM() 
+void setupVMM() 
 {
     unsigned long r, b;
     
@@ -37,21 +37,25 @@ inline void setupVMM()
                                                 TTBR_CNP)); // lower half, user space (set common-not-priv)
     asm volatile ("msr ttbr1_el1, %0" : : "r" (paging + PAGE_SIZE | 
                                                 TTBR_CNP)); // upper half, kernel space (set common-not-priv)
-    
-    //clear TLB
-    asm volatile("tlbi vmalle1is");
-    //sync
-    asm volatile("dsb sy");
-    asm volatile("isb");
 
     //Set mmio to virt addr
     MMIO_ADDR = MMIO_BASE + KERNEL_VIRT_BASE;
+
+    //clear TLB and sync
+    asm volatile("tlbi vmalle1is");
+    asm volatile("dsb sy");
+    asm volatile("isb");
 }
 
-inline void setupIdentityMap() 
+void setupIdentityMap() 
 {
     unsigned long *paging = (unsigned long *)&__page_table;
+    unsigned long page_end = (unsigned long)&__page_table_end;
+    unsigned long text_page = (unsigned long)&__text_start / PAGE_SIZE;
+    unsigned long kern_page = (unsigned long)&__kernel_blob / PAGE_SIZE;
+    unsigned long data_page = (unsigned long)&__data_start / PAGE_SIZE;
     unsigned long rodata_page = (unsigned long)&__rodata_start / PAGE_SIZE;
+    unsigned long bss_page = (unsigned long)&__bss_start / PAGE_SIZE;
     uint64_t r;
 
     // TTBR0, identity L1
@@ -79,30 +83,27 @@ inline void setupIdentityMap()
         PT_ISH | 
         PT_MEM;
 
-    // Identity L2 2MB blocks (except first block handled by L3)
     for (r = 1; r < L2_IDX(MMIO_BASE); r++) {
         paging[PAGE_TABLE_IDX(2, r)] = (r << L2_SHIFT) |
             PT_BLOCK | 
             PT_AF | 
-            PT_NX | 
             PT_KERNEL |
             PT_ISH | PT_MEM;
     }
 
-    // Identity L3: map first 2MB region as 4K pages
-    for (r = 0; r < PAGE_TABLE_SIZE; r++) {
-        uint64_t flags = 0;
-        if(r < 0x80 || r >= rodata_page)
-            flags = PT_RW | PT_NX;
-        else
+    // Identity L3:
+    for (r = text_page; r < page_end; r++) {
+        uint64_t flags = PT_RW;
+        if(r < rodata_page)
+            flags |= PT_EXEC;
+        else if(r >= rodata_page && r < data_page)
             flags = PT_RO;
-        if(r >= 0x87)
-            flags = PT_MEM;
         paging[PAGE_TABLE_IDX(3, r)] = (r << L3_SHIFT) |
             PT_PAGE | 
             PT_AF | 
             PT_KERNEL | 
             PT_ISH |
+            PT_MEM |
             flags;
     }
 }

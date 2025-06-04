@@ -22,18 +22,18 @@ SECTIONS
         __kernel_blob_end = .;
     }
 
-    .data : ALIGN(4K)
-    {
-        __data_start = .;
-        *(.data)
-        __data_end = .;
-    }
-
     .rodata : ALIGN(4K)
     {
         __rodata_start = .;
         *(.rodata .rodata.*)
         __rodata_end = .;
+    }
+
+    .data : ALIGN(4K)
+    {
+        __data_start = .;
+        *(.data)
+        __data_end = .;
     }
 
     .got : ALIGN(4K)
@@ -57,4 +57,5 @@ SECTIONS
     . = ALIGN(4096);
     __page_table = .;
     . += 0x2000; /* 2 pages */
+    __page_table_end = .;
 }

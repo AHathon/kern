@@ -8,7 +8,7 @@ OC=llvm-objcopy
 LD=ld.lld
 INCLUDE := include
 
-COMMON := -Wall -g -O2 -ffreestanding -nostdinc -nostdlib -mcpu=cortex-a53+nosimd
+COMMON := -Wall -g -O0 -ffreestanding -nostdinc -nostdlib -mcpu=cortex-a53+nosimd
 CFLAGS := -I$(INCLUDE) $(COMMON)
 ASFLAGS := -I$(INCLUDE) -D__ASSEMBLY__ $(COMMON)
 

@@ -7,8 +7,7 @@ _start_kernel:
     //skip setup if virt mem is setup
     cmp x1, #1
     beq clear_tbl
-    
-    mov x8, x0
+
     //set stack to phys
     ldr x0, =__stack_top
     ldr x11, =KERNEL_VIRT_BASE
@@ -33,7 +32,6 @@ memset:
     cbnz w6, memset
 
 setup_mmu:
-    mov x0, x8
     bl MMU_SetupVirtKernelSpace
 
 setup_virt_stack:
@@ -47,8 +45,8 @@ setup_virt_stack:
     b MMU_ClearIdentityMap
 
 clear_tbl:
-    tlbi vmalle1
-    dsb ish
+    tlbi vmalle1is
+    dsb sy
     isb
 
 boot_kernel:

@@ -6,12 +6,15 @@
 #define PT_BLOCK    0b01
 #define PT_TABLE    0b11
 
-#define PT_KERNEL   (0 << 6)     // EL1 access level
-#define PT_USER     (1 << 6)     // EL0 access level
-#define PT_RW       (0 << 7)     // read-write access
-#define PT_RO       (1 << 7)     // read only
-#define PT_AF       (1 << 10)    // access flag
-#define PT_NX       (1UL << 54)  // no execute
+#define PT_KERNEL   (0UL << 6)     // EL1 access level
+#define PT_USER     (1UL << 6)     // EL0 access level
+#define PT_RW       (0UL << 7)     // read-write access
+#define PT_RO       (1UL << 7)     // read only
+#define PT_AF       (1UL << 10)    // access flag
+#define PT_PXN      (1UL << 53)
+#define PT_UXN      (1UL << 54)
+#define PT_NX       (PT_PXN | PT_UXN)
+#define PT_EXEC     (0UL << 53)
 
 #define PT_OSH      (2 << 8)  // outer shareable
 #define PT_ISH      (3 << 8)  // inner shareable

@@ -10,7 +10,7 @@
 #include "libraries/hardware/mmio_vars.h"
 #include "libraries/hardware/gic.h"
 
-void kMain(uint64_t dtb_ptr32)
+void kMain()
 {
     GicEnable();
     //Only C1/C3 should be used for OS

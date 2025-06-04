@@ -85,7 +85,7 @@ start_EL1:
 memset:
     cbz w6, start_uart
     str xzr, [x5], #8
-    sub w6, w6, #1
+    sub w6, w6, #8
     cbnz w6, memset
 
 start_uart:

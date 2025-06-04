@@ -45,8 +45,8 @@ SECTIONS
     __stack_top = .;
     . = ALIGN(4096);
     __page_table = .;
-    . += 0x2000; /* 2 pages */
-    
+    . += 0x3000; /* 3 pages */
+    . = ALIGN(4096);
     .kips : ALIGN(4K)
     {
         __kips_start = .;
