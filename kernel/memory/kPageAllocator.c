@@ -2,10 +2,10 @@
 
 void PageAllocator_Init() 
 {
-    kprintf("Total pages: %d\n", MAX_PAGES);
+    LOG("Total pages: %d\n", MAX_PAGES);
     for(int i = 0; i < MAX_PAGES / 8; i++)
         pageBitmap[i] = 0;
-    kprintf("Initialized kPageAllocator\n");
+    LOG("Initialized kPageAllocator\n");
 }
 
 uint8_t PageAllocator_GetPageStatus(uint64_t page) 
@@ -93,12 +93,12 @@ uint64_t PageAllocator_UsedPagesCount()
 
 void PageAllocator_DebugPrintPagesUsed() 
 {
-    kprintf("Pages in use:\n");
+    LOG("Pages in use:\n");
     for(int i = 0; i < MAX_PAGES; i++) 
 	{
         if(PageAllocator_GetPageStatus(i)) 
-			kprintf("%d, ", i);
+			LOG("%d, ", i);
     }
-    kprintf("\n");
-    kprintf("Total pages: %d\n", PageAllocator_UsedPagesCount());
+    LOG("\n");
+    LOG("Total pages: %d\n", PageAllocator_UsedPagesCount());
 }

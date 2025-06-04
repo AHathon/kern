@@ -1,5 +1,11 @@
 #include "libraries/hardware/debug.h"
 
+typedef __builtin_va_list va_list;
+#define va_start(ap,last) __builtin_va_start(ap, last)
+#define va_end(ap) __builtin_va_end(ap)
+#define va_arg(ap,type) __builtin_va_arg(ap,type)
+#define va_copy(dest, src) __builtin_va_copy(dest,src)
+
 static void print_dec(unsigned long value, unsigned int width, char * buf, int * ptr ) {
 	unsigned int n_width = 1;
 	unsigned long i = 9;
@@ -106,6 +112,13 @@ size_t vasprintf(char * buf, const char *fmt, va_list args) {
 
 }
 
+void panic() {
+    LOG("System halted.\n");
+    while (1) {
+        asm volatile("wfe");
+    }
+}
+
 void kprintf(char *fmt, ...) {
 	char buf[256];
 	va_list list;
@@ -120,10 +133,10 @@ void kHexDump(uint8_t *buf, size_t size)
 	for(int i = 0; i < size; i++)
 	{
 		if(i % 16 == 0)
-			kprintf("%08X | ", ((uintptr_t)buf) + i);
-		kprintf("%02X ", buf[i]);
+			LOG("%08X | ", ((uintptr_t)buf) + i);
+		LOG("%02X ", buf[i]);
 		if(i % 16 == 15 || i >= size - 1) 
-			kprintf("\n");
+			LOG("\n");
 	}
 }
 
@@ -142,4 +155,11 @@ void kmemset(uint8_t *src, size_t size)
 {
 	for(int i = 0; i < size; i++)
 		*src++ = 0;
+}
+
+size_t kstrlen(const char *str)
+{
+	size_t size = 0;
+	while(str[size] != 0) size++;
+	return size;
 }

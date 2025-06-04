@@ -3,7 +3,7 @@
 void kMemManager_Init()
 {
     PageAllocator_Init();
-    kprintf("Initialized kMemoryManager\n");
+    LOG("Initialized kMemoryManager\n");
 }
 
 void *kMemAlloc(size_t size)

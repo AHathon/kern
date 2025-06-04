@@ -41,7 +41,7 @@ void GicRouteIRQ(uint32_t irq)
     volatile uint32_t *isenabler = (volatile uint32_t *)(GICD_ISENABLER(irq >> 5));
     *isenabler = (1 << (irq % 32));
 
-    kprintf("Enabling GIC IRQ #%d\n", irq);
+    LOG("Enabling GIC IRQ #%d\n", irq);
 }
 
 void GicEnable()
@@ -54,5 +54,5 @@ void GicEnable()
     *(volatile uint32_t *)GICC_BPR = 7;
     *(volatile uint32_t *)GICC_CTLR = 1;
 
-    kprintf("Initialized GIC [%s] (%d IRQs)\n", GetGicVersion(), GetGicMaxIRQs());
+    LOG("Initialized GIC [%s] (%d IRQs)\n", GetGicVersion(), GetGicMaxIRQs());
 }

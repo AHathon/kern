@@ -13,7 +13,7 @@ kThread *kThread_Create(void *parent, void *entryPtr, size_t stackSize, ThreadTy
     thread->stackSize = stackSize;
     thread->stackBase = kMemAlloc(stackSize);
     thread->entryPtr = entryPtr;
-    kprintf("Creating thread [id:%d]\n", thread->id);
+    LOG("Creating thread [id:%d]\n", thread->id);
 
     return thread;
 }

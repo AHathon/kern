@@ -2,20 +2,20 @@
 
 void svcImpl_MapMem(void *addr, long size)
 {
-    kprintf("svcMapMem()\n");
+    LOG("svcMapMem()\n");
 }
 
 void svcImpl_FreeMem(void *addr)
 {
-    kprintf("svcFreeMem()\n");
+    LOG("svcFreeMem()\n");
 }
 
 void svcImpl_ExitProcess()
 {
-    kprintf("svcExitProcess()\n");
+    LOG("svcExitProcess()\n");
 }
 
 void svcImpl_Debug(void)
 {
-    kprintf("svcDebug()\n");
+    LOG("svcDebug()\n");
 }

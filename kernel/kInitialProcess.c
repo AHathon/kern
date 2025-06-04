@@ -7,18 +7,16 @@
 void kInitialProcess_Setup()
 {
 	size_t kip_size = &__kips_end - &__kips_start;
-    kprintf("Kip blob size: %X\n", kip_size);
+    LOG("Kip blob size: %X\n", kip_size);
 
     uintptr_t off = 0;
     while(off < kip_size)
     {
         KipHeader *hdr = (KipHeader*)(&__kips_start + off);
-        kprintf("Module: %s\n", hdr->magic);
-        kprintf("Size: %X\n", hdr->totalSize);
-        uintptr_t entry = off + hdr->headerSize;
-        size_t codeSize = hdr->codeSize;
+        LOG("Module: %s\n", hdr->magic);
+        ASSERT(kstrlen(hdr->magic) > 0);
         
-        kProcessManager_CreateProcess(hdr->magic, (uint8_t*)(&__kips_start + off + entry), codeSize, 1);
+        kProcessManager_CreateProcess(hdr->magic, (uint8_t*)(&__kips_start + off + hdr->headerSize), hdr->codeSize, 1);
 
         off += hdr->totalSize;
     }

@@ -27,7 +27,7 @@ kThread *runq_pop(run_queue_t *rq) {
 void kScheduler_Init()
 {
     localTimerIrqInit();
-    kprintf("Initialized kScheduler\n");
+    LOG("Initialized kScheduler\n");
 }
 
 void kScheduler_AddThread(kThread *thread)
@@ -57,7 +57,7 @@ void kScheduler_schedule()
         uint8_t isNew = current->state == STATE_READY;
         uint8_t isKernel = current->threadType == THREAD_KERNEL;
         kProcess *parent = (kProcess*)(current->parent);
-        kprintf("switching: %s\n", parent->name);
+        LOG("switching: %s\n", parent->name);
         context_switch(current->sp, isKernel, isNew, current->entryPtr, parent->pageTables);
     }
     else 

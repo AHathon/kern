@@ -7,7 +7,7 @@ void setupVMM()
     asm volatile ("mrs %0, id_aa64mmfr0_el1" : "=r" (r));
     b = r & 0xF;
     if(r & (0xF << 28) || b < 1) {
-        kprintf("ERROR: 4k granule or 36 bit address space not supported\n");
+        ERROR("4k granule or 36 bit address space not supported\n");
         return;
     }
     
