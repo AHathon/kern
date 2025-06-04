@@ -15,19 +15,23 @@ void kProcessManager_Init() {
 		processTable[i].flags = 0;
 }
 
-void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, void *entry)
+void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, uint8_t isKernelProc)
 {
 	//Create proc in procTable
 	unsigned p = kProcessManager_FindFreeProcSpace();
 	kstrcpy(processTable[p].name, name);
 	processTable[p].PID = ++lastPID;
-	processTable[p].mainThread = kThread_Create(&processTable[p], entry, 0x1000, THREAD_KERNEL);
+	processTable[p].pageTables = (uintptr_t)kMemAlloc(3 * PAGE_SIZE);
 	processTable[p].flags |= IS_ACTIVE_PROC;
-	processTable[p].code.text.addr = (uintptr_t)code;
+	processTable[p].code.text.addr = (uintptr_t)kMemAlloc(codeSize);
     processTable[p].code.text.size = codeSize;
-	
+	kmemcpy((uint8_t*)(processTable[p].code.text.addr), code, codeSize);
+	kHexDump((uint8_t*)(processTable[p].code.text.addr), 0x10);
 	//Add main thread to scheduler
     kScheduler_AddThread(processTable[p].mainThread);
+	processTable[p].mainThread = kThread_Create(&processTable[p], (void*)(processTable[p].code.text.addr), 0x1000, isKernelProc ? THREAD_KERNEL : THREAD_USER);
+	if(!isKernelProc)
+		MMU_mapUserMem(processTable[p].pageTables, processTable[p].code.text.addr - KERNEL_VIRT_BASE, USERLAND_VIRT_BASE, codeSize);
 	kprintf("Added process: %s [pid:%d]\n", processTable[p].name, processTable[p].PID);
 }
 

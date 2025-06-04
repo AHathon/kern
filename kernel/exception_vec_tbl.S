@@ -107,14 +107,6 @@
 	eret
 .endm
 
-vector_sync_el1t:
-	kernel_entry
-	mrs x25, esr_el1
-	lsr x24, x25, #26
-	cmp x24, #EC_DATA_ABORT_NC_EL
-	b.eq el1_data_abort
-	b sync_invalid_el1t
-
 vector_sync_el1h:
 	kernel_entry
 	mrs x25, esr_el1				// read the syndrome register
@@ -165,7 +157,13 @@ irq_el0_64:
     stp	x0, x1, [sp, #16 * 16]
 
 	mov x0, sp
-    bl timer_irq_handle
+    //bl timer_irq_handle
+
+	// Restore return context
+    ldp	x0, x1, [sp, #16 * 16]
+    msr SPSR_EL1, x0
+    msr ELR_EL1, x1	
+
     kernel_exit
     eret
 
@@ -173,7 +171,7 @@ irq_el0_64:
 .type el1_vector_base, %function;
 
 el1_vector_base:
-	ventry	vector_sync_el1t			// Synchronous EL1t
+	ventry	sync_invalid_el1t			// Synchronous EL1t
 	ventry	irq_invalid_el1t			// IRQ EL1t
 	ventry	fiq_invalid_el1t			// FIQ EL1t
 	ventry	error_invalid_el1t			// Error EL1t

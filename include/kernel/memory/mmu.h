@@ -19,5 +19,5 @@ extern volatile unsigned char __kips_start;
 extern volatile unsigned char __kips_end;
 
 void MMU_SetupVirtKernelSpace();
-void MMU_mapMem(uintptr_t paddr, uintptr_t vaddr);
+void MMU_mapUserMem(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size_t size);
 void MMU_ClearIdentityMap();

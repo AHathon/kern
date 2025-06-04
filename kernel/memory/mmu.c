@@ -94,9 +94,8 @@ void MMU_ClearIdentityMap()
     //Jump to kernel
     uintptr_t kern_start = KERNEL_VIRT_BASE + (uintptr_t)&__text_start;
     asm volatile(
+        "mov x0, #1\n"
         "mov x8, %0\n"
-        "mov x0, #0\n"
-        "mov x1, #1\n"
         "br x8\n"
         :
         : "r"(kern_start)
@@ -105,7 +104,60 @@ void MMU_ClearIdentityMap()
     __builtin_unreachable();
 }
 
-void MMU_mapMem(uintptr_t paddr, uintptr_t vaddr)
+void MMU_mapUserMem(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size_t size)
 {
-    //TODO
+    unsigned long *paging = (unsigned long*)(pageTable);
+
+    uint64_t vpage = vaddr / PAGE_SIZE;
+    uint64_t ppage = paddr / PAGE_SIZE;
+    size_t pageCnt = (size / PAGE_SIZE) + PAGE_SIZE;
+    uint64_t r;
+
+    //L1
+    paging[PAGE_TABLE_IDX(0, 0)] = (unsigned long)((unsigned char *)pageTable + 1 * PAGE_SIZE) |
+        PT_TABLE | 
+        PT_AF | 
+        PT_KERNEL | 
+        PT_ISH | 
+        PT_MEM;
+
+    for (r = 1; r < PAGE_TABLE_SIZE; r++)
+    {
+        paging[PAGE_TABLE_IDX(0, r)] = (r << L1_SHIFT) |
+            PT_BLOCK | 
+            PT_AF | 
+            PT_UXN | 
+            PT_KERNEL | 
+            PT_ISH | PT_MEM;
+    }
+
+    //L2
+    paging[PAGE_TABLE_IDX(1, 0)] = (unsigned long)((unsigned char *)pageTable + 2 * PAGE_SIZE) |
+        PT_TABLE | 
+        PT_AF | 
+        PT_KERNEL | 
+        PT_ISH | 
+        PT_MEM;
+    
+    for (r = 1; r < PAGE_TABLE_SIZE; r++)
+    {
+        paging[PAGE_TABLE_IDX(1, r)] = (r << L2_SHIFT) |
+            PT_BLOCK | 
+            PT_AF | 
+            PT_UXN | 
+            PT_KERNEL | 
+            PT_ISH | PT_MEM;
+    }
+
+    for (r = vpage; r < PAGE_TABLE_SIZE; r++)
+    {
+        paging[PAGE_TABLE_IDX(2, r)] = ((ppage + r) << L1_SHIFT) |
+            PT_BLOCK | 
+            PT_AF | 
+            PT_KERNEL | 
+            PT_ISH | PT_MEM;
+    }
+
+    asm volatile ("msr ttbr0_el1, %0" : : "r" (pageTable));
+
 }

@@ -4,14 +4,25 @@
 .type context_switch, %function;
 context_switch:
     mov sp, x0
+
+	//update mmu
+	msr ttbr0_el1, x4
+	tlbi vmalle1is
+    dsb sy
+    isb
+
     cmp w1, #1
-    bne _restore
+    beq _restore
     //Only restore if user thread
-    ldp	x2, x3, [sp, #16 * 16]
-    msr SPSR_EL1, x2
-    msr ELR_EL1, x3
+    ldp	x28, x29, [sp, #16 * 16]
+    msr SPSR_EL1, x28
+    msr ELR_EL1, x29
+	//if new proc, set elr to entry
+	cmp w2, #1
+	bne _restore
+	msr ELR_EL1, x3
+
 _restore:
-    ldp	x0, x1, [sp, #16 * 0]
 	ldp	x2, x3, [sp, #16 * 1]
 	ldp	x4, x5, [sp, #16 * 2]
 	ldp	x6, x7, [sp, #16 * 3]
@@ -26,12 +37,23 @@ _restore:
 	ldp	x24, x25, [sp, #16 * 12]
 	ldp	x26, x27, [sp, #16 * 13]
 	ldp	x28, x29, [sp, #16 * 14]
-
-	ldr x30, =SCHEDULE_TIMER_INTERVAL
-	msr cntp_tval_el0, x30
-
 	ldr	x30, [sp, #16 * 15]
 
+	//reset irq timer
+	ldr x0, =SCHEDULE_TIMER_INTERVAL
+	msr cntp_tval_el0, x0
+
+	cmp w1, #1
+	bne _eret_to_user
+	//restore last reg lol
+	ldp	x0, x1, [sp, #16 * 0]
+    add	sp, sp, #288
+
+	ret
+
+_eret_to_user:
+	//restore last reg lol
+	ldp	x0, x1, [sp, #16 * 0]
     add	sp, sp, #288
 
     eret

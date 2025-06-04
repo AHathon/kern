@@ -4,10 +4,15 @@
 
 .global _start_kernel
 _start_kernel:
-    //skip setup if virt mem is setup
-    cmp x1, #1
-    beq clear_tbl
+    //if arg == 1, skip mmu setup
+    cmp x0, #0
+    beq set_phys_stack
+    tlbi vmalle1is
+    dsb sy
+    isb
+    b boot_kernel
 
+set_phys_stack:
     //set stack to phys
     ldr x0, =__stack_top
     ldr x11, =KERNEL_VIRT_BASE
@@ -43,11 +48,6 @@ setup_virt_stack:
     mov sp, x0
 
     b MMU_ClearIdentityMap
-
-clear_tbl:
-    tlbi vmalle1is
-    dsb sy
-    isb
 
 boot_kernel:
     mov x1, #0

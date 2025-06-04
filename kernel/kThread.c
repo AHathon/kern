@@ -2,7 +2,7 @@
 #include "kernel/kProcess.h"
 #include "kernel/memory/kMemoryManager.h"
 
-kThread *kThread_Create(void *parent, void *funcPtr, size_t stackSize, ThreadType type)
+kThread *kThread_Create(void *parent, void *entryPtr, size_t stackSize, ThreadType type)
 {
     kThread *thread = kMemAlloc(sizeof(kThread));
 
@@ -12,7 +12,7 @@ kThread *kThread_Create(void *parent, void *funcPtr, size_t stackSize, ThreadTyp
     thread->threadType = type;
     thread->stackSize = stackSize;
     thread->stackBase = kMemAlloc(stackSize);
-    thread->funcPtr = funcPtr;
+    thread->entryPtr = entryPtr;
     kprintf("Creating thread [id:%d]\n", thread->id);
 
     return thread;

@@ -22,10 +22,15 @@ uint64_t GetCounterFreq()
     return freq;
 }
 
+void localTimerIrqReset()
+{
+    asm volatile("msr cntp_tval_el0, %0" :: "r"(SCHEDULE_TIMER_INTERVAL));
+}
+
 void localTimerIrqInit() 
 {
     //Reset timer
-    asm volatile("msr cntp_tval_el0, %0" :: "r"(SCHEDULE_TIMER_INTERVAL));
+    localTimerIrqReset();
 
     //Enable local timer
     asm volatile("msr cntp_ctl_el0, %0" :: "r"(1L));

@@ -100,9 +100,8 @@ start_mmu:
     isb
 
 jump_kern:
-    ldr x0, =__page_table
+    mov x0, #0
     ldr x8, =__kernel_blob
-    mov x1, #0
     br x8
 
 loop:

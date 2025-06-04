@@ -11,6 +11,6 @@ static kProcess processTable[MAX_PROC];
 static unsigned lastPID = 0;
 
 void kProcessManager_Init();
-void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, void *entry);
+void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, uint8_t isKernelProc);
 void kProcessManager_KillProcess(unsigned ind);
 void kProcessManager_PrintDebugProc();

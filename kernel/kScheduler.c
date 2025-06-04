@@ -58,6 +58,10 @@ void kScheduler_schedule()
         uint8_t isKernel = current->threadType == THREAD_KERNEL;
         kProcess *parent = (kProcess*)(current->parent);
         kprintf("switching: %s\n", parent->name);
-        context_switch(current->sp, isKernel, isNew);
+        context_switch(current->sp, isKernel, isNew, current->entryPtr, parent->pageTables);
+    }
+    else 
+    {
+        localTimerIrqReset();
     }
 }

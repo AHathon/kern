@@ -20,10 +20,11 @@ void InvalidException(void* ex)
 void data_abort_exception(uint64_t status)
 {
 	kprintf("----------\nData Abort Exception:\nStatus code: %d\n", status);
-	uint64_t far, esr;
+	uint64_t far, esr, elr;
 	asm volatile("mrs %0, far_el1" : "=r"(far));
 	asm volatile("mrs %0, esr_el1" : "=r"(esr));
-	kprintf("Fault Address: 0x%x, ESR: 0x%x\n", far, esr);
+	asm volatile("mrs %0, elr_el1" : "=r"(elr));
+	kprintf("FAR: 0x%X\nELR: 0x%X\nESR: 0x%x\n", far, elr, esr);
 	while(1);
 }
 

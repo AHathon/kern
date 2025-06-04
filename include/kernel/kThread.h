@@ -23,7 +23,7 @@ typedef struct
 {
     uint64_t id;
     uintptr_t parent;
-    void *funcPtr;
+    void *entryPtr;
     void *stackBase;
     uintptr_t sp;
     size_t stackSize;
@@ -31,5 +31,5 @@ typedef struct
     ThreadState state;
 } kThread;
 
-kThread *kThread_Create(void *parent, void *funcPtr, size_t stackSize, ThreadType type);
+kThread *kThread_Create(void *parent, void *entryPtr, size_t stackSize, ThreadType type);
 void kThread_Destroy(kThread *thread);
