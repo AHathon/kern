@@ -6,7 +6,6 @@
 #include "libraries/hardware/constants.h"
 #include "libraries/hardware/mmio_vars.h"
 
-#define PAGE_SIZE 4096
 #define PAGE_TABLE_SIZE (PAGE_SIZE / sizeof(unsigned long))
 #define PAGE_TABLE_IDX(i, o) (i * PAGE_TABLE_SIZE + o)
 

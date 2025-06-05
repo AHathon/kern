@@ -2,6 +2,7 @@
 
 #include "libraries/hardware/mmio_vars.h"
 
+#define PT_INVALID  0b00
 #define PT_PAGE     0b11
 #define PT_BLOCK    0b01
 #define PT_TABLE    0b11
@@ -33,3 +34,7 @@
 #define PHYS_ADDR_MASK  (~((PAGE_SIZE) - 1ULL))
 
 #define TTBR_CNP 1
+
+#define PAGE_SIZE 4096
+#define MB2_SIZE (PAGE_TABLE_SIZE * PAGE_SIZE)
+#define GB_SIZE (PAGE_TABLE_SIZE * MB2_SIZE)

@@ -29,7 +29,7 @@ void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, u
 	
 	//Create main thread and map mem
 	processTable[p].mainThread = kThread_Create(&processTable[p], (void*)(processTable[p].code.text.addr), 0x1000, isKernelProc ? THREAD_KERNEL : THREAD_USER);
-	MMU_MapMem(processTable[p].pageTables, processTable[p].code.text.addr - KERNEL_VIRT_BASE, USERLAND_VIRT_BASE, codeSize, isKernelProc);
+	MMU_MapMemPages(processTable[p].pageTables, processTable[p].code.text.addr - KERNEL_VIRT_BASE, USERLAND_VIRT_BASE, codeSize, isKernelProc);
 
 	//Add main thread to scheduler
 	kScheduler_AddThread(processTable[p].mainThread);

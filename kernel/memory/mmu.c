@@ -105,14 +105,7 @@ void MMU_ClearIdentityMap()
     __builtin_unreachable();
 }
 
-uintptr_t MMU_AllocateTable()
-{
-    uintptr_t ptr = (uintptr_t)kMemAlloc(PAGE_SIZE);
-    kmemset((uint8_t*)ptr, PAGE_SIZE);
-    return ptr;
-}
-
-void MMU_MapMem(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size_t size, uint8_t isKernelMem)
+void MMU_MapMemPages(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size_t size, uint8_t isKernelMem)
 {
     uint64_t vpage = vaddr / PAGE_SIZE;
     uint64_t ppage = paddr / PAGE_SIZE;
@@ -139,10 +132,10 @@ void MMU_MapMem(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size_t si
         L1_entry = L1_tbl_ptr[L1_IDX(va)];
 
         uint64_t L1_type = (L1_entry & 0b11);
-        if(L1_type != PT_TABLE && L1_type != PT_BLOCK)
+        if(L1_type != PT_TABLE)
         {
             //Allocate table
-            L2_tbl_ptr = (uint64_t*)MMU_AllocateTable();
+            L2_tbl_ptr = (uint64_t*)kMemCalloc(PAGE_SIZE);
             L2_entry = L2_tbl_ptr[L2_IDX(va)];
             L1_tbl_ptr[L1_IDX(va)] = (L2_entry) |
                 PT_TABLE | 
@@ -160,9 +153,9 @@ void MMU_MapMem(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size_t si
 
         //L2
         uint64_t L2_type = (L2_entry & 0b11);
-        if(L2_type != PT_TABLE && L2_type != PT_BLOCK)
+        if(L2_type != PT_TABLE)
         {
-            L3_tbl_ptr = (uint64_t*)MMU_AllocateTable();
+            L3_tbl_ptr = (uint64_t*)kMemCalloc(PAGE_SIZE);
             L3_entry = L3_tbl_ptr[L3_IDX(va)];
             L2_tbl_ptr[L2_IDX(va)] = (L3_entry) |
                 PT_TABLE | 
@@ -183,6 +176,25 @@ void MMU_MapMem(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size_t si
             PT_AF |
             PT_ISH |
             comm_flags;
+    }
+}
+
+void MMU_MapMemBlocks(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size_t size, uint8_t isKernelMem)
+{
+    size_t remaining_size = size;
+    uint64_t curr_vaddr = vaddr;
+    uint64_t curr_paddr = paddr;
+
+    //Blocks are 2MB min
+    if(size < MB2_SIZE) return;
+
+    while(remaining_size > 0)
+    {
+        //TODO: the rest
+
+        remaining_size -= PAGE_SIZE;
+        curr_vaddr += PAGE_SIZE;
+        curr_paddr += PAGE_SIZE;
     }
 }
 
