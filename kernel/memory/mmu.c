@@ -107,14 +107,12 @@ void MMU_ClearIdentityMap()
 
 void MMU_MapMemPages(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size_t size, uint8_t isKernelMem)
 {
-    uint64_t vpage = vaddr / PAGE_SIZE;
-    uint64_t ppage = paddr / PAGE_SIZE;
     size_t pageCnt = (size + PAGE_SIZE - 1) / PAGE_SIZE;
     uint64_t r;
 
     for(int i = 0; i < pageCnt; i++)
     {        
-        uintptr_t va = vaddr + i * PAGE_SIZE;
+        uintptr_t va = (vaddr + i * PAGE_SIZE) + (isKernelMem ? KERNEL_VIRT_BASE : 0);
         uintptr_t pa = paddr + i * PAGE_SIZE;
 
         uint64_t L1_entry = 0;
@@ -134,6 +132,7 @@ void MMU_MapMemPages(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size
         uint64_t L1_type = (L1_entry & 0b11);
         if(L1_type != PT_TABLE)
         {
+            LOG("Allocating L2\n");
             //Allocate table
             L2_tbl_ptr = (uint64_t*)kMemCalloc(PAGE_SIZE);
             L2_entry = L2_tbl_ptr[L2_IDX(va)];
@@ -146,8 +145,9 @@ void MMU_MapMemPages(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size
         }
         else
         {
+            LOG("Has L2\n");
             //Has table, so lets extract addr
-            L2_tbl_ptr = (uint64_t*)(L1_entry & PHYS_ADDR_MASK);
+            L2_tbl_ptr = (uint64_t*)((L1_entry & PHYS_ADDR_MASK) + isKernelMem ? KERNEL_VIRT_BASE : 0);
             L2_entry = L2_tbl_ptr[L2_IDX(va)];
         }
 
@@ -155,6 +155,7 @@ void MMU_MapMemPages(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size
         uint64_t L2_type = (L2_entry & 0b11);
         if(L2_type != PT_TABLE)
         {
+            LOG("Allocating L3\n");
             L3_tbl_ptr = (uint64_t*)kMemCalloc(PAGE_SIZE);
             L3_entry = L3_tbl_ptr[L3_IDX(va)];
             L2_tbl_ptr[L2_IDX(va)] = (L3_entry) |
@@ -166,7 +167,8 @@ void MMU_MapMemPages(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size
         }
         else
         {
-            L3_tbl_ptr = (uint64_t*)(L2_entry & PHYS_ADDR_MASK);
+            LOG("Has L3\n");
+            L3_tbl_ptr = (uint64_t*)((L2_entry & PHYS_ADDR_MASK) + isKernelMem ? KERNEL_VIRT_BASE : 0);
             L3_entry = L3_tbl_ptr[L3_IDX(va)];
         }
 
@@ -201,4 +203,9 @@ void MMU_MapMemBlocks(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, siz
 void MMU_SetTtrb0(uintptr_t pageTable)
 {
     asm volatile ("msr ttbr0_el1, %0" :: "r" (pageTable));
+}
+
+uint64_t *MMU_GetKernelPageTable()
+{
+    return (uint64_t*)(&__page_table);
 }

@@ -17,6 +17,8 @@ context_switch:
     ldp	x28, x29, [sp, #16 * 16]
     msr SPSR_EL1, x28
     msr ELR_EL1, x29
+	//Set ttrb0 if user
+	//TODO
 	//if new proc, set elr to entry
 	cmp w2, #1
 	bne _restore

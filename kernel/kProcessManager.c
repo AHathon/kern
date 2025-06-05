@@ -21,14 +21,14 @@ void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, u
 	unsigned p = kProcessManager_FindFreeProcSpace();
 	kstrcpy(processTable[p].name, name);
 	processTable[p].PID = ++lastPID;
-	processTable[p].pageTables = (uintptr_t)kMemCalloc(PAGE_SIZE);
 	processTable[p].flags |= IS_ACTIVE_PROC;
 	processTable[p].code.text.addr = (uintptr_t)kMemAlloc(codeSize);
     processTable[p].code.text.size = codeSize;
 	kmemcpy((uint8_t*)(processTable[p].code.text.addr), code, codeSize);
 	
-	//Create main thread and map mem
-	processTable[p].mainThread = kThread_Create(&processTable[p], (void*)(processTable[p].code.text.addr), 0x1000, isKernelProc ? THREAD_KERNEL : THREAD_USER);
+	//Create main thread and map mem [processes should all have the same virtual mapping give or take kern vaddr for ttrb0/1 routing]
+	processTable[p].mainThread = kThread_Create(&processTable[p], (void*)(USERLAND_VIRT_BASE + (isKernelProc ? KERNEL_VIRT_BASE : 0)), 0x1000, isKernelProc ? THREAD_KERNEL : THREAD_USER);
+	processTable[p].pageTables = (uintptr_t)kMemCalloc(PAGE_SIZE);	
 	MMU_MapMemPages(processTable[p].pageTables, processTable[p].code.text.addr - KERNEL_VIRT_BASE, USERLAND_VIRT_BASE, codeSize, isKernelProc);
 
 	//Add main thread to scheduler
