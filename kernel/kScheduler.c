@@ -47,6 +47,8 @@ void kScheduler_schedule()
     //If theres a task currently, and its still good, push it back
     if (current && current->state != STATE_TERMINATED)
     {
+        kProcess *parent = (kProcess*)(current->parent);
+        LOG("pushing: %s\n", parent->name);
         runq_push(&runqueue, current);
     }
 

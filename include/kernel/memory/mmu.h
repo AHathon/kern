@@ -4,6 +4,7 @@
 #include "libraries/hardware/debug.h"
 #include "libraries/hardware/mmu.h"
 #include "libraries/hardware/constants.h"
+#include "kernel/memory/kMemoryManager.h"
 
 #define PAGE_SIZE 4096
 #define PAGE_TABLE_SIZE (PAGE_SIZE / sizeof(unsigned long))
@@ -19,5 +20,7 @@ extern volatile unsigned char __kips_start;
 extern volatile unsigned char __kips_end;
 
 void MMU_SetupVirtKernelSpace();
-void MMU_mapUserMem(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size_t size);
+void MMU_MapMem(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size_t size, uint8_t isKernelMem);
+uintptr_t MMU_AllocateTable();
 void MMU_ClearIdentityMap();
+void MMU_SetTtrb0(uintptr_t pageTable);

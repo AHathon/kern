@@ -157,7 +157,7 @@ irq_el0_64:
     stp	x0, x1, [sp, #16 * 16]
 
 	mov x0, sp
-    //bl timer_irq_handle
+    bl timer_irq_handle
 
 	// Restore return context
     ldp	x0, x1, [sp, #16 * 16]

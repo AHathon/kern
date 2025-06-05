@@ -1,4 +1,5 @@
 #include "kernel/memory/mmu.h"
+#include "kernel/memory/kPageAllocator.h"
 
 inline void MMU_SetupVirtKernelSpace() 
 {
@@ -104,60 +105,88 @@ void MMU_ClearIdentityMap()
     __builtin_unreachable();
 }
 
-void MMU_mapUserMem(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size_t size)
+uintptr_t MMU_AllocateTable()
 {
-    unsigned long *paging = (unsigned long*)(pageTable);
+    uintptr_t ptr = (uintptr_t)kMemAlloc(PAGE_SIZE);
+    kmemset((uint8_t*)ptr, PAGE_SIZE);
+    return ptr;
+}
 
+void MMU_MapMem(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size_t size, uint8_t isKernelMem)
+{
     uint64_t vpage = vaddr / PAGE_SIZE;
     uint64_t ppage = paddr / PAGE_SIZE;
-    size_t pageCnt = (size / PAGE_SIZE) + PAGE_SIZE;
+    size_t pageCnt = (size + PAGE_SIZE - 1) / PAGE_SIZE;
     uint64_t r;
 
-    //L1
-    paging[PAGE_TABLE_IDX(0, 0)] = (unsigned long)((unsigned char *)pageTable + 1 * PAGE_SIZE) |
-        PT_TABLE | 
-        PT_AF | 
-        PT_KERNEL | 
-        PT_ISH | 
-        PT_MEM;
+    for(int i = 0; i < pageCnt; i++)
+    {        
+        uintptr_t va = vaddr + i * PAGE_SIZE;
+        uintptr_t pa = paddr + i * PAGE_SIZE;
 
-    for (r = 1; r < PAGE_TABLE_SIZE; r++)
-    {
-        paging[PAGE_TABLE_IDX(0, r)] = (r << L1_SHIFT) |
-            PT_BLOCK | 
-            PT_AF | 
-            PT_UXN | 
-            PT_KERNEL | 
-            PT_ISH | PT_MEM;
+        uint64_t L1_entry = 0;
+        uint64_t L2_entry = 0;
+        uint64_t L3_entry = 0;
+
+        uint64_t *L1_tbl_ptr = 0;
+        uint64_t *L2_tbl_ptr = 0;
+        uint64_t *L3_tbl_ptr = 0;
+
+        uint64_t comm_flags = (isKernelMem ? PT_KERNEL : PT_USER);
+
+        //L1        
+        L1_tbl_ptr = (uint64_t*)(pageTable);
+        L1_entry = L1_tbl_ptr[L1_IDX(va)];
+
+        uint64_t L1_type = (L1_entry & 0b11);
+        if(L1_type != PT_TABLE && L1_type != PT_BLOCK)
+        {
+            //Allocate table
+            L2_tbl_ptr = (uint64_t*)MMU_AllocateTable();
+            L2_entry = L2_tbl_ptr[L2_IDX(va)];
+            L1_tbl_ptr[L1_IDX(va)] = (L2_entry) |
+                PT_TABLE | 
+                PT_AF | 
+                PT_ISH | 
+                PT_MEM |
+                comm_flags;
+        }
+        else
+        {
+            //Has table, so lets extract addr
+            L2_tbl_ptr = (uint64_t*)(L1_entry & PHYS_ADDR_MASK);
+            L2_entry = L2_tbl_ptr[L2_IDX(va)];
+        }
+
+        //L2
+        uint64_t L2_type = (L2_entry & 0b11);
+        if(L2_type != PT_TABLE && L2_type != PT_BLOCK)
+        {
+            L3_tbl_ptr = (uint64_t*)MMU_AllocateTable();
+            L3_entry = L3_tbl_ptr[L3_IDX(va)];
+            L2_tbl_ptr[L2_IDX(va)] = (L3_entry) |
+                PT_TABLE | 
+                PT_AF | 
+                PT_ISH | 
+                PT_MEM |
+                comm_flags;
+        }
+        else
+        {
+            L3_tbl_ptr = (uint64_t*)(L2_entry & PHYS_ADDR_MASK);
+            L3_entry = L3_tbl_ptr[L3_IDX(va)];
+        }
+
+        //L3
+        L3_tbl_ptr[L3_IDX(va)] = (pa & ~((1UL << L3_SHIFT) - 1)) |
+            PT_PAGE | 
+            PT_AF |
+            PT_ISH |
+            comm_flags;
     }
+}
 
-    //L2
-    paging[PAGE_TABLE_IDX(1, 0)] = (unsigned long)((unsigned char *)pageTable + 2 * PAGE_SIZE) |
-        PT_TABLE | 
-        PT_AF | 
-        PT_KERNEL | 
-        PT_ISH | 
-        PT_MEM;
-    
-    for (r = 1; r < PAGE_TABLE_SIZE; r++)
-    {
-        paging[PAGE_TABLE_IDX(1, r)] = (r << L2_SHIFT) |
-            PT_BLOCK | 
-            PT_AF | 
-            PT_UXN | 
-            PT_KERNEL | 
-            PT_ISH | PT_MEM;
-    }
-
-    for (r = vpage; r < PAGE_TABLE_SIZE; r++)
-    {
-        paging[PAGE_TABLE_IDX(2, r)] = ((ppage + r) << L1_SHIFT) |
-            PT_BLOCK | 
-            PT_AF | 
-            PT_KERNEL | 
-            PT_ISH | PT_MEM;
-    }
-
-    asm volatile ("msr ttbr0_el1, %0" : : "r" (pageTable));
-
+void MMU_SetTtrb0(uintptr_t pageTable)
+{
+    asm volatile ("msr ttbr0_el1, %0" :: "r" (pageTable));
 }
