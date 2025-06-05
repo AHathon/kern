@@ -11,7 +11,9 @@ kThread *kThread_Create(void *parent, void *entryPtr, size_t stackSize, ThreadTy
     thread->state = STATE_READY;
     thread->threadType = type;
     thread->stackSize = stackSize;
+    kProcess *p = (kProcess*)parent;
     thread->stackBase = kMemAlloc(stackSize);
+    MMU_MapMemPages(p->pageTables, (uintptr_t)(thread->stackBase - KERNEL_VIRT_BASE), (uintptr_t)(thread->stackBase - KERNEL_VIRT_BASE), stackSize, type == THREAD_KERNEL);
     thread->entryPtr = entryPtr;
     LOG("Creating thread [id:%d]\n", thread->id);
 

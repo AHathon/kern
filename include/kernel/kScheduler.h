@@ -10,6 +10,8 @@ typedef struct
     int size;
 } run_queue_t;
 
+static uint8_t schedulerInit = 0;
+
 void kScheduler_Init();
 void kScheduler_AddThread(kThread *thread);
 void kScheduler_schedule();

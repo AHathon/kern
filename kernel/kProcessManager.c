@@ -27,9 +27,13 @@ void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, u
 	kmemcpy((uint8_t*)(processTable[p].code.text.addr), code, codeSize);
 	
 	//Create main thread and map mem [processes should all have the same virtual mapping give or take kern vaddr for ttrb0/1 routing]
-	processTable[p].mainThread = kThread_Create(&processTable[p], (void*)(USERLAND_VIRT_BASE + (isKernelProc ? KERNEL_VIRT_BASE : 0)), 0x1000, isKernelProc ? THREAD_KERNEL : THREAD_USER);
 	processTable[p].pageTables = (uintptr_t)kMemCalloc(PAGE_SIZE);	
 	MMU_MapMemPages(processTable[p].pageTables, processTable[p].code.text.addr - KERNEL_VIRT_BASE, USERLAND_VIRT_BASE, codeSize, isKernelProc);
+	
+	processTable[p].mainThread = kThread_Create(&processTable[p], (void*)(USERLAND_VIRT_BASE), 0x1000, isKernelProc ? THREAD_KERNEL : THREAD_USER);
+
+	//Initialize SP to stack base
+	processTable[p].mainThread->sp = (uintptr_t)processTable[p].mainThread->stackBase;
 
 	//Add main thread to scheduler
 	kScheduler_AddThread(processTable[p].mainThread);

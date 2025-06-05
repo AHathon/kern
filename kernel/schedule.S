@@ -17,13 +17,12 @@ context_switch:
     ldp	x28, x29, [sp, #16 * 16]
     msr SPSR_EL1, x28
     msr ELR_EL1, x29
-	//Set ttrb0 if user
-	//TODO
 	//if new proc, set elr to entry
 	cmp w2, #1
 	bne _restore
 	msr ELR_EL1, x3
-
+	b _reset_timer
+	
 _restore:
 	ldp	x2, x3, [sp, #16 * 1]
 	ldp	x4, x5, [sp, #16 * 2]
@@ -41,6 +40,7 @@ _restore:
 	ldp	x28, x29, [sp, #16 * 14]
 	ldr	x30, [sp, #16 * 15]
 
+_reset_timer:
 	//reset irq timer
 	ldr x0, =SCHEDULE_TIMER_INTERVAL
 	msr cntp_tval_el0, x0

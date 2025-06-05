@@ -27,6 +27,7 @@ kThread *runq_pop(run_queue_t *rq) {
 void kScheduler_Init()
 {
     localTimerIrqInit();
+    schedulerInit = 1;
     LOG("Initialized kScheduler\n");
 }
 
@@ -44,26 +45,26 @@ void kScheduler_schedule()
 {
     kThread *next = runq_pop(&runqueue);
 
-    //If theres a task currently, and its still good, push it back
-    if (current && current->state != STATE_TERMINATED)
+    if(schedulerInit)
     {
-        kProcess *parent = (kProcess*)(current->parent);
-        LOG("pushing: %s\n", parent->name);
-        runq_push(&runqueue, current);
-    }
+        //If theres a task currently, and its still good, push it back
+        if (current && current->state != STATE_TERMINATED)
+        {
+            kProcess *parent = (kProcess*)(current->parent);
+            LOG("pushing: %s\n", parent->name);
+            runq_push(&runqueue, current);
+        }
 
-    //Switch tasks
-    current = next;
-    if (current)
-    {
-        uint8_t isNew = current->state == STATE_READY;
-        uint8_t isKernel = current->threadType == THREAD_KERNEL;
-        kProcess *parent = (kProcess*)(current->parent);
-        LOG("switching: %s @ %X [proc is %s and is %s]\n", parent->name, current->entryPtr, isNew ? "new" : "old", isKernel ? "kernel" : "user");
-        context_switch(current->sp, isKernel, isNew, current->entryPtr, parent->pageTables);
+        //Switch tasks
+        current = next;
+        if (current)
+        {
+            uint8_t isNew = current->state == STATE_READY;
+            uint8_t isKernel = current->threadType == THREAD_KERNEL;
+            kProcess *parent = (kProcess*)(current->parent);
+            LOG("switching: %s @ %X [proc is %s and is %s]\n", parent->name, current->entryPtr, isNew ? "new" : "old", isKernel ? "kernel" : "user");
+            context_switch(current->sp - KERNEL_VIRT_BASE, isKernel, isNew, current->entryPtr, parent->pageTables - KERNEL_VIRT_BASE);
+        }
     }
-    else 
-    {
-        localTimerIrqReset();
-    }
+    localTimerIrqReset();
 }

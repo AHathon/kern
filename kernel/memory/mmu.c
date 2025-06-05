@@ -107,6 +107,7 @@ void MMU_ClearIdentityMap()
 
 void MMU_MapMemPages(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size_t size, uint8_t isKernelMem)
 {
+    LOG("Mapping mem @ 0x%X(0x%X) [%X bytes]\n", paddr, vaddr, size);
     size_t pageCnt = (size + PAGE_SIZE - 1) / PAGE_SIZE;
     uint64_t r;
 
