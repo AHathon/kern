@@ -13,5 +13,5 @@ typedef struct
 void kScheduler_Init();
 void kScheduler_AddThread(kThread *thread);
 void kScheduler_schedule();
-kThread *GetCurrentThread();
+kThread *kScheduler_GetCurrentThread();
 void context_switch(uintptr_t sp, uint8_t isKernel, uint8_t isNew, void *entry, uintptr_t pageTable);

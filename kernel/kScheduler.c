@@ -35,7 +35,7 @@ void kScheduler_AddThread(kThread *thread)
     runq_push(&runqueue, thread);
 }
 
-kThread *GetCurrentThread()
+kThread *kScheduler_GetCurrentThread()
 {
     return current;
 }

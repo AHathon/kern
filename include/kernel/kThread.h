@@ -16,6 +16,7 @@ typedef enum
 {
     STATE_READY,
     STATE_RUNNING,
+    STATE_WAITING,
     STATE_TERMINATED
 } ThreadState;
 
