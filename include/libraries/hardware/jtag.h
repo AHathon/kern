@@ -1,7 +1,7 @@
 #pragma once
 
-#include "libraries/types.h"
+#include "libraries/hardware/gpio.h"
 #include "libraries/hardware/mmio.h"
 #include "libraries/hardware/mmio_vars.h"
 
-void GPIO_SetAlt(unsigned int gpio, unsigned int alt);
+void JTAG_Init();

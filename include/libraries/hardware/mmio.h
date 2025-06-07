@@ -35,6 +35,15 @@
 #define GPPUDCLK0       ((volatile unsigned int*)(GPIO_BASE+0x0098))
 #define GPPUDCLK1       ((volatile unsigned int*)(GPIO_BASE+0x009C))
 
+#define FUNC_IP  0
+#define FUNC_OP  1
+#define FUNC_A0  4
+#define FUNC_A1  5
+#define FUNC_A2  6
+#define FUNC_A3  7
+#define FUNC_A4  3
+#define FUNC_A5  2
+
 //UART1
 #define UART1_ENABLE    ((volatile unsigned int *)(UART_BASE+0x5004))
 #define UART1_IO        ((volatile unsigned int *)(UART_BASE+0x5040))

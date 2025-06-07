@@ -1,6 +1,7 @@
 #include "libraries/hardware/uart.h"
 
-void UART1_Init() {
+void UART1_Init() 
+{
     register unsigned int r;
 
     // initialize UART1
@@ -10,13 +11,12 @@ void UART1_Init() {
     *UART1_MCR = 0;
     *UART1_IER = 0;
     *UART1_IIR = 0xC6;
-    *UART1_BAUD = UART_BAUD;
+    *UART1_BAUD = UART_BAUD_DIV;
 
     // map to gpio pins
-    r = *GPFSEL1;
-    r &= ~((7 << 12) | (7 << 15));
-    r |= (2 << 12) | (2 << 15);
-    *GPFSEL1 = r;
+    GPIO_SetAlt(14, FUNC_A5);   //(UART1 TXD)
+    GPIO_SetAlt(15, FUNC_A5);   //(UART1 RXD)
+
 
     *GPPUD = 0;
     r = 150; while (r--) { asm volatile("nop"); } 
@@ -27,7 +27,8 @@ void UART1_Init() {
     *UART1_CNTL = 3;
 }
 
-char uart1_getc() {
+char uart1_getc() 
+{
     do { asm volatile("nop"); } while (!(*UART1_LSR & 0x01));
 
     char c = (char)(*UART1_IO);
@@ -35,13 +36,15 @@ char uart1_getc() {
     return (c == '\r') ? '\n' : c;
 }
 
-void uart1_send(unsigned int c) {
+void uart1_send(unsigned int c) 
+{
     do { asm volatile("nop"); } while (!(*UART1_LSR & 0x20));
 
     *UART1_IO = c;
 }
 
-void uart1_puts(char *str) {
+void uart1_puts(char *str) 
+{
     for (; *str; ++str) {
         if (*str == '\n') {
             uart1_send('\r');
