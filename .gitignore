@@ -10,3 +10,4 @@ KIPs/kip_blob
 *.elf
 *.img
 .gdb_history
+**/*.a
