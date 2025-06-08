@@ -5,9 +5,15 @@ _start:
     //we only want core0
     mrs x1, mpidr_el1
     and x1, x1, #3
-    cbz x1, check_EL
+    cbz x1, setup_uart
     b loop
 
+setup_uart:
+    ldr x0, =__stack_top
+    mov sp, x0
+    bl UART0_Init
+    isb
+    
 check_EL:
     mrs x0, CurrentEL
     and x0, x0, #12
@@ -83,14 +89,10 @@ start_EL1:
     ldr x6, =__bss_size
 
 memset:
-    cbz w6, start_uart
+    cbz w6, start_mmu
     str xzr, [x5], #8
     sub w6, w6, #8
     cbnz w6, memset
-
-start_uart:
-    bl UART1_Init
-    isb
 
 start_mmu:
     bl VMM_Init

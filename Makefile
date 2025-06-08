@@ -37,10 +37,10 @@ clean:
 	$(MAKE) -C libraries clean
 
 qemu: $(kernel).elf
-	qemu-system-aarch64 -M raspi4b -serial null -serial stdio -kernel $(boot).bin
+	qemu-system-aarch64 -M raspi4b -nographic -kernel $(boot).bin
 
 qemu-gdb: $(kernel).elf
-	qemu-system-aarch64 -M raspi4b -serial null -serial stdio -kernel $(boot).bin -s -S
+	qemu-system-aarch64 -M raspi4b -nographic -kernel $(boot).bin -s -S
 
 library:
 	$(MAKE) -C libraries

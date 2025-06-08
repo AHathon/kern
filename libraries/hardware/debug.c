@@ -124,7 +124,7 @@ void kprintf(char *fmt, ...) {
 	va_list list;
 	va_start(list, fmt);
 	vasprintf(buf, fmt, list);
-	uart1_puts(buf);
+	uart0_puts(buf);
 	va_end(list);
 }
 

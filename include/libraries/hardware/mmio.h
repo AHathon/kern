@@ -44,19 +44,32 @@
 #define FUNC_A4  3
 #define FUNC_A5  2
 
+//UART0
+#define UART0_DR     ((volatile unsigned int*)(UART0_BASE + 0x00))
+#define UART0_FR     ((volatile unsigned int*)(UART0_BASE + 0x18))
+#define UART0_IBRD   ((volatile unsigned int*)(UART0_BASE + 0x24))
+#define UART0_FBRD   ((volatile unsigned int*)(UART0_BASE + 0x28))
+#define UART0_LCRH   ((volatile unsigned int*)(UART0_BASE + 0x2C))
+#define UART0_CR     ((volatile unsigned int*)(UART0_BASE + 0x30))
+#define UART0_IMSC   ((volatile unsigned int*)(UART0_BASE + 0x38))
+#define UART0_ICR    ((volatile unsigned int*)(UART0_BASE + 0x44))
+
+#define UART_FR_TXFF (1 << 5)
+#define UART_FR_RXFE (1 << 4)
+
 //UART1
-#define UART1_ENABLE    ((volatile unsigned int *)(UART_BASE+0x5004))
-#define UART1_IO        ((volatile unsigned int *)(UART_BASE+0x5040))
-#define UART1_IER       ((volatile unsigned int *)(UART_BASE+0x5044))
-#define UART1_IIR       ((volatile unsigned int *)(UART_BASE+0x5048))
-#define UART1_LCR       ((volatile unsigned int *)(UART_BASE+0x504C))
-#define UART1_MCR       ((volatile unsigned int *)(UART_BASE+0x5050))
-#define UART1_LSR       ((volatile unsigned int *)(UART_BASE+0x5054))
-#define UART1_MSR       ((volatile unsigned int *)(UART_BASE+0x5058))
-#define UART1_SCRATCH   ((volatile unsigned int *)(UART_BASE+0x505C))
-#define UART1_CNTL      ((volatile unsigned int *)(UART_BASE+0x5060))
-#define UART1_STAT      ((volatile unsigned int *)(UART_BASE+0x5064))
-#define UART1_BAUD      ((volatile unsigned int *)(UART_BASE+0x5068))
+#define UART1_ENABLE    ((volatile unsigned int *)(UART1_BASE+0x5004))
+#define UART1_IO        ((volatile unsigned int *)(UART1_BASE+0x5040))
+#define UART1_IER       ((volatile unsigned int *)(UART1_BASE+0x5044))
+#define UART1_IIR       ((volatile unsigned int *)(UART1_BASE+0x5048))
+#define UART1_LCR       ((volatile unsigned int *)(UART1_BASE+0x504C))
+#define UART1_MCR       ((volatile unsigned int *)(UART1_BASE+0x5050))
+#define UART1_LSR       ((volatile unsigned int *)(UART1_BASE+0x5054))
+#define UART1_MSR       ((volatile unsigned int *)(UART1_BASE+0x5058))
+#define UART1_SCRATCH   ((volatile unsigned int *)(UART1_BASE+0x505C))
+#define UART1_CNTL      ((volatile unsigned int *)(UART1_BASE+0x5060))
+#define UART1_STAT      ((volatile unsigned int *)(UART1_BASE+0x5064))
+#define UART1_BAUD      ((volatile unsigned int *)(UART1_BASE+0x5068))
 
 //Local interrupts
 #define CONTROL_REGISTER                (ARM_LOCAL_ADDR+0x00)

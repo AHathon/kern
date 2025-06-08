@@ -19,5 +19,11 @@
 #define GIC_BASE                0xFF840000
 #define RAM_PADDR               0x01000000
 
-#define GPIO_BASE (MMIO_ADDR + 0x200000)
-#define UART_BASE (MMIO_ADDR + 0x210000)
+#define GPIO_BASE  (MMIO_ADDR + 0x200000)
+#define UART0_BASE (MMIO_ADDR + 0x201000)
+#define UART2_BASE (MMIO_ADDR + 0x201400)
+#define UART3_BASE (MMIO_ADDR + 0x201600)
+#define UART4_BASE (MMIO_ADDR + 0x201800)
+#define UART5_BASE (MMIO_ADDR + 0x201A00)
+
+#define UART1_BASE (MMIO_ADDR + 0x210000) //Mini uart
