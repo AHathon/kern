@@ -6,11 +6,16 @@
 _start_kernel:
     //if arg == 1, skip mmu setup
     cmp x0, #0
-    beq set_phys_stack
+    beq set_exceptions
     tlbi vmalle1is
     dsb sy
     isb
     b boot_kernel
+
+set_exceptions:
+    ldr x0, =el1_vector_base
+    msr VBAR_EL1, x0
+    isb
 
 set_phys_stack:
     //set stack to phys
@@ -19,11 +24,6 @@ set_phys_stack:
     sub x0, x0, x11
     msr spsel, #1
     mov sp, x0
-
-set_exceptions:
-    ldr x0, =el1_vector_base
-    msr VBAR_EL1, x0
-    isb
 
 clear_bss:
     ldr x5, =__bss_start
@@ -50,6 +50,7 @@ setup_virt_stack:
     b MMU_ClearIdentityMap
 
 boot_kernel:
+    bl Terminal_Init
     mov x1, #0
     mov x2, #0
     mov x3, #0

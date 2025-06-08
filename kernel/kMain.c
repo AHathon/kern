@@ -1,5 +1,3 @@
-#include "libraries/types.h"
-
 #include "kernel/memory/kMemoryManager.h"
 #include "kernel/kProcessManager.h"
 #include "kernel/kScheduler.h"
@@ -8,7 +6,11 @@
 #include "libraries/hardware/gpio.h"
 #include "libraries/hardware/cpu.h"
 #include "libraries/hardware/mmio_vars.h"
+#include "libraries/hardware/constants.h"
+#include "libraries/hardware/framebuffer.h"
+#include "libraries/ui/terminal.h"
 #include "libraries/hardware/gic.h"
+#include "libraries/types.h"
 
 void kMain()
 {

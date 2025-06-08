@@ -2,6 +2,8 @@
 
 .global _start
 _start:
+    //disable all interrupts
+    msr daifset, #0xf
     //we only want core0
     mrs x1, mpidr_el1
     and x1, x1, #3

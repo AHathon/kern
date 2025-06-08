@@ -2,6 +2,9 @@
 
 #define NR_SYSCALLS 4
 
+#define MAIN_DISP_WIDTH     800
+#define MAIN_DISP_HEIGHT    480
+
 #define SCHEDULE_TIMER_INTERVAL 1000000UL  // 1 million µs = 1s
 
 #define EC_UNKNOWN              0b000000
