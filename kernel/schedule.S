@@ -3,6 +3,7 @@
 .global context_switch
 .type context_switch, %function;
 context_switch:
+	msr SPSel, #0
     mov sp, x0
 
 	//update mmu

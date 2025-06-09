@@ -27,11 +27,9 @@ void kMain()
     LOG("Running at EL%d\n", GetCurrentEL());
 
     kMemManager_Init();
-
     kProcessManager_Init();
-    kScheduler_Init();
-
     kInitialProcess_Setup();
 
+    kScheduler_Init();
     LOG("Initialization done!\n");
 }

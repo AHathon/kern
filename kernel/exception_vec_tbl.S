@@ -142,6 +142,7 @@ el1_data_abort:
 	eret
 
 irq_el1h:
+	msr SPSel, #1
     kernel_entry
 	mov x0, sp
 	bl timer_irq_handle

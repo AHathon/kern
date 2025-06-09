@@ -26,6 +26,7 @@ typedef struct
     uintptr_t parent;
     void *entryPtr;
     void *stackBase;
+    void *contextStack;
     uintptr_t sp;
     size_t stackSize;
     ThreadType threadType;

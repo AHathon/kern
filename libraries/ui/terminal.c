@@ -30,6 +30,9 @@ void Terminal_DrawString(char *s, uint8_t attr)
 {
     while (*s) 
     {
+        if(termX > MAIN_DISP_WIDTH) termX = termPosX;
+        if(termY > MAIN_DISP_HEIGHT) termY = termPosY;
+        
         if (*s == '\r')
             termX = termPosX;
         else if(*s == '\n')
