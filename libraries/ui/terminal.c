@@ -58,11 +58,12 @@ void Terminal_Init()
 void Terminal_Write(const char *fmt, ...)
 {
     char buf[256];
-	va_list list;
-	va_start(list, fmt);
-	vasprintf(buf, fmt, list);
-	Terminal_DrawString(buf, 0x0f);
-	va_end(list);
+    va_list list;
+    va_start(list, fmt);
+    vasprintf(buf, fmt, list);
+    kprintf(buf);
+    Terminal_DrawString(buf, 0x0f);
+    va_end(list);
 }
 
 void Terminal_Clear()

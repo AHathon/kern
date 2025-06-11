@@ -2,10 +2,10 @@
 
 void PageAllocator_Init() 
 {
-    LOG("Total pages: %d\n", MAX_PAGES);
+    LOGT("Total pages: %d\n", MAX_PAGES);
     for(int i = 0; i < MAX_PAGES / 8; i++)
         pageBitmap[i] = 0;
-    LOG("Initialized kPageAllocator\n");
+    LOGT("Initialized kPageAllocator\n");
 }
 
 uint8_t PageAllocator_GetPageStatus(uint64_t page) 

@@ -4,9 +4,8 @@
 #include "libraries/hardware/uart.h"
 #include "libraries/ui/terminal.h"
 
-#define LOG(...)                              \
-                (Terminal_Write(__VA_ARGS__), \
-                kprintf(__VA_ARGS__))
+#define LOG(...)  kprintf(__VA_ARGS__)
+#define LOGT(...)  Terminal_Write(__VA_ARGS__)
                 
 #define ERROR(...)  (kprintf("ERROR: "),  \
                     kprintf(__VA_ARGS__))

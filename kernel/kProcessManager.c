@@ -22,13 +22,14 @@ void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, u
 	kstrcpy(processTable[p].name, name);
 	processTable[p].PID = ++lastPID;
 	processTable[p].flags |= IS_ACTIVE_PROC;
-	processTable[p].code.text.addr = (uintptr_t)kMemAlloc(codeSize);
+	processTable[p].code.text.addr = (uintptr_t)KERN_VADDR_TO_PADDR(kMemAlloc(codeSize));
     processTable[p].code.text.size = codeSize;
-	kmemcpy((uint8_t*)(processTable[p].code.text.addr), code, codeSize);
-	
-	//Create main thread and map mem [processes should all have the same virtual mapping give or take kern vaddr for ttrb0/1 routing]
+	kmemcpy((uint8_t*)KERN_PADDR_TO_VADDR(processTable[p].code.text.addr), code, codeSize);
+
+	//Create main thread and map mem 
+	//[processes should all have the same virtual mapping give or take kern vaddr for ttrb0/1 routing]
 	processTable[p].pageTables = (uintptr_t)kMemCalloc(PAGE_SIZE);	
-	MMU_MapMemPages(processTable[p].pageTables, processTable[p].code.text.addr - KERNEL_VIRT_BASE, USERLAND_VIRT_BASE, codeSize, isKernelProc);
+	MMU_MapMemPages(processTable[p].pageTables, processTable[p].code.text.addr, USERLAND_VIRT_BASE, codeSize, isKernelProc);
 	
 	processTable[p].mainThread = kThread_Create(&processTable[p], (void*)(USERLAND_VIRT_BASE), 0x1000, isKernelProc ? THREAD_KERNEL : THREAD_USER);
 
@@ -37,7 +38,7 @@ void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, u
 
 	//Add main thread to scheduler
 	kScheduler_AddThread(processTable[p].mainThread);
-	LOG("Added process: %s [pid:%d]\n", processTable[p].name, processTable[p].PID);
+	LOGT("Added process: %s [pid:%d]\n", processTable[p].name, processTable[p].PID);
 }
 
 void kProcessManager_KillProcess(unsigned ind) 

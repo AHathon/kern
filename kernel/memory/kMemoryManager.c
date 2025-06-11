@@ -3,14 +3,14 @@
 void kMemManager_Init()
 {
     PageAllocator_Init();
-    LOG("Initialized kMemoryManager\n");
+    LOGT("Initialized kMemoryManager\n");
 }
 
 void *kMemAlloc(size_t size)
 {
     size_t pageCnt = (size + PAGE_SIZE - 1) / PAGE_SIZE;
 	int64_t page = PageAllocator_AllocPages(pageCnt);
-    return (void*)((page * PAGE_SIZE) + KERNEL_VIRT_BASE);
+    return (void*)(KERN_PADDR_TO_VADDR(page * PAGE_SIZE));
 }
 
 void *kMemCalloc(size_t size)
@@ -23,6 +23,6 @@ void *kMemCalloc(size_t size)
 void kMemFree(void *ptr, size_t size)
 {
     size_t pageCnt = (size + PAGE_SIZE - 1) / PAGE_SIZE;
-    int64_t page = ((uintptr_t)ptr - KERNEL_VIRT_BASE) / PAGE_SIZE;
+    int64_t page = (uintptr_t)(KERN_VADDR_TO_PADDR(ptr)) / PAGE_SIZE;
     PageAllocator_FreePages(page, pageCnt);
 }

@@ -28,7 +28,7 @@ void kScheduler_Init()
 {
     localTimerIrqInit();
     schedulerInit = 1;
-    LOG("Initialized kScheduler\n");
+    LOGT("Initialized kScheduler\n");
 }
 
 void kScheduler_AddThread(kThread *thread)

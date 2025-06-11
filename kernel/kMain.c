@@ -22,14 +22,14 @@ void kMain()
     
     uint64_t vbar;
     asm volatile ("mrs %0, vbar_el1" : "=r" (vbar));
-    LOG("Exception vector: %X\n", vbar);
-    LOG("MMIO base: %X\n", MMIO_ADDR);
-    LOG("Running at EL%d\n", GetCurrentEL());
+    LOGT("Exception vector: %X\n", vbar);
+    LOGT("MMIO base: %X\n", MMIO_ADDR);
+    LOGT("Running at EL%d\n", GetCurrentEL());
 
     kMemManager_Init();
     kProcessManager_Init();
     kInitialProcess_Setup();
 
     kScheduler_Init();
-    LOG("Initialization done!\n");
+    LOGT("Initialization done!\n");
 }
