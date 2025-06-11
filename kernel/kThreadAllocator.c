@@ -9,7 +9,8 @@ slab_allocator_t *kThreadAllocator_GetInst()
     if(!initialized)
     {
         kSlabAlloc_Init(&instance, sizeof(kThread), MAX_THREADS);
-        LOG("kThreadAllocator initialized\n");
+        initialized = 1;
+        LOGT("kThreadAllocator initialized\n");
     }
 
     return &instance;
