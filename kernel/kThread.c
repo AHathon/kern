@@ -1,5 +1,6 @@
 #include "kernel/kThread.h"
 #include "kernel/kProcess.h"
+#include "kernel/kThreadAllocator.h"
 #include "kernel/memory/kMemoryManager.h"
 
 kThread *kThread_Create(void *parent, void *entryPtr, size_t stackSize, ThreadType type)
