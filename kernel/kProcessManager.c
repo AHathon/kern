@@ -33,8 +33,8 @@ void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, u
 	
 	processTable[p].mainThread = kThread_Create(&processTable[p], (void*)(USERLAND_VIRT_BASE), 0x1000, isKernelProc ? THREAD_KERNEL : THREAD_USER);
 
-	//Initialize SP to stack base
-	processTable[p].mainThread->sp = (uintptr_t)processTable[p].mainThread->stackBase;
+	//set pagetable as phys addr
+	processTable[p].pageTables = KERN_VADDR_TO_PADDR(processTable[p].pageTables);
 
 	//Add main thread to scheduler
 	kScheduler_AddThread(processTable[p].mainThread);

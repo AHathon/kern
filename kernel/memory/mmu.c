@@ -148,7 +148,7 @@ void MMU_MapMemPages(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size
         {
             LOG("Has L2\n");
             //Has table, so lets extract addr
-            L2_tbl_ptr = (uint64_t*)((L1_entry & PHYS_ADDR_MASK) + isKernelMem ? KERNEL_VIRT_BASE : 0);
+            L2_tbl_ptr = (uint64_t*)((L1_entry & PHYS_ADDR_MASK) + KERNEL_VIRT_BASE);
             L2_entry = L2_tbl_ptr[L2_IDX(va)];
         }
 
@@ -169,7 +169,7 @@ void MMU_MapMemPages(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size
         else
         {
             LOG("Has L3\n");
-            L3_tbl_ptr = (uint64_t*)((L2_entry & PHYS_ADDR_MASK) + isKernelMem ? KERNEL_VIRT_BASE : 0);
+            L3_tbl_ptr = (uint64_t*)((L2_entry & PHYS_ADDR_MASK) + KERNEL_VIRT_BASE);
             L3_entry = L3_tbl_ptr[L3_IDX(va)];
         }
 

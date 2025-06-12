@@ -17,6 +17,7 @@ kThread *kThread_Create(void *parent, void *entryPtr, size_t stackSize, ThreadTy
 
     thread->stackBase = KERN_VADDR_TO_PADDR(kMemAlloc(stackSize));
     MMU_MapMemPages(p->pageTables, (uintptr_t)(thread->stackBase), (uintptr_t)(thread->stackBase), stackSize, type == THREAD_KERNEL);
+    thread->sp = (uintptr_t)thread->stackBase + stackSize - 8;
 
     thread->contextStack = kMemAlloc(PAGE_SIZE);
     MMU_MapMemPages(p->pageTables, (uintptr_t)(thread->contextStack), (uintptr_t)KERN_PADDR_TO_VADDR(thread->contextStack), PAGE_SIZE, 1);

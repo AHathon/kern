@@ -52,6 +52,7 @@ void kScheduler_schedule()
         {
             kProcess *parent = (kProcess*)(current->parent);
             LOG("pushing: %s\n", parent->name);
+            current->state = STATE_RUNNING;
             runq_push(&runqueue, current);
         }
 
@@ -63,7 +64,7 @@ void kScheduler_schedule()
             uint8_t isKernel = current->threadType == THREAD_KERNEL;
             kProcess *parent = (kProcess*)(current->parent);
             LOG("switching: %s @ %X [proc is %s and is %s]\n", parent->name, current->entryPtr, isNew ? "new" : "old", isKernel ? "kernel" : "user");
-            //context_switch(current->sp - KERNEL_VIRT_BASE, isKernel, isNew, current->entryPtr, parent->pageTables - KERNEL_VIRT_BASE);
+            context_switch(current->sp, isKernel, isNew, current->entryPtr, parent->pageTables, KERNEL_VIRT_BASE);
         }
     }
     localTimerIrqReset();
