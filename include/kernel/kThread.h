@@ -28,6 +28,7 @@ typedef struct
     void *stackBase;
     void *contextStack;
     uintptr_t sp;
+    uintptr_t kern_sp;
     size_t stackSize;
     ThreadType threadType;
     ThreadState state;

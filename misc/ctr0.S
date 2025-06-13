@@ -5,4 +5,4 @@ _start:
     mov x0, #0
     mov x1, #0
     bl _Z4mainv
-    svc 3
+    svc 2

@@ -1,7 +1,8 @@
 #include "kernel/kProcessManager.h"
 #include "kernel/kThread.h"
 
-unsigned kProcessManager_FindFreeProcSpace() {
+unsigned kProcessManager_FindFreeProcSpace() 
+{
 	unsigned i;
 	for(i = 0; i < MAX_PROC; i++){
 		if(!(processTable[i].flags & IS_ACTIVE_PROC)) break;
@@ -9,10 +10,17 @@ unsigned kProcessManager_FindFreeProcSpace() {
 	return i;
 }
 
-void kProcessManager_Init() {
+void kProcessManager_Init() 
+{
 	kmemset((uint8_t*)processTable, sizeof(kProcess) * MAX_PROC);
 	for(int i = 0; i < MAX_PROC; i++)
 		processTable[i].flags = 0;
+}
+
+kProcess *kProcessManager_GetCurrentProcess()
+{
+	kThread *currThread = kScheduler_GetCurrentThread();
+	return (kProcess *)currThread->parent;
 }
 
 void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, uint8_t isKernelProc)

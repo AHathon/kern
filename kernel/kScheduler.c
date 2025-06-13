@@ -55,6 +55,13 @@ void kScheduler_schedule()
             current->state = STATE_RUNNING;
             runq_push(&runqueue, current);
         }
+        if(current && current->state == STATE_TERMINATED)
+        {
+            kProcess *parent = (kProcess*)(current->parent);
+            LOG("terminating: %s\n", parent->name);
+            kProcessManager_KillProcess(parent->PID);//TODO: this is actually index and not pid 
+                                           //but they should be the same for now
+        }
 
         //Switch tasks
         current = next;
@@ -64,7 +71,7 @@ void kScheduler_schedule()
             uint8_t isKernel = current->threadType == THREAD_KERNEL;
             kProcess *parent = (kProcess*)(current->parent);
             LOG("switching: %s @ %X [proc is %s and is %s]\n", parent->name, current->entryPtr, isNew ? "new" : "old", isKernel ? "kernel" : "user");
-            context_switch(current->sp, isKernel, isNew, current->entryPtr, parent->pageTables, KERNEL_VIRT_BASE);
+            context_switch(current->sp, current->kern_sp, isKernel, isNew, current->entryPtr, parent->pageTables);
         }
     }
     localTimerIrqReset();
