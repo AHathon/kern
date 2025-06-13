@@ -57,15 +57,12 @@ void kScheduler_schedule()
         }
         if(current && current->state == STATE_TERMINATED)
         {
-            kProcess *parent = (kProcess*)(current->parent);
-            LOG("terminating: %s\n", parent->name);
-            kProcessManager_KillProcess(parent->PID);//TODO: this is actually index and not pid 
-                                           //but they should be the same for now
+            LOG("relinquishing thread [id:%d]\n", current->id);
         }
 
         //Switch tasks
         current = next;
-        if (current)
+        if (current && current->state != STATE_TERMINATED)
         {
             uint8_t isNew = current->state == STATE_READY;
             uint8_t isKernel = current->threadType == THREAD_KERNEL;
@@ -74,5 +71,4 @@ void kScheduler_schedule()
             context_switch(current->sp, current->kern_sp, isKernel, isNew, current->entryPtr, parent->pageTables);
         }
     }
-    localTimerIrqReset();
 }

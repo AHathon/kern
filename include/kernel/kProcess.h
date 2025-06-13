@@ -5,6 +5,7 @@
 #include "kernel/kCodeSet.h"
 
 #define MAX_PAGES_OWNED 32
+#define MAX_THREADS_OWNED 32
 #define IS_ACTIVE_PROC 1 << 0
 
 typedef struct
@@ -16,5 +17,7 @@ typedef struct
     uint64_t memoryPoolSize;
     uint32_t flags;
     kThread *mainThread;
+    kThread *threadsOwned[MAX_THREADS_OWNED];
+    size_t threadCnt;
     kCodeSet code;
 } kProcess;

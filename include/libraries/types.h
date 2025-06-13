@@ -18,6 +18,9 @@ typedef long int64_t;
 
 #define UNUSED(x) (void)x
 
+#define SET_BIT(x, y) (x |= (y))
+#define CLR_BIT(x, y) (x &= ~(y))
+
 typedef __builtin_va_list va_list;
 #define va_start(ap,last) __builtin_va_start(ap, last)
 #define va_end(ap) __builtin_va_end(ap)

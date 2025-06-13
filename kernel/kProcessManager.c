@@ -1,15 +1,6 @@
 #include "kernel/kProcessManager.h"
 #include "kernel/kThread.h"
 
-unsigned kProcessManager_FindFreeProcSpace() 
-{
-	unsigned i;
-	for(i = 0; i < MAX_PROC; i++){
-		if(!(processTable[i].flags & IS_ACTIVE_PROC)) break;
-	}
-	return i;
-}
-
 void kProcessManager_Init() 
 {
 	kmemset((uint8_t*)processTable, sizeof(kProcess) * MAX_PROC);
@@ -26,10 +17,10 @@ kProcess *kProcessManager_GetCurrentProcess()
 void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, uint8_t isKernelProc)
 {
 	//Create proc in procTable
-	unsigned p = kProcessManager_FindFreeProcSpace();
+	unsigned p = ++lastPID;
 	kstrcpy(processTable[p].name, name);
-	processTable[p].PID = ++lastPID;
-	processTable[p].flags |= IS_ACTIVE_PROC;
+	processTable[p].PID = p;
+	SET_BIT(processTable[p].flags, IS_ACTIVE_PROC);
 	processTable[p].code.text.addr = (uintptr_t)KERN_VADDR_TO_PADDR(kMemAlloc(codeSize));
     processTable[p].code.text.size = codeSize;
 	kmemcpy((uint8_t*)KERN_PADDR_TO_VADDR(processTable[p].code.text.addr), code, codeSize);
@@ -45,6 +36,11 @@ void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, u
 	processTable[p].pageTables = KERN_VADDR_TO_PADDR(processTable[p].pageTables);
 	LOG("Page tables @ 00x%X\n", processTable[p].pageTables);
 
+	processTable[p].threadCnt = 0;
+	kmemset(processTable[p].threadsOwned, sizeof(kThread*) * MAX_THREADS_OWNED);
+	processTable[p].threadsOwned[0] = processTable[p].mainThread; //TODO: cleaner impl
+	processTable[p].threadCnt++;
+
 	//Add main thread to scheduler
 	kScheduler_AddThread(processTable[p].mainThread);
 	LOGT("Added process: %s [pid:%d]\n", processTable[p].name, processTable[p].PID);
@@ -53,6 +49,7 @@ void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, u
 void kProcessManager_KillProcess(unsigned ind) 
 {
 	if(ind >= MAX_PROC) return;
+	CLR_BIT(processTable[ind].flags, IS_ACTIVE_PROC);
 	kThread_Destroy(processTable[ind].mainThread);
 	processTable[ind].flags = 0;
 }

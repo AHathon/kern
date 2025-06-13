@@ -35,10 +35,8 @@ void timer_irq_handle(void *sp)
 	{
 		case LOCAL_TIMER_IRQ_PNS:
 		{
-			kThread *curr = kScheduler_GetCurrentThread();
-			if(curr != 0)
-				curr->sp = (uintptr_t)sp;
 			kScheduler_schedule();
+			localTimerIrqReset(); 
 			break;
 		}
 	}

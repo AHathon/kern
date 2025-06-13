@@ -15,8 +15,9 @@ void svcImpl_FreeMem(void *addr)
 void svcImpl_ExitProcess()
 {
     LOGT("svcExitProcess()\n");
-    kThread *t = kScheduler_GetCurrentThread();
-    t->state == STATE_TERMINATED;
+    kProcess *proc = kProcessManager_GetCurrentProcess();
+    kProcessManager_KillProcess(proc->PID);
+    
     kScheduler_schedule();
 }
 
