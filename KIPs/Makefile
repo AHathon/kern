@@ -1,17 +1,16 @@
 TARGET := kip_blob
+DIRS := init fs pm gfx
+
+KIP_FILES := $(foreach d,$(DIRS),$(d)/$(d).kip)
 
 .PHONY: all clean
 
 all: $(TARGET)
 
 $(TARGET):
-	$(MAKE) -C pm
-	$(MAKE) -C fs
-	$(MAKE) -C init
-	@cat init/init.kip pm/pm.kip fs/fs.kip > kip_blob
+	for d in $(DIRS); do $(MAKE) -C $$d; done
+	@cat $(KIP_FILES) > kip_blob
 
 clean:
 	@rm -f kip_blob
-	$(MAKE) -C pm clean
-	$(MAKE) -C fs clean
-	$(MAKE) -C init clean
+	for d in $(DIRS); do $(MAKE) -C $$d clean; done

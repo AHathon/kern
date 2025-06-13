@@ -1,4 +1,4 @@
-TARGET := boot
+TARGET := gfx
 INCLUDE := 
 
 include ../../misc/base_service_rules

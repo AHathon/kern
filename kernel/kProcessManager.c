@@ -49,9 +49,12 @@ void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, u
 void kProcessManager_KillProcess(unsigned ind) 
 {
 	if(ind >= MAX_PROC) return;
+	//Set process as inactive and set all threads to terminated
 	CLR_BIT(processTable[ind].flags, IS_ACTIVE_PROC);
-	kThread_Destroy(processTable[ind].mainThread);
-	processTable[ind].flags = 0;
+	while(processTable[ind].threadCnt)
+	{
+		processTable[ind].threadsOwned[processTable[ind].threadCnt-- - 1]->state = STATE_TERMINATED;
+	}
 }
 
 void kProcessManager_PrintDebugProc() {

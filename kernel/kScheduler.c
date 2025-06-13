@@ -57,7 +57,9 @@ void kScheduler_schedule()
         }
         if(current && current->state == STATE_TERMINATED)
         {
+            //Cleanup terminated threads
             LOG("relinquishing thread [id:%d]\n", current->id);
+            kThread_Destroy(current);
         }
 
         //Switch tasks
