@@ -35,6 +35,7 @@ void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, u
 
 	//set pagetable as phys addr
 	processTable[p].pageTables = KERN_VADDR_TO_PADDR(processTable[p].pageTables);
+	LOG("Page tables @ 00x%X\n", processTable[p].pageTables);
 
 	//Add main thread to scheduler
 	kScheduler_AddThread(processTable[p].mainThread);

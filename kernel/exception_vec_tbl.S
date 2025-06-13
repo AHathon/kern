@@ -108,14 +108,24 @@
 	eret
 .endm
 
-vector_sync_el1h:
+sync_el0_64:
 	kernel_entry
 	mrs x25, esr_el1				// read the syndrome register
 	lsr x24, x25, #26             	// exception class
 	cmp x24, #EC_SVC_64  			// SVC in 64-bit state
 	b.eq el1h_svc
 	cmp x24, #EC_DATA_ABORT_NC_EL 	//handle data aborts until mmu is solid
-	b.eq el1_data_abort
+	b.eq _data_abort
+	b sync_invalid_el0_64			//sync error
+
+sync_el1h:
+	kernel_entry
+	mrs x25, esr_el1				// read the syndrome register
+	lsr x24, x25, #26             	// exception class
+	cmp x24, #EC_SVC_64  			// SVC in 64-bit state
+	b.eq el1h_svc
+	cmp x24, #EC_DATA_ABORT_NC_EL 	//handle data aborts until mmu is solid
+	b.eq _data_abort
 	b sync_invalid_el1h				//sync error
 
 el1h_svc:
@@ -136,7 +146,7 @@ el1h_ret_from_syscall:
 	kernel_exit
 	eret
 
-el1_data_abort:
+_data_abort:
 	and x0, x25, #0x1F
 	bl data_abort_exception
 	kernel_exit
@@ -179,13 +189,13 @@ el1_vector_base:
 	ventry	error_invalid_el1t			// Error EL1t
 
 	// Current EL with SPx
-	ventry	vector_sync_el1h			// Synchronous EL1h
+	ventry	sync_el1h					// Synchronous EL1h
 	ventry	irq_el1h					// IRQ EL1h
 	ventry	fiq_invalid_el1h			// FIQ EL1h
 	ventry	error_invalid_el1h			// Error EL1h
 
 	// Lower EL using AArch64
-	ventry	sync_invalid_el0_64			// Synchronous 64-bit EL0
+	ventry	sync_el0_64					// Synchronous 64-bit EL0
 	ventry	irq_el0_64					// IRQ 64-bit EL0
 	ventry	fiq_invalid_el0_64			// FIQ 64-bit EL0
 	ventry	error_invalid_el0_64		// Error 64-bit EL0

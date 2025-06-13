@@ -1,6 +1,6 @@
 #pragma once
 
-#define NR_SYSCALLS 4
+#define NR_SYSCALLS 256
 
 #define MAIN_DISP_WIDTH     800
 #define MAIN_DISP_HEIGHT    480

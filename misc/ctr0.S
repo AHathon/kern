@@ -1,4 +1,4 @@
-.section ".text"
+.section ".text.start"
 .extern _Z4mainv
 .global _start
 _start:

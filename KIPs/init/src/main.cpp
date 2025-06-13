@@ -1,5 +1,5 @@
 int main() 
 {
-    asm volatile("svc 2");    
+    asm volatile("svc 0xFF");    
     return 0;
 }

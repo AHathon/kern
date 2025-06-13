@@ -22,7 +22,7 @@ $(TARGET).elf: $(OBJECTS)
 
 $(BUILD)/%.o: $(SOURCES)/%.cpp
 	@mkdir -p $(@D)
-	$(CC) -c $< $(CFLAGS) -o $@
+	$(CC) -c $< $(CFLAGS) $(INCLUDE) -o $@
 
 $(BUILD)/%.o: $(SOURCES)/%.S
-	$(CC) --target=aarch64-elf $(ASFLAGS) -c -o $@ $^
+	$(CC) --target=aarch64-elf $(ASFLAGS) $(INCLUDE) -c -o $@ $^
