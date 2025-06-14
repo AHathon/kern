@@ -1,0 +1,12 @@
+#64-bit mode
+arm_64bit=1
+
+#custom payload
+kernel=boot.bin
+
+#Run as fast as firmware / board allows
+arm_boost=1
+
+#enable uart
+enable_uart=1
+dtoverlay=disable-bt

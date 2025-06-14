@@ -9,13 +9,8 @@ void UART0_Init()
     *UART0_ICR = 0x7FF;
 
     //GPIO14/15 disable pull-up/down
-    *GPPUD = 0;
-    for (int r = 0; r < 150; r++) asm volatile("nop");
-
-    *GPPUDCLK0 = (1 << 14) | (1 << 15);
-    for (int r = 0; r < 150; r++) asm volatile("nop");
-
-    *GPPUDCLK0 = 0;
+    GPIO_SetPullNone(14);
+    GPIO_SetPullNone(15);
 
     //Set baud rate (UART_CLOCK = 3 MHz for mini UART default)
     *UART0_IBRD = ((UART_CLOCK) / (16 * (BAUDRATE)));
@@ -39,10 +34,6 @@ void UART0_Init()
     *UART0_CR = (1 << 0) |  //Uart enable
                 (1 << 8) |  //TX enable
                 (1 << 9);   //RX enable
-
-    //Map UART0 to GPIO
-    GPIO_SetAlt(14, FUNC_A0);
-    GPIO_SetAlt(15, FUNC_A0);
 }
 
 char uart0_getc() 

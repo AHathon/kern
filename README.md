@@ -1,3 +1,3 @@
 # kern
 
-A very WIP microkernel with only raspi hardware in mind. Name is TBD.
+A WIP microkernel for raspberry pi 4. Name is TBD.

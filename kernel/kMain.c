@@ -14,11 +14,12 @@
 
 void kMain()
 {
-    GicEnable();
+    GicDisable();
     //Only C1/C3 should be used for OS
     //GicRouteIRQ(SYSTEM_TIMER_IRQ_1);
     //GicRouteIRQ(SYSTEM_TIMER_IRQ_3);
     GicRouteIRQ(LOCAL_TIMER_IRQ_PNS);
+    GicEnable();
     
     uint64_t vbar;
     asm volatile ("mrs %0, vbar_el1" : "=r" (vbar));

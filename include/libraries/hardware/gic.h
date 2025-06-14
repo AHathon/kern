@@ -4,3 +4,4 @@
 
 void GicRouteIRQ(uint32_t irq);
 void GicEnable();
+void GicDisable();

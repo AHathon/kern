@@ -52,7 +52,13 @@ void GicEnable()
     //Enable GIC CPU Interface
     *(volatile uint32_t *)GICC_PMR = 0xFF;
     *(volatile uint32_t *)GICC_BPR = 7;
-    *(volatile uint32_t *)GICC_CTLR = 1;
+    *(volatile uint32_t *)GICC_CTLR = 3;
 
     LOGT("Initialized GIC [%s] (%d IRQs)\n", GetGicVersion(), GetGicMaxIRQs());
+}
+
+void GicDisable()
+{
+    *(volatile uint32_t *)GICD_CTLR = 0;
+    *(volatile uint32_t *)GICC_CTLR = 0;
 }

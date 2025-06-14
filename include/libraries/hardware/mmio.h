@@ -32,28 +32,18 @@
 #define MBOX_EMPTY          0x40000000
 
 //GPIO
-#define GPFSEL0         ((volatile uint32_t*)(GPIO_BASE+0x0000))
-#define GPFSEL1         ((volatile uint32_t*)(GPIO_BASE+0x0004))
-#define GPFSEL2         ((volatile uint32_t*)(GPIO_BASE+0x0008))
-#define GPFSEL3         ((volatile uint32_t*)(GPIO_BASE+0x000C))
-#define GPFSEL4         ((volatile uint32_t*)(GPIO_BASE+0x0010))
-#define GPFSEL5         ((volatile uint32_t*)(GPIO_BASE+0x0014))
-#define GPSET0          ((volatile uint32_t*)(GPIO_BASE+0x001C))
-#define GPSET1          ((volatile uint32_t*)(GPIO_BASE+0x0020))
-#define GPCLR0          ((volatile uint32_t*)(GPIO_BASE+0x0028))
-#define GPCLR1          ((volatile uint32_t*)(GPIO_BASE+0x002C))
-#define GPLEV0          ((volatile uint32_t*)(GPIO_BASE+0x0034))
-#define GPLEV1          ((volatile uint32_t*)(GPIO_BASE+0x0038))
-#define GPEDS0          ((volatile uint32_t*)(GPIO_BASE+0x0040))
-#define GPEDS1          ((volatile uint32_t*)(GPIO_BASE+0x0044))
-#define GPHEN0          ((volatile uint32_t*)(GPIO_BASE+0x0064))
-#define GPHEN1          ((volatile uint32_t*)(GPIO_BASE+0x0068))
+#define GPFSEL(n)       ((volatile uint32_t*)(GPIO_BASE+0x0000 + ((n) * 4))) //n = 0-5
+#define GPSET(n)        ((volatile uint32_t*)(GPIO_BASE+0x001C + ((n) * 4))) //n = 0-1
+#define GPCLR(n)        ((volatile uint32_t*)(GPIO_BASE+0x0028 + ((n) * 4))) //n = 0-1
+#define GPLEV(n)        ((volatile uint32_t*)(GPIO_BASE+0x0034 + ((n) * 4))) //n = 0-1
+#define GPEDS(n)        ((volatile uint32_t*)(GPIO_BASE+0x0040 + ((n) * 4))) //n = 0-1
+#define GPHEN(n)        ((volatile uint32_t*)(GPIO_BASE+0x0064 + ((n) * 4))) //n = 0-1
 #define GPPUD           ((volatile uint32_t*)(GPIO_BASE+0x0094))
 #define GPPUDCLK0       ((volatile uint32_t*)(GPIO_BASE+0x0098))
 #define GPPUDCLK1       ((volatile uint32_t*)(GPIO_BASE+0x009C))
 
-#define FUNC_IP  0
-#define FUNC_OP  1
+#define FUNC_IN  0
+#define FUNC_OUT 1
 #define FUNC_A0  4
 #define FUNC_A1  5
 #define FUNC_A2  6
