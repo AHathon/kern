@@ -5,6 +5,7 @@ KIPs/**/build/
 KIPs/**/pm.*
 KIPs/**/fs.*
 KIPs/**/init.*
+KIPs/**/gfx.*
 KIPs/kip_blob
 *.bin
 *.elf
