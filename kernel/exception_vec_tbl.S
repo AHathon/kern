@@ -113,8 +113,8 @@ sync_el0_64:
 	mrs x25, esr_el1				// read the syndrome register
 	lsr x24, x25, #26             	// exception class
 	cmp x24, #EC_SVC_64  			// SVC in 64-bit state
-	b.eq el1h_svc
-	cmp x24, #EC_DATA_ABORT_NC_EL 	//handle data aborts until mmu is solid
+	b.eq svc_64
+	cmp x24, #EC_DATA_ABORT_EL0 	//handle data aborts until mmu is solid
 	b.eq _data_abort
 	b sync_invalid_el0_64			//sync error
 
@@ -123,26 +123,21 @@ sync_el1h:
 	mrs x25, esr_el1				// read the syndrome register
 	lsr x24, x25, #26             	// exception class
 	cmp x24, #EC_SVC_64  			// SVC in 64-bit state
-	b.eq el1h_svc
-	cmp x24, #EC_DATA_ABORT_NC_EL 	//handle data aborts until mmu is solid
+	b.eq svc_64
+	cmp x24, #EC_DATA_ABORT_EL1 	//handle data aborts until mmu is solid
 	b.eq _data_abort
 	b sync_invalid_el1h				//sync error
 
-el1h_svc:
+svc_64:
 	and x26, x25, 0xFFFF			//Extract svc immediate #
 	adr x27, swi_table              //Load syscall table pointer
 	mov x25, #NR_SYSCALLS
 	cmp x26, x25                    //Check upper syscall limit
-	b.hs el1h_ni_sys
+	b.hs sync_invalid_el1h
 	ldr x16, [x27, x26, lsl #3]     // address in the syscall table
+	msr daifclr, #2
 	blr x16							// call sys_* routine
-	b el1h_ret_from_syscall
-
-el1h_ni_sys:
-	b sync_invalid_el1h				//syscall error
-
-el1h_ret_from_syscall:
-	str x0, [sp, #0]            // returned x0
+	msr daifset, #2
 	kernel_exit
 	eret
 

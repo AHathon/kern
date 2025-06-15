@@ -24,13 +24,13 @@ void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, u
 	processTable[p].code.text.addr = (uintptr_t)KERN_VADDR_TO_PADDR(kMemAlloc(codeSize));
     processTable[p].code.text.size = codeSize;
 	kmemcpy((uint8_t*)KERN_PADDR_TO_VADDR(processTable[p].code.text.addr), code, codeSize);
-
+	
 	//Create main thread and map mem 
 	//[processes should all have the same virtual mapping give or take kern vaddr for ttrb0/1 routing]
 	processTable[p].pageTables = (uintptr_t)kMemCalloc(PAGE_SIZE);	
 	MMU_MapMemPages(processTable[p].pageTables, processTable[p].code.text.addr, USERLAND_VIRT_BASE, codeSize, isKernelProc);
 	
-	processTable[p].mainThread = kThread_Create(&processTable[p], (void*)(USERLAND_VIRT_BASE), 0x1000, isKernelProc ? THREAD_KERNEL : THREAD_USER);
+	processTable[p].mainThread = kThread_Create(&processTable[p], (void*)(USERLAND_VIRT_BASE), 0x2000, isKernelProc ? THREAD_KERNEL : THREAD_USER);
 
 	//set pagetable as phys addr
 	processTable[p].pageTables = KERN_VADDR_TO_PADDR(processTable[p].pageTables);

@@ -7,12 +7,13 @@
 
 #define SCHEDULE_TIMER_INTERVAL 1000000UL  // 1 million µs = 1s
 
-#define EC_UNKNOWN              0b000000
-#define EC_TRAPPED_WF           0b000001
-#define EC_ILLEGAL_EXECUTION    0b001110
-#define EC_SVC_32               0b010001
-#define EC_SVC_64               0b010101
-#define EC_DATA_ABORT_NC_EL     0b100101
+#define EC_UNKNOWN              0x00
+#define EC_TRAPPED_WF           0x01
+#define EC_ILLEGAL_EXECUTION    0x0E
+#define EC_SVC_32               0x11
+#define EC_SVC_64               0x15
+#define EC_DATA_ABORT_EL0       0x24
+#define EC_DATA_ABORT_EL1       0x25
 
 #define KERNEL_VIRT_BASE        0xFFFFFF8000000000ULL
 #define USERLAND_VIRT_BASE      0x01000000

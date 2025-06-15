@@ -28,6 +28,8 @@ _handle_new_process:
 
     msr SPSR_EL1, x8
     msr ELR_EL1, x9
+    mov x9, #0
+    msr ESR_EL1, x9
 
 _restore_regs:
 	//restore most regs
