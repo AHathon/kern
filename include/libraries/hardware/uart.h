@@ -10,6 +10,10 @@
 
 #define BAUDRATE 115200
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void UART0_Init();
 char uart0_getc();
 void uart0_send(unsigned int c);
@@ -19,3 +23,7 @@ void UART1_Init();
 char uart1_getc();
 void uart1_send(unsigned int c);
 void uart1_puts(char *str);
+
+#ifdef __cplusplus
+}
+#endif

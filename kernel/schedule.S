@@ -49,6 +49,7 @@ _restore_regs:
 	ldp x28, x29, [sp, #16 * 14]
     ldr x30, [sp, #16 * 15]
 
+    clrex
     cmp w2, #1	//isKernel
     bne _eret_to_user
 

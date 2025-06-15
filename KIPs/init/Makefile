@@ -1,7 +1,8 @@
 TARGET := init
 INCLUDE := 
+LIBS :=
 
-include ../../misc/base_service_rules
+include $(PROJECT_ROOT)/misc/base_service_rules
 
 .PHONY: all clean
 

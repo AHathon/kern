@@ -3,6 +3,8 @@ kernel 	:= kernel8
 
 BUILD 	:= build
 
+export PROJECT_ROOT := $(CURDIR)
+
 CC=clang
 OC=llvm-objcopy
 LD=ld.lld
@@ -26,9 +28,9 @@ OBJS_boot := $(patsubst %.c, $(BUILD)/%.o, $(SRCS_C_boot)) \
 OBJS_kern := $(patsubst %.c, $(BUILD)/%.o, $(SRCS_C_kern)) \
 		$(patsubst %.S, $(BUILD)/%.o, $(SRCS_S_kern))
 
-.PHONY: all clean library secmon kernel boot qemu qemu-gdb
+.PHONY: all clean library KIPs secmon kernel boot qemu qemu-gdb
 
-all: setup library secmon kernel boot
+all: setup library KIPs secmon kernel boot
 
 clean:
 	@rm -fr $(BUILD) $(kernel).elf $(secmon).elf $(boot).elf $(kernel).img $(secmon).bin $(boot).bin
@@ -45,6 +47,9 @@ qemu-gdb: $(kernel).elf
 library:
 	$(MAKE) -C libraries
 	cp libraries/libraries.a $(BUILD)/libraries
+
+KIPs:
+	$(MAKE) -C KIPs
 
 secmon: 
 	$(MAKE) -C secmon
@@ -71,4 +76,3 @@ setup:
 	mkdir -p $(BUILD)/kernel/memory
 	mkdir -p $(BUILD)/boot
 	mkdir -p $(BUILD)/libraries
-	$(MAKE) -C KIPs

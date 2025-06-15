@@ -1,7 +1,8 @@
 TARGET := gfx
-INCLUDE := 
+INCLUDE := -I$(PROJECT_ROOT)/include
+LIBS := $(PROJECT_ROOT)/build/libraries/libraries.a
 
-include ../../misc/base_service_rules
+include $(PROJECT_ROOT)/misc/base_service_rules
 
 .PHONY: all clean
 
