@@ -43,6 +43,8 @@ kThread *kScheduler_GetCurrentThread()
 
 void kScheduler_schedule()
 {
+    ASSERT(runqueue.size > 0);
+
     kThread *next = runq_pop(&runqueue);
 
     if(schedulerInit)
