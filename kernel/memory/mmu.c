@@ -94,22 +94,9 @@ void MMU_ClearIdentityMap()
     asm volatile("mrs %0, ttbr0_el1" : "=r"(ttbr0));
     ttbr0 &= PHYS_ADDR_MASK;
 
-    uintptr_t start = (uintptr_t)&__text_start;
-    uintptr_t end = (uintptr_t)&__text_end;
-    MMU_UnmapMemPages(ttbr0, start, end - start);
-
-    //Jump to kernel
-    uintptr_t kern_start = (uintptr_t)&_start_kernel;
-    LOG("kern: %X\n", kern_start);
-    asm volatile(
-        "mov x0, #1\n"
-        "mov x8, %0\n"
-        "br x8\n"
-        :
-        : "r"(KERN_PADDR_TO_VADDR(kern_start))
-        : "x0", "x1", "x8"
-    );
-    __builtin_unreachable();
+    uint64_t start = (uint64_t)&__text_start;
+    uint64_t end = (uint64_t)&__text_end;
+    MMU_UnmapMemPages(ttbr0, KERN_VADDR_TO_PADDR(start), end - start);
 }
 
 void MMU_MapMemPages(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size_t size, uint8_t isKernelMem)

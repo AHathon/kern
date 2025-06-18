@@ -7,6 +7,7 @@ _start_kernel:
     //if arg == 1, skip mmu setup
     cmp x0, #0
     beq set_exceptions
+    bl MMU_ClearIdentityMap
     b boot_kernel
 
 set_exceptions:
@@ -44,7 +45,9 @@ setup_virt_stack:
     add x0, x0, x11
     mov sp, x0
 
-    b MMU_ClearIdentityMap
+    mov x1, #1
+    ldr x0, =_start_kernel
+    br x0
 
 boot_kernel:
     mov x1, #0

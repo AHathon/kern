@@ -1,8 +1,8 @@
 #include "libraries/hardware/debug.h"
 
-static void print_dec(unsigned long value, unsigned int width, char * buf, int * ptr ) {
+static void print_dec(uint64_t value, uint32_t width, char * buf, int32_t * ptr ) {
 	unsigned int n_width = 1;
-	unsigned long i = 9;
+	uint64_t i = 9;
 	while (value > i && i < UINT64_MAX) {
 		n_width += 1;
 		i *= 10;
@@ -12,13 +12,13 @@ static void print_dec(unsigned long value, unsigned int width, char * buf, int *
 	int printed = 0;
 	while (n_width + printed < width) {
 		buf[*ptr] = '0';
-		*ptr += 1;
+		(*ptr)++;
 		printed += 1;
 	}
 
 	i = n_width;
 	while (i > 0) {
-		unsigned long n = value / 10;
+		uint64_t n = value / 10;
 		int r = value % 10;
 		buf[*ptr + i - 1] = r + '0';
 		i--;
@@ -27,36 +27,36 @@ static void print_dec(unsigned long value, unsigned int width, char * buf, int *
 	*ptr += n_width;
 }
 
-static void print_hex(unsigned long value, unsigned int width, char * buf, int * ptr, char upper) {
+static void print_hex(uint64_t value, uint32_t width, char * buf, int32_t * ptr, char upper) {
 	long i = width;
 	char *charset = upper ? "0123456789ABCDEF" : "0123456789abcdef";
 
 	if (i == 0) i = 8;
 
-	unsigned int n_width = 1;
-	unsigned long j = 0x0F;
+	uint32_t n_width = 1;
+	uint64_t j = 0x0F;
 	while (value > j && j < UINT64_MAX) {
 		n_width += 1;
 		j *= 0x10;
 		j += 0x0F;
 	}
 
-	while (i > (int)n_width) {
+	while (i > (int32_t)n_width) {
 		buf[*ptr] = '0';
-		*ptr += 1;
+		(*ptr)++;
 		i--;
 	}
 
-	i = (int)n_width;
+	i = (int32_t)n_width;
 	while (i-- > 0) {
-		buf[*ptr] = charset[(value>>(i*4))&0xF];
-		*ptr += + 1;
+		buf[*ptr] = charset[(value >> (i*4)) & 0xF];
+		(*ptr)++;
 	}
 }
 
 size_t vasprintf(char * buf, const char *fmt, va_list args) {
 	char *s;
-	int ptr = 0;
+	int32_t ptr = 0;
 	while (*fmt) {
 		
 		if (*fmt != '%') {
@@ -64,7 +64,7 @@ size_t vasprintf(char * buf, const char *fmt, va_list args) {
 			continue;
 		}
 		++fmt;
-		unsigned argwid = 0;
+		uint32_t argwid = 0;
 		while (*fmt >= '0' && *fmt <= '9') {
 			argwid *= 10;
 			argwid += *fmt - '0';
@@ -82,13 +82,13 @@ size_t vasprintf(char * buf, const char *fmt, va_list args) {
 				buf[ptr++] = (char)va_arg(args, int); 
 				break;
 			case 'x': 
-				print_hex((unsigned long)va_arg(args, unsigned long), argwid, buf, &ptr, 0); 
+				print_hex((uint64_t)va_arg(args, uint64_t), argwid, buf, &ptr, 0); 
 				break;
 			case 'X': 
-				print_hex((unsigned long)va_arg(args, unsigned long), argwid, buf, &ptr, 1); 
+				print_hex((uint64_t)va_arg(args, uint64_t), argwid, buf, &ptr, 1); 
 				break;
 			case 'd': 
-				print_dec((unsigned long)va_arg(args, unsigned long), argwid, buf, &ptr); 
+				print_dec((uint64_t)va_arg(args, uint64_t), argwid, buf, &ptr); 
 				break;
 			case '%': 
 				buf[ptr++] = '%'; 
