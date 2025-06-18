@@ -2,10 +2,9 @@
 build/
 secmon/build/
 KIPs/**/build/
-KIPs/**/pm.*
-KIPs/**/fs.*
-KIPs/**/init.*
-KIPs/**/gfx.*
+KIPs/**/*.kip
+KIPs/**/*.elf
+KIPs/**/*.bin
 KIPs/kip_blob
 *.bin
 *.elf
