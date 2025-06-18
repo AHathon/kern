@@ -34,7 +34,7 @@ void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, u
 
 	//set pagetable as phys addr
 	processTable[p].pageTables = KERN_VADDR_TO_PADDR(processTable[p].pageTables);
-	LOG("Page tables @ 00x%X\n", processTable[p].pageTables);
+	LOG("Page tables @ 0x%X\n", processTable[p].pageTables);
 
 	processTable[p].threadCnt = 0;
 	kmemset(processTable[p].threadsOwned, sizeof(kThread*) * MAX_THREADS_OWNED);

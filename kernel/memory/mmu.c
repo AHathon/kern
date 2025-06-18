@@ -89,7 +89,7 @@ inline void MMU_SetupVirtKernelSpace()
 
 void MMU_ClearIdentityMap()
 {
-    //Clear ttrb0
+    //Clear sensitive addresses from identity map
     uint64_t ttbr0;
     asm volatile("mrs %0, ttbr0_el1" : "=r"(ttbr0));
     ttbr0 &= PHYS_ADDR_MASK;
@@ -98,17 +98,15 @@ void MMU_ClearIdentityMap()
     uintptr_t end = (uintptr_t)&__text_end;
     MMU_UnmapMemPages(ttbr0, start, end - start);
 
-    asm volatile("dsb sy"); 
-    asm volatile("isb");
-
     //Jump to kernel
     uintptr_t kern_start = (uintptr_t)&_start_kernel;
+    LOG("kern: %X\n", kern_start);
     asm volatile(
         "mov x0, #1\n"
         "mov x8, %0\n"
         "br x8\n"
         :
-        : "r"(kern_start)
+        : "r"(KERN_PADDR_TO_VADDR(kern_start))
         : "x0", "x1", "x8"
     );
     __builtin_unreachable();
@@ -210,43 +208,77 @@ void MMU_MapMemBlocks(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, siz
 
 void MMU_UnmapMemPages(uintptr_t pageTable, uintptr_t vaddr, size_t size)
 {
+    LOG("Unmapping mem @ 0x%X [%X bytes]\n", vaddr, size);
     size_t pageCnt = (size + PAGE_SIZE - 1) / PAGE_SIZE;
-    uint64_t r;
+
+    uint64_t L1_entry = 0;
+    uint64_t L2_entry = 0;
+    uint64_t L3_entry = 0;
+
+    uint64_t *L1_tbl_ptr = 0;
+    uint64_t *L2_tbl_ptr = 0;
+    uint64_t *L3_tbl_ptr = 0;
+
+    uintptr_t va = 0;
+
+    L1_tbl_ptr = (uint64_t*)(pageTable);
+    if(!L1_tbl_ptr)
+    {
+        ERROR("Bad page table?\n");
+        return;
+    }
 
     for(int i = 0; i < pageCnt; i++)
     {
-        uintptr_t va = vaddr + i * PAGE_SIZE;
+        va = vaddr + (i * PAGE_SIZE);
 
-        uint64_t L1_entry = 0;
-        uint64_t L2_entry = 0;
-        uint64_t L3_entry = 0;
-
-        uint64_t *L1_tbl_ptr = 0;
-        uint64_t *L2_tbl_ptr = 0;
-        uint64_t *L3_tbl_ptr = 0;
-
-        //L1        
-        L1_tbl_ptr = (uint64_t*)(pageTable);
+        //L1
         L1_entry = L1_tbl_ptr[L1_IDX(va)];
 
         uint64_t L1_type = (L1_entry & 0b11);
+        L2_tbl_ptr = 0;
+        L2_entry = 0;
         if(L1_type == PT_TABLE)
         {
             L2_tbl_ptr = (uint64_t*)((L1_entry & PHYS_ADDR_MASK) + KERNEL_VIRT_BASE);
             L2_entry = L2_tbl_ptr[L2_IDX(va)];
         }
+        else
+        {
+            ERROR("L1 type not table @ %X\n", va);
+            continue;
+        }
 
         //L2
         uint64_t L2_type = (L2_entry & 0b11);
+        L3_tbl_ptr = 0;
+        L3_entry = 0;
         if(L2_type == PT_TABLE)
         {
             L3_tbl_ptr = (uint64_t*)((L2_entry & PHYS_ADDR_MASK) + KERNEL_VIRT_BASE);
             L3_entry = L3_tbl_ptr[L3_IDX(va)];
         }
+        else
+        {
+            ERROR("L2 type not table @ %X\n", va);
+            continue;
+        }
 
         //L3
-        if(L3_tbl_ptr)
+        uint64_t L3_type = (L3_entry & 0b11);
+        if(L3_type == PT_PAGE)
+        {
             L3_tbl_ptr[L3_IDX(va)] = 0;
+            asm volatile("dsb ishst");
+            asm volatile("tlbi vaae1is, %0" :: "r" (va));
+            asm volatile("dsb ish");
+            asm volatile("isb");
+        }
+        else
+        {
+            ERROR("L3 type not page @ %X\n", va);
+            continue;
+        }
     }
 }
 
