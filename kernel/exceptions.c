@@ -4,28 +4,40 @@
 #include "libraries/hardware/mmio.h"
 #include "libraries/hardware/debug.h"
 
-void InvalidException(void* ex)
+inline void PrintExceptionInfo()
 {
-	LOGT("-----Invalid Exception-----\nStack:\n");
-	
-	InvalidException_t *except = (InvalidException_t*)ex;
-	kHexDump((uint8_t*)except->x, sizeof(except->x));
-	LOGT("ESR_EL1: %016X\n", except->esr_el1);
-	LOGT("ELR_EL1: %016X\n", except->elr_el1);
-	LOGT("FAR_EL1: %016X\n", except->far_el1);
-	LOGT("Error Type: %s\n", exceptionTypes[except->err_type]);
-	while(1);
-}
-
-void data_abort_exception(uint64_t status)
-{
-	LOGT("----------\nData Abort Exception:\nStatus code: %d\n", status);
 	uint64_t far, esr, elr;
 	asm volatile("mrs %0, far_el1" : "=r"(far));
 	asm volatile("mrs %0, esr_el1" : "=r"(esr));
 	asm volatile("mrs %0, elr_el1" : "=r"(elr));
-	LOGT("FAR: 0x%X\nELR: 0x%X\nESR: 0x%x\n", far, elr, esr);
-	while(1);
+	LOGT("ESR_EL1: %016X\n", esr);
+	LOGT("ELR_EL1: %016X\n", elr);
+	LOGT("FAR_EL1: %016X\n", far);
+}
+
+inline void PrintTrapFrame(trap_frame_t *tf)
+{
+	for(int i = 0; i < sizeof(tf->X) / sizeof(uint64_t); i++)
+		LOG("X%d: %016X\n", i, tf->X[i]);
+	LOG("ELR_EL1: %016X\n", tf->elr_el1);
+	LOG("SPSR_EL1: %016X\n", tf->spsr_el1);
+	LOG("SP_EL0: %016X\n", tf->sp_el0);
+	LOG("TPIDR_EL0: %016X\n", tf->tpidr_el0);
+}
+
+void invalid_exception(trap_frame_t *tf, uint64_t err_type)
+{
+	LOGT("-----Invalid Exception-----\n");
+	PrintTrapFrame(tf);
+	LOGT("Error Type: %s\n", exceptionTypes[err_type]);
+	panic();
+}
+
+void data_abort_exception(uint64_t status)
+{
+	LOGT("-----Data Abort Exception-----\nStatus code: %d\n", status);
+	PrintExceptionInfo();
+	panic();
 }
 
 void timer_irq_handle(void *sp)

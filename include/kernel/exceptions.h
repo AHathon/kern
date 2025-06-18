@@ -5,12 +5,12 @@
 
 typedef struct
 {
-    uint64_t x[31];
-    uint64_t esr_el1;
+    uint64_t X[30];
     uint64_t elr_el1;
-    uint64_t far_el1;
-    uint64_t err_type;
-} InvalidException_t;
+    uint64_t spsr_el1;
+    uint64_t sp_el0;
+    uint64_t tpidr_el0;
+} trap_frame_t;
 
 char *exceptionTypes[] = {
     "SYNC_INVALID_EL1t",
@@ -34,7 +34,9 @@ char *exceptionTypes[] = {
 extern char el1_vector_base[1];
 extern void (*swi_table[NR_SYSCALLS])(volatile unsigned* regs);
 
-void InvalidException(void* ex);
+void PrintExceptionInfo();
+void PrintTrapFrame(trap_frame_t *tf);
+void invalid_exception(trap_frame_t *tf, uint64_t err_type);
 void data_abort_exception(uint64_t status);
 void timer_irq_handle(void *sp);
 void execute_EL0(void *page_tbl, void *sp, void *pc);

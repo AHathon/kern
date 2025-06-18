@@ -98,7 +98,7 @@ size_t vasprintf(char * buf, const char *fmt, va_list args) {
 				break;
 		}
 		fmt++;
-		if(ptr >= 0xFF) break;
+		if(ptr >= 128) break;
 	}
 	buf[ptr] = '\0';
 	
@@ -114,7 +114,7 @@ void panic() {
 }
 
 void kprintf(char *fmt, ...) {
-	char buf[256];
+	static char buf[128];
 	va_list list;
 	va_start(list, fmt);
 	vasprintf(buf, fmt, list);

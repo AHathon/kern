@@ -7,9 +7,6 @@ _start_kernel:
     //if arg == 1, skip mmu setup
     cmp x0, #0
     beq set_exceptions
-    tlbi vmalle1is
-    dsb sy
-    isb
     b boot_kernel
 
 set_exceptions:

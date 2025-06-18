@@ -90,10 +90,19 @@ inline void MMU_SetupVirtKernelSpace()
 void MMU_ClearIdentityMap()
 {
     //Clear ttrb0
-    asm volatile ("msr ttbr0_el1, %0" : : "r" (0));
-    
+    uint64_t ttbr0;
+    asm volatile("mrs %0, ttbr0_el1" : "=r"(ttbr0));
+    ttbr0 &= PHYS_ADDR_MASK;
+
+    uintptr_t start = (uintptr_t)&__text_start;
+    uintptr_t end = (uintptr_t)&__text_end;
+    MMU_UnmapMemPages(ttbr0, start, end - start);
+
+    asm volatile("dsb sy"); 
+    asm volatile("isb");
+
     //Jump to kernel
-    uintptr_t kern_start = KERNEL_VIRT_BASE + (uintptr_t)&__text_start;
+    uintptr_t kern_start = (uintptr_t)&_start_kernel;
     asm volatile(
         "mov x0, #1\n"
         "mov x8, %0\n"
@@ -196,6 +205,48 @@ void MMU_MapMemBlocks(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, siz
         remaining_size -= PAGE_SIZE;
         curr_vaddr += PAGE_SIZE;
         curr_paddr += PAGE_SIZE;
+    }
+}
+
+void MMU_UnmapMemPages(uintptr_t pageTable, uintptr_t vaddr, size_t size)
+{
+    size_t pageCnt = (size + PAGE_SIZE - 1) / PAGE_SIZE;
+    uint64_t r;
+
+    for(int i = 0; i < pageCnt; i++)
+    {
+        uintptr_t va = vaddr + i * PAGE_SIZE;
+
+        uint64_t L1_entry = 0;
+        uint64_t L2_entry = 0;
+        uint64_t L3_entry = 0;
+
+        uint64_t *L1_tbl_ptr = 0;
+        uint64_t *L2_tbl_ptr = 0;
+        uint64_t *L3_tbl_ptr = 0;
+
+        //L1        
+        L1_tbl_ptr = (uint64_t*)(pageTable);
+        L1_entry = L1_tbl_ptr[L1_IDX(va)];
+
+        uint64_t L1_type = (L1_entry & 0b11);
+        if(L1_type == PT_TABLE)
+        {
+            L2_tbl_ptr = (uint64_t*)((L1_entry & PHYS_ADDR_MASK) + KERNEL_VIRT_BASE);
+            L2_entry = L2_tbl_ptr[L2_IDX(va)];
+        }
+
+        //L2
+        uint64_t L2_type = (L2_entry & 0b11);
+        if(L2_type == PT_TABLE)
+        {
+            L3_tbl_ptr = (uint64_t*)((L2_entry & PHYS_ADDR_MASK) + KERNEL_VIRT_BASE);
+            L3_entry = L3_tbl_ptr[L3_IDX(va)];
+        }
+
+        //L3
+        if(L3_tbl_ptr)
+            L3_tbl_ptr[L3_IDX(va)] = 0;
     }
 }
 
