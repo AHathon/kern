@@ -2,10 +2,10 @@
 #include "libraries/hardware/mailbox.h"
 #include "libraries/hardware/debug.h"
 
-unsigned int width, height, pitch, isrgb;
+uint32_t width, height, pitch, isrgb;
 uint8_t *fb;
 
-unsigned int vgapal[] = {
+static uint32_t vgapal[] = {
     0x000000,
     0x0000AA,
     0x00AA00,

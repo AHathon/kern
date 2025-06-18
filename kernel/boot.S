@@ -47,7 +47,6 @@ setup_virt_stack:
     b MMU_ClearIdentityMap
 
 boot_kernel:
-    bl Terminal_Init
     mov x1, #0
     mov x2, #0
     mov x3, #0
