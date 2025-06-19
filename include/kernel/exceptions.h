@@ -5,7 +5,8 @@
 
 typedef struct
 {
-    uint64_t X[30];
+    uint64_t X[31];
+    uint64_t _unused;
     uint64_t elr_el1;
     uint64_t spsr_el1;
     uint64_t sp_el0;

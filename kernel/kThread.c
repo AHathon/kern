@@ -5,6 +5,8 @@
 
 kThread *kThread_Create(void *parent, void *entryPtr, size_t stackSize, ThreadType type)
 {
+    size_t kernStackSize = PAGE_SIZE * 2;
+
     kThread *thread = kSlabAlloc_Allocate(kThreadAllocator_GetInst());
 
     thread->id = newId++;
@@ -19,9 +21,9 @@ kThread *kThread_Create(void *parent, void *entryPtr, size_t stackSize, ThreadTy
     MMU_MapMemPages(p->pageTables, (uintptr_t)(thread->stackBase), (uintptr_t)(thread->stackBase), stackSize, type == THREAD_KERNEL);
     thread->sp = (uintptr_t)thread->stackBase + stackSize - (stackSize / 2);
 
-    thread->contextStack = kMemAlloc(PAGE_SIZE * 2);
+    thread->contextStack = kMemAlloc(kernStackSize);
     MMU_MapMemPages(p->pageTables, (uintptr_t)KERN_VADDR_TO_PADDR(thread->contextStack), (uintptr_t)(thread->contextStack), PAGE_SIZE * 2, 1);
-    thread->kern_sp = (uintptr_t)thread->contextStack + PAGE_SIZE - (PAGE_SIZE / 2);
+    thread->kern_sp = (uintptr_t)thread->contextStack + kernStackSize - (kernStackSize / 2);
 
     LOG("Creating thread [id:%d]\n", thread->id);
 

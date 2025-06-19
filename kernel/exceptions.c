@@ -30,6 +30,7 @@ void invalid_exception(trap_frame_t *tf, uint64_t err_type)
 	LOGT("-----Invalid Exception-----\n");
 	PrintTrapFrame(tf);
 	LOGT("Error Type: %s\n", exceptionTypes[err_type]);
+	PrintExceptionInfo();
 	panic();
 }
 
@@ -48,7 +49,7 @@ void timer_irq_handle(void *sp)
 		case LOCAL_TIMER_IRQ_PNS:
 		{
 			kScheduler_schedule();
-			localTimerIrqReset(); 
+			localTimerIrqReset();
 			break;
 		}
 	}

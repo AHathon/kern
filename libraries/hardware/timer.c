@@ -2,6 +2,10 @@
 #include "libraries/hardware/mmio_vars.h"
 #include "libraries/hardware/irq.h"
 
+#define Hz 100
+
+static uint64_t clkTicks = 0;
+
 void resetSystemTimers()
 {
     uint32_t now = *(volatile uint32_t *)(SYS_TIMER_CLO);
@@ -24,11 +28,15 @@ uint64_t GetCounterFreq()
 
 void localTimerIrqReset()
 {
-    asm volatile("msr cntp_tval_el0, %0" :: "r"(SCHEDULE_TIMER_INTERVAL));
+    asm volatile("msr cntp_tval_el0, %0" :: "r"(clkTicks));
 }
 
 void localTimerIrqInit() 
 {
+    //Get irq interval
+    uint64_t f = GetCounterFreq();
+    clkTicks = f / Hz;
+
     //Reset timer
     localTimerIrqReset();
 

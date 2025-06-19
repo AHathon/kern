@@ -30,7 +30,7 @@
 .endm
 
 .macro kernel_entry
-	sub 	sp, sp, #(16 * 17)
+	sub 	sp, sp, #(16 * 18)
 
 	// Caller-saved registers, FP
 	stp x0, x1, [sp, #16 * 0]
@@ -48,18 +48,19 @@
 	stp	x24, x25, [sp, #16 * 12]
 	stp	x26, x27, [sp, #16 * 13]
 	stp	x28, x29, [sp, #16 * 14]
+	stp	x30, xzr, [sp, #16 * 15]
 
 	mrs x8, ELR_EL1
 	mrs x9, SPSR_EL1
 	mrs x10, SP_EL0
 	mrs x11, TPIDR_EL0
-	stp	x8, x9, [sp, #16 * 15]
-	stp	x10, x11, [sp, #16 * 16]
+	stp	x8, x9, [sp, #16 * 16]
+	stp	x10, x11, [sp, #16 * 17]
 .endm
 
 .macro kernel_exit
-	ldp	x8, x9, [sp, #16 * 15]
-	ldp	x10, x11, [sp, #16 * 16]
+	ldp	x8, x9, [sp, #16 * 16]
+	ldp	x10, x11, [sp, #16 * 17]
 	msr ELR_EL1, x8
 	msr SPSR_EL1, x9
 	msr SP_EL0, x10
@@ -81,9 +82,9 @@
 	ldp	x24, x25, [sp, #16 * 12]
 	ldp	x26, x27, [sp, #16 * 13]
 	ldp	x28, x29, [sp, #16 * 14]
+	ldp	x30, xzr, [sp, #16 * 15]
 
-	// Remaining stack frame consists of systems registers we can just ignore
-	add	sp, sp, #(16 * 17)
+	add	sp, sp, #(16 * 18)
 .endm
 
 .extern invalid_exception
@@ -127,9 +128,9 @@ svc_64:
 	cmp x26, x25                    //Check upper syscall limit
 	b.hs sync_invalid_el1h
 	ldr x16, [x27, x26, lsl #3]     // address in the syscall table
-	msr daifclr, #2
+	msr daifclr, #0x2
 	blr x16							// call sys_* routine
-	msr daifset, #2
+	msr daifset, #0x2
 	kernel_exit
 	eret
 

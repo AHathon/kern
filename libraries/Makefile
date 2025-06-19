@@ -6,9 +6,9 @@ CC=clang
 OC=llvm-objcopy
 LD=ld.lld
 AR=llvm-ar
-INCLUDE := ../include
+INCLUDE := $(PROJECT_ROOT)/include
 
-COMMON := -Wall -g -O0 -ffreestanding -nostdinc -nostdlib -mcpu=cortex-a53+nosimd
+COMMON := -Wall -g -O0 -ffreestanding -nostdinc -nostdlib -march=armv8-a -mcpu=cortex-a72+nosimd
 CFLAGS := -I$(INCLUDE) $(COMMON)
 ASFLAGS := -I$(INCLUDE) -D__ASSEMBLY__ $(COMMON)
 

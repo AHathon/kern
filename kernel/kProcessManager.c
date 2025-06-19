@@ -16,6 +16,8 @@ kProcess *kProcessManager_GetCurrentProcess()
 
 void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, uint8_t isKernelProc)
 {
+	size_t userStackSize = PAGE_SIZE * 2;
+
 	//Create proc in procTable
 	unsigned p = ++lastPID;
 	kstrcpy(processTable[p].name, name);
@@ -30,7 +32,7 @@ void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, u
 	processTable[p].pageTables = (uintptr_t)kMemCalloc(PAGE_SIZE);	
 	MMU_MapMemPages(processTable[p].pageTables, processTable[p].code.text.addr, USERLAND_VIRT_BASE, codeSize, isKernelProc);
 	
-	processTable[p].mainThread = kThread_Create(&processTable[p], (void*)(USERLAND_VIRT_BASE), 0x2000, isKernelProc ? THREAD_KERNEL : THREAD_USER);
+	processTable[p].mainThread = kThread_Create(&processTable[p], (void*)(USERLAND_VIRT_BASE), userStackSize, isKernelProc ? THREAD_KERNEL : THREAD_USER);
 
 	//set pagetable as phys addr
 	processTable[p].pageTables = KERN_VADDR_TO_PADDR(processTable[p].pageTables);

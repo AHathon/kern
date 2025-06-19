@@ -1,5 +1,7 @@
+#include "libraries/services/svc.h"
+
 int main() 
 {
-    while(1) asm volatile("nop");
+    svcMapMem(0, 0);
     return 0;
 }

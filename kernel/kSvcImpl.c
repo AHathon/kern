@@ -25,3 +25,10 @@ void svcImpl_Debug(void)
 {
     LOGT("svcDebug()\n");
 }
+
+//-----------------
+
+void svc_unknown(uint8_t svc)
+{
+    LOGT("Unknown svc %d\n", svc);
+}

@@ -32,5 +32,5 @@ void kMain()
     kInitialProcess_Setup();
 
     kScheduler_Init();
-    LOGT("Initialization done!\n");
+    LOGT("Kernel init done!\n");
 }
