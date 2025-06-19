@@ -128,9 +128,9 @@ svc_64:
 	cmp x26, x25                    //Check upper syscall limit
 	b.hs sync_invalid_el1h
 	ldr x16, [x27, x26, lsl #3]     // address in the syscall table
-	msr daifclr, #0x2
+	bl disable_irq
 	blr x16							// call sys_* routine
-	msr daifset, #0x2
+	bl enable_irq
 	kernel_exit
 	eret
 

@@ -2,6 +2,6 @@
 
 int main() 
 {
-    svcMapMem(0, 0);
+    while(1);
     return 0;
 }

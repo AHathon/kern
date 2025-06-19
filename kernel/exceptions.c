@@ -48,10 +48,10 @@ void timer_irq_handle(void *sp)
 	{
 		case LOCAL_TIMER_IRQ_PNS:
 		{
+			*(volatile uint32_t *)GICC_EOIR = irq;
 			kScheduler_schedule();
 			localTimerIrqReset();
 			break;
 		}
 	}
-	*(volatile uint32_t *)GICC_EOIR = irq;
 }
