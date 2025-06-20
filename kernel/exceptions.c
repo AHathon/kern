@@ -41,7 +41,7 @@ void data_abort_exception(uint64_t status)
 	panic();
 }
 
-void timer_irq_handle(void *sp)
+void timer_irq_handle(uintptr_t sp)
 {
 	uint32_t irq = *(volatile uint32_t *)GICC_IAR;
 	switch(irq)
@@ -49,6 +49,12 @@ void timer_irq_handle(void *sp)
 		case LOCAL_TIMER_IRQ_PNS:
 		{
 			*(volatile uint32_t *)GICC_EOIR = irq;
+			kThread *currThread = kScheduler_GetCurrentThread();
+			if(currThread)
+			{
+				currThread->kern_sp = sp;
+				LOG("kern_sp %X\n", currThread->kern_sp);
+			}
 			kScheduler_schedule();
 			localTimerIrqReset();
 			break;

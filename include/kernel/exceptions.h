@@ -39,5 +39,5 @@ void PrintExceptionInfo();
 void PrintTrapFrame(trap_frame_t *tf);
 void invalid_exception(trap_frame_t *tf, uint64_t err_type);
 void data_abort_exception(uint64_t status);
-void timer_irq_handle(void *sp);
+void timer_irq_handle(uintptr_t sp);
 void execute_EL0(void *page_tbl, void *sp, void *pc);
