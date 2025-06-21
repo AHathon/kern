@@ -23,8 +23,8 @@ void kMain()
     
     uint64_t vbar;
     asm volatile ("mrs %0, vbar_el1" : "=r" (vbar));
-    LOGT("Exception vector: %X\n", vbar);
-    LOGT("MMIO base: %X\n", MMIO_ADDR);
+    LOGT("Exception vector: 0x%X\n", vbar);
+    LOGT("MMIO base: 0x%X\n", MMIO_ADDR);
     LOGT("Running at EL%d\n", GetCurrentEL());
 
     kMemManager_Init();

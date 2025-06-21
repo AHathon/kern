@@ -7,7 +7,7 @@
 void kInitialProcess_Setup()
 {
 	size_t kip_size = &__kips_end - &__kips_start;
-    LOGT("Kip blob size: %X\n", kip_size);
+    LOGT("Kip blob size: 0x%X\n", kip_size);
 
     uintptr_t off = 0;
     while(off < kip_size)

@@ -1,7 +1,12 @@
+Project := kern
+
 boot   	:= boot
 kernel 	:= kernel8
+secmon	:= secmon
 
-BUILD 	:= build
+BUILD 	  := build
+RESOURCES := resources
+IMAGE_SIZE_MB := 32
 
 export PROJECT_ROOT := $(CURDIR)
 
@@ -28,21 +33,30 @@ OBJS_boot := $(patsubst %.c, $(BUILD)/%.o, $(SRCS_C_boot)) \
 OBJS_kern := $(patsubst %.c, $(BUILD)/%.o, $(SRCS_C_kern)) \
 		$(patsubst %.S, $(BUILD)/%.o, $(SRCS_S_kern))
 
-.PHONY: all clean library KIPs secmon kernel boot qemu qemu-gdb
+.PHONY: all clean library KIPs secmon kernel boot image qemu qemu-gdb
 
-all: setup library KIPs secmon kernel boot
+all: setup library KIPs secmon kernel boot image
 
 clean:
-	@rm -fr $(BUILD) $(kernel).elf $(secmon).elf $(boot).elf $(kernel).img $(secmon).bin $(boot).bin
+	@rm -fr $(BUILD) $(kernel).elf $(secmon).elf $(boot).elf $(kernel).img $(secmon).bin $(boot).bin $(Project).img
 	$(MAKE) -C KIPs clean
 	$(MAKE) -C secmon clean
 	$(MAKE) -C libraries clean
 
 qemu: $(kernel).elf
-	qemu-system-aarch64 -M raspi4b -serial stdio -kernel $(boot).bin
+	qemu-system-aarch64 -M raspi4b -serial stdio -kernel $(boot).bin -drive file=$(Project).img,if=sd,format=raw
 
 qemu-gdb: $(kernel).elf
-	qemu-system-aarch64 -M raspi4b -serial stdio -kernel $(boot).bin -s -S
+	qemu-system-aarch64 -M raspi4b -serial stdio -kernel $(boot).bin -sd $(Project).img -s -S
+
+image:
+	dd if=/dev/zero of=$(Project).img bs=1M count=$(IMAGE_SIZE_MB)
+	mkfs.fat -F 32 -n "BOOT" $(Project).img
+	for file in $(RESOURCES)/bootfs/*; do \
+		mcopy -i $(Project).img "$$file" "::/"; \
+	done
+	mcopy -i $(Project).img "boot.bin" "::/"
+	mcopy -i $(Project).img "secmon.bin" "::/"
 
 library:
 	$(MAKE) -C libraries
@@ -53,6 +67,7 @@ KIPs:
 
 secmon: 
 	$(MAKE) -C secmon
+	cp secmon/secmon.bin .
 
 boot: $(boot).elf
 	$(OC) $^ -O binary $(boot).bin

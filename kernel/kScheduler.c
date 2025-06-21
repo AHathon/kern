@@ -72,7 +72,7 @@ void kScheduler_schedule()
             uint8_t isNew = current->state == STATE_READY;
             uint8_t isKernel = current->threadType == THREAD_KERNEL;
             kProcess *parent = (kProcess*)(current->parent);
-            LOG("switching: %s @ %X [proc is %s and is %s]\n", parent->name, current->entryPtr, isNew ? "new" : "old", isKernel ? "kernel" : "user");
+            LOG("switching: %s @ 0x%X [proc is %s and is %s]\n", parent->name, current->entryPtr, isNew ? "new" : "old", isKernel ? "kernel" : "user");
             context_switch(current->entryPtr, current->sp, current->kern_sp, parent->pageTables, isNew);
         }
     }

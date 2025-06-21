@@ -7,6 +7,7 @@ CC=clang
 OC=llvm-objcopy
 LD=ld.lld
 INCLUDE := include
+LIBS    := $(PROJECT_ROOT)/libraries/libraries.a
 
 COMMON := -Wall -O2 -ffreestanding -nostdinc -nostdlib -march=armv8-a -mcpu=cortex-a72+nosimd
 CFLAGS := -I$(INCLUDE) $(COMMON)
@@ -33,7 +34,7 @@ setup:
 secmon: $(target).elf
 	$(OC) $^ -O binary $(target).bin
 
-$(target).elf: $(OBJS)
+$(target).elf: $(OBJS) $(LIBS)
 	$(LD) -m aarch64elf -nostdlib -T linker.ld -o $@ $^
 
 $(BUILD)/%.o: $(SOURCE)/%.S

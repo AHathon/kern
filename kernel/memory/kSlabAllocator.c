@@ -13,7 +13,7 @@ void kSlabAlloc_Init(slab_allocator_t *slabAlloc, size_t objSize, size_t objCnt)
     {
         slab_node_t *node = (slab_node_t*)(p);
         p += objSize;
-        node->next = (i == objCnt - 1) ? 0 : (slab_node_t*)p;
+        node->next = (i == objCnt - 1) ? (slab_node_t*)0 : (slab_node_t*)p;
 	}
 
     LOG("Slab allocated for obj size (0x%X) with count (0x%X)\n",  objSize, objCnt);

@@ -135,16 +135,13 @@
 #define GICC_BPR    (GICC_CPU_BASE+0x00000008)
 #define GICC_IAR    (GICC_CPU_BASE+0x0000000C)
 #define GICC_EOIR   (GICC_CPU_BASE+0x00000010)
+#define GICC_ABPR   (GICC_CPU_BASE+0x0000001C)
+#define GICC_AIAR   (GICC_CPU_BASE+0x00000020)
+#define GICC_AEOIR  (GICC_CPU_BASE+0x00000024)
 
 //Local IRQ
 #define LOCAL_TIMER_IRQ_PS      29
 #define LOCAL_TIMER_IRQ_PNS     30
-
-//Video core shared IRQs
-#define SYSTEM_TIMER_IRQ_0 (0x60) //96
-#define SYSTEM_TIMER_IRQ_1 (0x61) //97
-#define SYSTEM_TIMER_IRQ_2 (0x62) //98
-#define SYSTEM_TIMER_IRQ_3 (0x63) //99
 
 #define GIC_PRI_HIGHEST_SECURE 0x00
 #define GIC_PRI_HIGHEST_NONSECURE 0x80
@@ -154,6 +151,15 @@
 #define GICD_ITARGETSR_CORE1 (1 << 1)
 #define GICD_ITARGETSR_CORE2 (1 << 2)
 #define GICD_ITARGETSR_CORE3 (1 << 3)
+
+#define CTLR_EN_GRP0 (1 << 0)
+#define CTLR_EN_GRP1 (1 << 1)
+
+//Video core shared IRQs
+#define SYSTEM_TIMER_IRQ_0 (0x60) //96
+#define SYSTEM_TIMER_IRQ_1 (0x61) //97
+#define SYSTEM_TIMER_IRQ_2 (0x62) //98
+#define SYSTEM_TIMER_IRQ_3 (0x63) //99
 
 //GICD_PIDR2V2
 #define GIC_REV_OFFSET  0x4

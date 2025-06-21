@@ -57,6 +57,8 @@ void setupIdentityMap()
     unsigned long rodata_page = (unsigned long)&__rodata_start / PAGE_SIZE;
     unsigned long bss_page = (unsigned long)&__bss_start / PAGE_SIZE;
     uint64_t r;
+    UNUSED(kern_page);
+    UNUSED(bss_page);
 
     // TTBR0, identity L1
     paging[PAGE_TABLE_IDX(0, 0)] = (unsigned long)((unsigned char *)&__page_table + 2 * PAGE_SIZE) |

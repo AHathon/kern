@@ -143,8 +143,8 @@ void kstrcpy(char *dest, const char *src)
 
 void kmemcpy(uint8_t *dest, uint8_t *src, size_t size)
 {
-	ASSERT(dest >= KERNEL_VIRT_BASE);
-	ASSERT(src >= KERNEL_VIRT_BASE);
+	ASSERT((uintptr_t)dest >= KERNEL_VIRT_BASE);
+	ASSERT((uintptr_t)src >= KERNEL_VIRT_BASE);
 	ASSERT(size >= 0);
 	for(int i = 0; i < size; i++)
 		*dest++ = *src++;
@@ -152,7 +152,7 @@ void kmemcpy(uint8_t *dest, uint8_t *src, size_t size)
 
 void kmemset(uint8_t *src, size_t size)
 {
-	ASSERT(src >= KERNEL_VIRT_BASE);
+	ASSERT((uintptr_t)src >= KERNEL_VIRT_BASE);
 	for(int i = 0; i < size; i++)
 		*src++ = 0;
 }

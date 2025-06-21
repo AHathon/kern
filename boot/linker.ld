@@ -16,7 +16,8 @@ SECTIONS
     }
 
     . = BOOT_PHYS_BASE + PREKERNEL_SIZE;
-    .kernel : ALIGN(4K) {
+    .kernel : ALIGN(4K) 
+    {
         __kernel_blob = .;
         KEEP(*(.kernel))
         __kernel_blob_end = .;

@@ -4,7 +4,7 @@
 #include "kernel/memory/kMemoryPage.h"
 #include "kernel/memory/kPageAllocator.h"
 
-typedef struct
+typedef struct slab_node_t
 {
     struct slab_node_t *next;
 } slab_node_t;

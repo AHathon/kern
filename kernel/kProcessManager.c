@@ -39,7 +39,7 @@ void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, u
 	LOG("Page tables @ 0x%X\n", processTable[p].pageTables);
 
 	processTable[p].threadCnt = 0;
-	kmemset(processTable[p].threadsOwned, sizeof(kThread*) * MAX_THREADS_OWNED);
+	kmemset((uint8_t*)processTable[p].threadsOwned, sizeof(kThread*) * MAX_THREADS_OWNED);
 	processTable[p].threadsOwned[0] = processTable[p].mainThread; //TODO: cleaner impl
 	processTable[p].threadCnt++;
 

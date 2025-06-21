@@ -12,6 +12,7 @@ inline void MMU_SetupVirtKernelSpace()
     unsigned long kips_end = ((unsigned long)&__kips_end) / PAGE_SIZE;
     uint64_t r;
     UNUSED(data_page);
+    UNUSED(bss_page);
     UNUSED(bss_end);
     UNUSED(text_end_page);
 
@@ -101,9 +102,8 @@ void MMU_ClearIdentityMap()
 
 void MMU_MapMemPages(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size_t size, uint8_t isKernelMem)
 {
-    LOG("Mapping mem @ 0x%X(0x%X) [%X bytes]\n", paddr, vaddr, size);
+    LOG("Mapping mem @ 0x%X(0x%X) [0x%X bytes]\n", paddr, vaddr, size);
     size_t pageCnt = (size + PAGE_SIZE - 1) / PAGE_SIZE;
-    uint64_t r;
 
     for(int i = 0; i < pageCnt; i++)
     {        
@@ -179,6 +179,8 @@ void MMU_MapMemBlocks(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, siz
     size_t remaining_size = size;
     uint64_t curr_vaddr = vaddr;
     uint64_t curr_paddr = paddr;
+    UNUSED(curr_paddr);
+    UNUSED(curr_vaddr);
 
     //Blocks are 2MB min
     if(size < MB2_SIZE) return;
@@ -195,7 +197,7 @@ void MMU_MapMemBlocks(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, siz
 
 void MMU_UnmapMemPages(uintptr_t pageTable, uintptr_t vaddr, size_t size)
 {
-    LOG("Unmapping mem @ 0x%X [%X bytes]\n", vaddr, size);
+    LOG("Unmapping mem @ 0x%X [0x%X bytes]\n", vaddr, size);
     size_t pageCnt = (size + PAGE_SIZE - 1) / PAGE_SIZE;
 
     uint64_t L1_entry = 0;
@@ -232,7 +234,7 @@ void MMU_UnmapMemPages(uintptr_t pageTable, uintptr_t vaddr, size_t size)
         }
         else
         {
-            ERROR("L1 type not table @ %X\n", va);
+            ERROR("L1 type not table @ 0x%X\n", va);
             continue;
         }
 
@@ -247,7 +249,7 @@ void MMU_UnmapMemPages(uintptr_t pageTable, uintptr_t vaddr, size_t size)
         }
         else
         {
-            ERROR("L2 type not table @ %X\n", va);
+            ERROR("L2 type not table @ 0x%X\n", va);
             continue;
         }
 
@@ -263,7 +265,7 @@ void MMU_UnmapMemPages(uintptr_t pageTable, uintptr_t vaddr, size_t size)
         }
         else
         {
-            ERROR("L3 type not page @ %X\n", va);
+            ERROR("L3 type not page @ 0x%X\n", va);
             continue;
         }
     }

@@ -1,4 +1,4 @@
 #pragma once
 
-static inline unsigned GetCurrentEL();
-static inline unsigned GetCoreID();
+uint32_t GetCurrentEL();
+uint32_t GetCoreID();

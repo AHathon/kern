@@ -48,15 +48,16 @@ void timer_irq_handle(uintptr_t sp)
 	{
 		case LOCAL_TIMER_IRQ_PNS:
 		{
-			*(volatile uint32_t *)GICC_EOIR = irq;
 			kThread *currThread = kScheduler_GetCurrentThread();
 			if(currThread)
 			{
 				currThread->kern_sp = sp;
-				LOG("kern_sp %X\n", currThread->kern_sp);
 			}
+			
+			*(volatile uint32_t *)GICC_EOIR = irq;
+
 			kScheduler_schedule();
-			localTimerIrqReset();
+			
 			break;
 		}
 	}

@@ -7,7 +7,7 @@ kThread *kThread_Create(void *parent, void *entryPtr, size_t stackSize, ThreadTy
 {
     size_t kernStackSize = PAGE_SIZE * 2;
 
-    kThread *thread = kSlabAlloc_Allocate(kThreadAllocator_GetInst());
+    kThread *thread = (kThread*)kSlabAlloc_Allocate(kThreadAllocator_GetInst());
 
     thread->id = newId++;
     thread->parent = (uintptr_t)parent;

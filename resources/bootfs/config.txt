@@ -1,12 +1,22 @@
 #64-bit mode
 arm_64bit=1
 
-#custom payload
+#Custom kernel
 kernel=boot.bin
+
+#Custom secmon
+#armstub=secmon.bin
+
+#Enable GIC
+enable_gic=1
 
 #Run as fast as firmware / board allows
 arm_boost=1
 
-#enable uart
+#Enable uart
 enable_uart=1
 dtoverlay=disable-bt
+
+#Enable JTAG
+gpio=22-27=np# Enable jtag pins (i.e. GPIO22-GPIO27)
+enable_jtag_gpio=1
