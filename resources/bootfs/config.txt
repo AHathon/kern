@@ -5,7 +5,7 @@ arm_64bit=1
 kernel=boot.bin
 
 #Custom secmon
-#armstub=secmon.bin
+armstub=secmon.bin
 
 #Enable GIC
 enable_gic=1

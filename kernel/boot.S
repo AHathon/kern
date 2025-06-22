@@ -50,9 +50,6 @@ setup_virt_stack:
     br x0
 
 boot_kernel:
-    mov x1, #0
-    mov x2, #0
-    mov x3, #0
     ldr x8, =kMain
     blr x8
 

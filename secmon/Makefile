@@ -10,8 +10,8 @@ INCLUDE := include
 LIBS    := $(PROJECT_ROOT)/libraries/libraries.a
 
 COMMON := -Wall -O2 -ffreestanding -nostdinc -nostdlib -march=armv8-a -mcpu=cortex-a72+nosimd
-CFLAGS := -I$(INCLUDE) $(COMMON)
-ASFLAGS := -I$(INCLUDE) -D__ASSEMBLY__ $(COMMON)
+CFLAGS := -I$(INCLUDE) -I$(PROJECT_ROOT)/include $(COMMON)
+ASFLAGS := -I$(INCLUDE) -I$(PROJECT_ROOT)/include -D__ASSEMBLY__ $(COMMON)
 
 rwildcard = $(foreach d, $(wildcard $1*), $(filter $(subst *, %, $2), $d) $(call rwildcard, $d/, $2))
 

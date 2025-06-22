@@ -1,3 +1,4 @@
+#include "libraries/hardware/constants.h"
 .section ".text.boot"
 
 .global _start
@@ -7,15 +8,19 @@ _start:
     //we only want core0
     mrs x1, mpidr_el1
     and x1, x1, #3
-    cbz x1, setup_uart
+    cbz x1, setup_stack
     b loop
 
-setup_uart:
+setup_stack:
     ldr x0, =__stack_top
     mov sp, x0
-    bl UART0_Init
-    isb
-    
+
+#ifndef SECMON
+    mov x0, #LOCAL_TIMER_IRQ_PNS
+    bl GicRouteIRQ
+    bl GicEnable
+#endif
+
 check_EL:
     mrs x0, CurrentEL
     and x0, x0, #12
@@ -24,20 +29,7 @@ check_EL:
     b.eq start_EL1
     cmp x0, #2
     b.eq drop_EL2_to_EL1
-
-drop_EL3_to_EL2:
-    mov x2, #0x3c9
-    msr spsr_el3, x2
-
-    //Set callback after switch to EL2
-    adr x2, drop_EL2_to_EL1
-    msr elr_el3, x2
-
-    //sync
-    dsb ish
-    isb
-
-    eret
+    b loop
 
 drop_EL2_to_EL1:
     //Set callback after switch to EL1 

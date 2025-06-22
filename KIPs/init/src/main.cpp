@@ -2,6 +2,7 @@
 
 int main() 
 {
-    while(1);
+    uint64_t i = 0xFFFFFFF;
+    while(i--) asm volatile("nop");
     return 0;
 }

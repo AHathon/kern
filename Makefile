@@ -16,7 +16,7 @@ LD=ld.lld
 INCLUDE := include
 LIBS    := $(BUILD)/libraries/libraries.a
 
-COMMON := -Wall -g -O0 -ffreestanding -nostdinc -nostdlib -march=armv8-a -mcpu=cortex-a72+nosimd
+COMMON := -Wall -g -O0 -ffreestanding -nostdinc -nostdlib -march=armv8-a -mcpu=cortex-a72+nosimd -DSECMON
 CFLAGS := -I$(INCLUDE) $(COMMON)
 ASFLAGS := -I$(INCLUDE) -D__ASSEMBLY__ $(COMMON)
 
@@ -43,12 +43,18 @@ clean:
 	$(MAKE) -C secmon clean
 	$(MAKE) -C libraries clean
 
-qemu: $(kernel).elf
-	qemu-system-aarch64 -M raspi4b -serial stdio -kernel $(boot).bin -drive file=$(Project).img,if=sd,format=raw
+qemu:
+	qemu-system-aarch64 \
+		-M raspi4b \
+		-serial stdio \
+		-kernel $(boot).bin 
 
-qemu-gdb: $(kernel).elf
-	qemu-system-aarch64 -M raspi4b -serial stdio -kernel $(boot).bin -sd $(Project).img -s -S
-
+qemu-gdb:
+	qemu-system-aarch64 \
+		-M raspi4b \
+		-serial stdio \
+		-kernel $(boot).bin \
+		-S -s
 image:
 	dd if=/dev/zero of=$(Project).img bs=1M count=$(IMAGE_SIZE_MB)
 	mkfs.fat -F 32 -n "BOOT" $(Project).img

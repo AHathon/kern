@@ -22,9 +22,6 @@ _handle_existing_process:
 	msr SPSR_EL1, x9
 	msr SP_EL0, x10
 	msr TPIDR_EL0, x11
-
-	ldr x0, =SCHEDULE_TIMER_INTERVAL
-    msr cntp_tval_el0, x0
 	
 	// Restore caller-saved registers
 	ldp	x0, x1, [sp, #16 * 0]
@@ -56,8 +53,5 @@ _handle_new_process:
     msr SPSR_EL1, x9
     msr SP_EL0, x1
     msr TPIDR_EL0, x11
-
-    ldr x0, =SCHEDULE_TIMER_INTERVAL
-    msr cntp_tval_el0, x0
 
     eret

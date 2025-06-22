@@ -74,14 +74,19 @@ void Framebuffer_Init(uint32_t w, uint32_t h)
     if (Mailbox_Call(CH_PROP) && mbox[20] == 32 && mbox[28] != 0) 
     {
         mbox[28] &= 0x3FFFFFFF; // Convert GPU address to ARM address
-        fb = (uint8_t *)(KERNEL_VIRT_BASE + mbox[28]);
+        fb = (uint8_t *)(mbox[28]);
     }
+}
+
+uint8_t *Framebuffer_GetPtr()
+{
+    return fb;
 }
 
 void Framebuffer_DrawPixel(int32_t x, int32_t y, uint8_t attr)
 {
     int32_t offs = (y * mbox[33]) + (x * 4);
-    *((uint32_t*)(fb + offs)) = vgapal[attr & 0x0f];
+    *((uint32_t*)(fb + offs + KERNEL_VIRT_BASE)) = vgapal[attr & 0x0f];
 }
 
 void Framebuffer_DrawRect(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint8_t attr, int32_t fill)

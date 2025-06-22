@@ -11,9 +11,17 @@
 #define EC_TRAPPED_WF           0x01
 #define EC_ILLEGAL_EXECUTION    0x0E
 #define EC_SVC_32               0x11
+#define EC_HVC_32               0x12
+#define EC_SMC_32               0x13
 #define EC_SVC_64               0x15
+#define EC_HVC_64               0x16
+#define EC_SMC_64               0x17
 #define EC_DATA_ABORT_EL0       0x24
 #define EC_DATA_ABORT_EL1       0x25
+
+//Local IRQ
+#define LOCAL_TIMER_IRQ_PS      29
+#define LOCAL_TIMER_IRQ_PNS     30
 
 #define KERNEL_VIRT_BASE        0xFFFFFF8000000000ULL
 #define USERLAND_VIRT_BASE      0x01000000

@@ -1,4 +1,4 @@
-#include "kernel/exceptions.h"
+#include "kernel/exception_handler.h"
 #include "kernel/kScheduler.h"
 #include "libraries/hardware/timer.h"
 #include "libraries/hardware/mmio.h"
