@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-inline void smcTest(uint32_t *t);
+inline void smcTest(uint32_t *outVal);
 
 #ifdef __cplusplus
 }

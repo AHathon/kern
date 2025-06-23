@@ -10,7 +10,12 @@
 #define SCR_RES1_4		BIT(4)
 #define SCR_NS			BIT(0)
 #define SCR_VAL \
-    (SCR_RW | SCR_HCE | SCR_SMD | SCR_RES1_5 | SCR_RES1_4 | SCR_NS)
+	(SCR_RW | \
+	SCR_HCE | \
+	SCR_SMD | \
+	SCR_RES1_5 | \
+	SCR_RES1_4 | \
+	SCR_NS)
 
 #define ACTLR_VAL \
 	(BIT(0) | BIT(1) | BIT(4) | BIT(5) | BIT(6))
@@ -38,6 +43,10 @@ _start:
 	//Set EL3 exception vec
 	ldr x0, =el3_vector_base
 	msr VBAR_EL3, x0
+
+	//Setup timer frequency used for irq 
+	ldr x0, =OSC_FREQ
+    msr cntfrq_el0, x0
 
 	/* Set L2 read/write cache latency to 3 */
 	mrs x0, L2CTLR_EL1

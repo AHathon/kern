@@ -1,6 +1,7 @@
 #include "libraries/hardware/timer.h"
 #include "libraries/hardware/mmio_vars.h"
 #include "libraries/hardware/irq.h"
+#include "libraries/hardware/debug.h"
 
 #define Hz 100
 
@@ -45,4 +46,5 @@ void localTimerIrqInit()
 
     //Unamsk irq
     enable_irq();
+    LOGT("Initialized local timer with %d ticks per hit\n", clkTicks);
 }

@@ -7,9 +7,6 @@ kernel=boot.bin
 #Custom secmon
 armstub=secmon.bin
 
-#Enable GIC
-enable_gic=1
-
 #Run as fast as firmware / board allows
 arm_boost=1
 

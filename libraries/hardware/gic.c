@@ -59,7 +59,7 @@ void GicEnable()
     //Enable GIC CPU Interface
     *(volatile uint32_t *)GICC_PMR = 0xFF;
     *(volatile uint32_t *)GICC_BPR = 0;
-    *(volatile uint32_t *)GICC_CTLR = groupsEn;
+    *(volatile uint32_t *)GICC_CTLR = 0x1E7;
 
     //LOGT("Initialized GIC [%s] (%d IRQs)\n", GetGicVersion(), GetGicMaxIRQs());
 }
