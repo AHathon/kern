@@ -8,10 +8,16 @@
 #define SCHEDULE_TIMER_INTERVAL 1000000UL  // 1 million µs = 1s
 
 #ifdef PI3
-    #define OSC_FREQ        19200000
+    #define PLATFORM            "raspi3b"
+    #define OSC_FREQ            19200000
+    #define MMIO_BASE           0x3F000000
 #else
-    #define OSC_FREQ		54000000
+    #define PLATFORM            "raspi4b"
+    #define OSC_FREQ		    54000000
+    #define MMIO_BASE           0xFE000000
 #endif
+#define ARM_LOCAL_BASE          0xFF800000
+#define GIC_BASE                0xFF840000
 
 #define EC_UNKNOWN              0x00
 #define EC_TRAPPED_WF           0x01
@@ -28,14 +34,6 @@
 //Local IRQ
 #define LOCAL_TIMER_IRQ_PS      29
 #define LOCAL_TIMER_IRQ_PNS     30
-
-#ifdef PI3
-    #define MMIO_BASE           0x3F000000
-#else
-    #define MMIO_BASE           0xFE000000
-#endif
-#define ARM_LOCAL_BASE          0xFF800000
-#define GIC_BASE                0xFF840000
 
 #define GPIO_BASE  (MMIO_ADDR + 0x200000)
 #define UART0_BASE (MMIO_ADDR + 0x201000)

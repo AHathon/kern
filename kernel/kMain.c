@@ -14,7 +14,9 @@
 #include "libraries/services/smc.h"
 
 void kMain(void)
-{    
+{
+    LOGT("Starting kernel targetting %s\n", PLATFORM);
+
     uint64_t vbar;
     asm volatile ("mrs %0, vbar_el1" : "=r" (vbar));
     LOGT("Exception vector: 0x%X\n", vbar);
