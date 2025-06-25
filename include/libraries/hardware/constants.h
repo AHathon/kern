@@ -6,6 +6,7 @@
 #define MAIN_DISP_HEIGHT    480
 
 #define SCHEDULE_TIMER_INTERVAL 1000000UL  // 1 million µs = 1s
+#define OSC_FREQ		54000000
 
 #define EC_UNKNOWN              0x00
 #define EC_TRAPPED_WF           0x01

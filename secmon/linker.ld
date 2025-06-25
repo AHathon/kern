@@ -3,7 +3,7 @@ ENTRY(_start)
 SECTIONS
 {
     . = 0x00000000;
-    .text :
+    .text : ALIGN(4K)
     {
         __start = .;
         __text_start = .;
@@ -13,7 +13,7 @@ SECTIONS
         __text_end = .;
     }
 
-    .rodata :
+    .rodata : ALIGN(4K)
     {
         __rodata_start = .;
         *(.rodata .rodata.*)
@@ -23,7 +23,7 @@ SECTIONS
     . = ALIGN(4096);
     
     PROVIDE(_data = .);
-    .data :
+    .data : ALIGN(4K)
     {
         __data_start = .;
         *(.data .data.*)

@@ -104,6 +104,7 @@ smc_64:
 	secmon_exit
 	eret
 
+.align 11
 .global el3_vector_base;
 .type el3_vector_base, %function;
 el3_vector_base:
@@ -119,7 +120,7 @@ el3_vector_base:
 	ventry	error_invalid_el3h			// Error el3h
 
 	// Lower EL using AArch64
-	ventry	sync_invalid_el0_64					// Synchronous 64-bit EL0
+	ventry	sync_el3h					// Synchronous 64-bit EL0
 	ventry	irq_invalid_el0_64					// IRQ 64-bit EL0
 	ventry	fiq_invalid_el0_64			// FIQ 64-bit EL0
 	ventry	error_invalid_el0_64		// Error 64-bit EL0
