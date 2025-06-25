@@ -12,10 +12,8 @@ int secMain(void *dtb_ptr)
     UART0_Init();
 
     GicDisable();
-    //Only C1/C3 should be used for OS
-    //GicRouteIRQ(SYSTEM_TIMER_IRQ_1);
-    //GicRouteIRQ(SYSTEM_TIMER_IRQ_3);
-    GicRouteIRQ(LOCAL_TIMER_IRQ_PNS);
+    //GicSetGroup(LOCAL_TIMER_IRQ_PNS, 1);
+    //GicRouteIRQ(LOCAL_TIMER_IRQ_PNS);
     GicEnable();
     
     return 0;
