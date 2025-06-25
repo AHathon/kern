@@ -15,8 +15,15 @@ OC=llvm-objcopy
 LD=ld.lld
 INCLUDE := include
 LIBS    := $(BUILD)/libraries/libraries.a
+QEMU_MACH := raspi4b
+ifeq ($(PI),3)
+	QEMU_MACH := raspi3b
+endif
 
 COMMON := -Wall -g -O0 -ffreestanding -nostdinc -nostdlib -march=armv8-a -mcpu=cortex-a72+nosimd -DSECMON
+ifeq ($(PI),3)
+	COMMON += -DPI3
+endif
 CFLAGS := -I$(INCLUDE) $(COMMON)
 ASFLAGS := -I$(INCLUDE) -D__ASSEMBLY__ $(COMMON)
 
@@ -45,13 +52,13 @@ clean:
 
 qemu:
 	qemu-system-aarch64 \
-		-M raspi4b \
+		-M $(QEMU_MACH) \
 		-serial stdio \
 		-kernel $(boot).bin 
 
 qemu-gdb:
 	qemu-system-aarch64 \
-		-M raspi4b \
+		-M $(QEMU_MACH) \
 		-serial stdio \
 		-kernel $(boot).bin \
 		-S -s

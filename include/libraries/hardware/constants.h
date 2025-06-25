@@ -24,7 +24,11 @@
 #define LOCAL_TIMER_IRQ_PS      29
 #define LOCAL_TIMER_IRQ_PNS     30
 
-#define MMIO_BASE               0xFE000000
+#ifdef PI3
+    #define MMIO_BASE           0x3F000000
+#else
+    #define MMIO_BASE           0xFE000000
+#endif
 #define ARM_LOCAL_BASE          0xFF800000
 #define GIC_BASE                0xFF840000
 
