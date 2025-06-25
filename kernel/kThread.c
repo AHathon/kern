@@ -2,6 +2,7 @@
 #include "kernel/kProcess.h"
 #include "kernel/kThreadAllocator.h"
 #include "kernel/memory/kMemoryManager.h"
+#include "kernel/memory/kMemoryMap.h"
 
 kThread *kThread_Create(void *parent, void *entryPtr, size_t stackSize, ThreadType type)
 {

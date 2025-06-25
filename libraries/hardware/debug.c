@@ -1,5 +1,7 @@
 #include "libraries/hardware/debug.h"
 
+#define HIGHER_HALF_ADDR 0xFFFFFF8000000000ULL
+
 static void print_dec(uint64_t value, uint32_t width, char * buf, int32_t * ptr ) {
 	unsigned int n_width = 1;
 	uint64_t i = 9;
@@ -136,15 +138,15 @@ void kHexDump(uint8_t *buf, size_t size)
 
 void kstrcpy(char *dest, const char *src)
 {
-	ASSERT((uintptr_t)dest >= KERNEL_VIRT_BASE);
-	ASSERT((uintptr_t)src >= KERNEL_VIRT_BASE);
+	ASSERT((uintptr_t)dest >= HIGHER_HALF_ADDR);
+	ASSERT((uintptr_t)src >= HIGHER_HALF_ADDR);
 	while ((*dest++ = *src++) != '\0');
 }
 
 void kmemcpy(uint8_t *dest, uint8_t *src, size_t size)
 {
-	ASSERT((uintptr_t)dest >= KERNEL_VIRT_BASE);
-	ASSERT((uintptr_t)src >= KERNEL_VIRT_BASE);
+	ASSERT((uintptr_t)dest >= HIGHER_HALF_ADDR);
+	ASSERT((uintptr_t)src >= HIGHER_HALF_ADDR);
 	ASSERT(size >= 0);
 	for(int i = 0; i < size; i++)
 		*dest++ = *src++;
@@ -152,7 +154,7 @@ void kmemcpy(uint8_t *dest, uint8_t *src, size_t size)
 
 void kmemset(uint8_t *src, size_t size)
 {
-	ASSERT((uintptr_t)src >= KERNEL_VIRT_BASE);
+	ASSERT((uintptr_t)src >= HIGHER_HALF_ADDR);
 	for(int i = 0; i < size; i++)
 		*src++ = 0;
 }

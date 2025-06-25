@@ -1,5 +1,6 @@
 #include "kernel/memory/mmu.h"
 #include "kernel/memory/kPageAllocator.h"
+#include "kernel/memory/kMemoryMap.h"
 
 inline void MMU_SetupVirtKernelSpace() 
 {
@@ -79,6 +80,7 @@ inline void MMU_SetupVirtKernelSpace()
     MMIO_ADDR = MMIO_BASE + KERNEL_VIRT_BASE;
     GICC_ADDR = GIC_BASE + KERNEL_VIRT_BASE;
     ARM_LOCAL_ADDR = ARM_LOCAL_BASE + KERNEL_VIRT_BASE;
+    FB_OFF = KERNEL_VIRT_BASE;
 
     unsigned long page = (unsigned long)&__page_table;
     asm volatile ("msr ttbr1_el1, %0" : : "r" (page | TTBR_CNP)); // upper half, kernel space (set common-not-priv)

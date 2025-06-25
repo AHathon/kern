@@ -156,6 +156,7 @@ irq_el0_64:
     kernel_exit
     eret
 
+.align 11
 .global el1_vector_base;
 .type el1_vector_base, %function;
 

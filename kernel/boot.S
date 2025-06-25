@@ -1,4 +1,5 @@
 #include "libraries/hardware/constants.h"
+#include "kernel/memory/kMemoryMap.h"
 
 .section ".text.kernel"
 

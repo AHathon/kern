@@ -1,4 +1,5 @@
 #include "mmu.h"
+#include "kernel/memory/kMemoryMap.h"
 
 void setupVMM() 
 {

@@ -1,5 +1,6 @@
 #include "kernel/kProcessManager.h"
 #include "kernel/kThread.h"
+#include "kernel/memory/kMemoryMap.h"
 
 void kProcessManager_Init() 
 {

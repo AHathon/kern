@@ -1,0 +1,13 @@
+#pragma once
+
+//Physical
+#define SECMON_START            0x0000000000000000ULL
+#define DRAM_START              0x0000000000100000ULL
+
+//Virtual
+#define USERLAND_VIRT_BASE      0x0000000001000000ULL
+#define KERNEL_VIRT_BASE        0xFFFFFF8000000000ULL
+
+//Macros
+#define KERN_VADDR_TO_PADDR(x)  (x - KERNEL_VIRT_BASE)
+#define KERN_PADDR_TO_VADDR(x)  (x + KERNEL_VIRT_BASE)

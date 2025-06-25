@@ -1,6 +1,7 @@
 #include "libraries/hardware/framebuffer.h"
 #include "libraries/hardware/mailbox.h"
 #include "libraries/hardware/debug.h"
+#include "libraries/hardware/mmio_vars.h"
 
 uint32_t width, height, pitch, isrgb;
 uint8_t *fb;
@@ -86,7 +87,7 @@ uint8_t *Framebuffer_GetPtr()
 void Framebuffer_DrawPixel(int32_t x, int32_t y, uint8_t attr)
 {
     int32_t offs = (y * mbox[33]) + (x * 4);
-    *((uint32_t*)(fb + offs + KERNEL_VIRT_BASE)) = vgapal[attr & 0x0f];
+    *((uint32_t*)(fb + offs + FB_OFF)) = vgapal[attr & 0x0f];
 }
 
 void Framebuffer_DrawRect(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint8_t attr, int32_t fill)

@@ -24,15 +24,9 @@
 #define LOCAL_TIMER_IRQ_PS      29
 #define LOCAL_TIMER_IRQ_PNS     30
 
-#define KERNEL_VIRT_BASE        0xFFFFFF8000000000ULL
-#define USERLAND_VIRT_BASE      0x01000000
-#define KERN_VADDR_TO_PADDR(x)  (x - KERNEL_VIRT_BASE)
-#define KERN_PADDR_TO_VADDR(x)  (x + KERNEL_VIRT_BASE)
-
 #define MMIO_BASE               0xFE000000
 #define ARM_LOCAL_BASE          0xFF800000
 #define GIC_BASE                0xFF840000
-#define RAM_PADDR               0x01000000
 
 #define GPIO_BASE  (MMIO_ADDR + 0x200000)
 #define UART0_BASE (MMIO_ADDR + 0x201000)
