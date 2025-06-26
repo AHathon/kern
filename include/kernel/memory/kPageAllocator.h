@@ -1,13 +1,13 @@
 #pragma once
 
-#include "libraries/hardware/debug.h"
 #include "kernel/memory/kSlabAllocator.h"
 #include "kernel/memory/kMemoryPage.h"
 #include "kernel/memory/mmu.h"
+#include "libraries/libc/string.h"
 
 #define MAX_PAGES 4096
 
-static char pageBitmap[MAX_PAGES / 8] = {};
+static char pageBitmap[MAX_PAGES / 8] ALIGN(4) = {};
 
 void PageAllocator_Init();
 int64_t PageAllocator_AllocPages(size_t pageCnt);

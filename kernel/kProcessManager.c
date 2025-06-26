@@ -1,10 +1,11 @@
 #include "kernel/kProcessManager.h"
 #include "kernel/kThread.h"
 #include "kernel/memory/kMemoryMap.h"
+#include "libraries/libc/string.h"
 
 void kProcessManager_Init() 
 {
-	kmemset((uint8_t*)processTable, sizeof(kProcess) * MAX_PROC);
+	memset((uint8_t*)processTable, sizeof(kProcess) * MAX_PROC);
 	for(int i = 0; i < MAX_PROC; i++)
 		processTable[i].flags = 0;
 }
@@ -21,12 +22,12 @@ void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, u
 
 	//Create proc in procTable
 	unsigned p = ++lastPID;
-	kstrcpy(processTable[p].name, name);
+	strcpy(processTable[p].name, name);
 	processTable[p].PID = p;
 	SET_BIT(processTable[p].flags, IS_ACTIVE_PROC);
 	processTable[p].code.text.addr = (uintptr_t)KERN_VADDR_TO_PADDR(kMemAlloc(codeSize));
     processTable[p].code.text.size = codeSize;
-	kmemcpy((uint8_t*)KERN_PADDR_TO_VADDR(processTable[p].code.text.addr), code, codeSize);
+	memcpy((uint8_t*)KERN_PADDR_TO_VADDR(processTable[p].code.text.addr), code, codeSize);
 	
 	//Create main thread and map mem 
 	//[processes should all have the same virtual mapping give or take kern vaddr for ttrb0/1 routing]
@@ -41,7 +42,7 @@ void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, u
 	LOG("Page tables @ 0x%X\n", processTable[p].pageTables);
 
 	processTable[p].threadCnt = 0;
-	kmemset((uint8_t*)processTable[p].threadsOwned, sizeof(kThread*) * MAX_THREADS_OWNED);
+	memset((uint8_t*)processTable[p].threadsOwned, sizeof(kThread*) * MAX_THREADS_OWNED);
 	processTable[p].threadsOwned[0] = processTable[p].mainThread; //TODO: cleaner impl
 	processTable[p].threadCnt++;
 

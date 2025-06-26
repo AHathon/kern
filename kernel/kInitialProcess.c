@@ -14,7 +14,7 @@ void kInitialProcess_Setup()
     {
         KipHeader *hdr = (KipHeader*)(&__kips_start + off);
         LOGT("Module: %s\n", hdr->magic);
-        ASSERT(kstrlen(hdr->magic) > 0);
+        ASSERT(strlen(hdr->magic) > 0);
         
         kProcessManager_CreateProcess(hdr->magic, (uint8_t*)hdr + hdr->headerSize, hdr->codeSize, 0);
 

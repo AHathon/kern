@@ -17,7 +17,7 @@ void *kMemAlloc(size_t size)
 void *kMemCalloc(size_t size)
 {
     uint8_t *ptr = kMemAlloc(size);
-    kmemset(ptr, size);
+    memset(ptr, size);
     return (void*)ptr;
 }
 

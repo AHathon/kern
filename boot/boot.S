@@ -15,12 +15,6 @@ setup_stack:
     ldr x0, =__stack_top
     mov sp, x0
 
-#ifndef SECMON
-    mov x0, #LOCAL_TIMER_IRQ_PNS
-    bl GicRouteIRQ
-    bl GicEnable
-#endif
-
 check_EL:
     mrs x0, CurrentEL
     and x0, x0, #12

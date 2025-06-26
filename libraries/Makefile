@@ -14,13 +14,15 @@ ASFLAGS := -I$(INCLUDE) -D__ASSEMBLY__ $(COMMON)
 
 rwildcard = $(foreach d, $(wildcard $1*), $(filter $(subst *, %, $2), $d) $(call rwildcard, $d/, $2))
 
-SRCS_S := $(call rwildcard, hardware, *.S) \
-		  $(call rwildcard, services, *.S) \
-		  $(call rwildcard, ui, *.S)
+SRCS_S := $(call rwildcard, hardware, *.S) 	\
+		  $(call rwildcard, services, *.S) 	\
+		  $(call rwildcard, ui, *.S)		\
+		  $(call rwildcard, libc, *.S)
 
-SRCS_C := $(call rwildcard, hardware, *.c) \
-		  $(call rwildcard, services, *.c) \
-		  $(call rwildcard, ui, *.c)
+SRCS_C := $(call rwildcard, hardware, *.c) 	\
+		  $(call rwildcard, services, *.c) 	\
+		  $(call rwildcard, ui, *.c)		\
+		  $(call rwildcard, libc, *.c)
 
 OBJS := $(patsubst %.c, $(BUILD)/%.o, $(SRCS_C)) \
 		$(patsubst %.S, $(BUILD)/%.o, $(SRCS_S))
@@ -45,3 +47,4 @@ setup:
 	mkdir -p $(BUILD)/hardware
 	mkdir -p $(BUILD)/services
 	mkdir -p $(BUILD)/ui
+	mkdir -p $(BUILD)/libc

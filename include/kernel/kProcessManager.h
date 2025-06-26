@@ -2,7 +2,6 @@
 
 #include "kernel/kProcess.h"
 #include "kernel/kScheduler.h"
-#include "libraries/hardware/debug.h"
 #include "kernel/memory/kMemoryManager.h"
 
 #define MAX_PROC 256

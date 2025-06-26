@@ -20,7 +20,7 @@ ifeq ($(PI),3)
 	QEMU_MACH := raspi3b
 endif
 
-COMMON := -Wall -g -O0 -ffreestanding -nostdinc -nostdlib -march=armv8-a -mcpu=cortex-a72+nosimd -DSECMON
+COMMON := -Wall -g -O0 -ffreestanding -nostdinc -nostdlib -march=armv8-a -mcpu=cortex-a72+nosimd
 ifeq ($(PI),3)
 	COMMON += -DPI3
 endif
