@@ -17,7 +17,6 @@ inline void MMU_SetupVirtKernelSpace()
     UNUSED(bss_end);
     UNUSED(text_end_page);
 
-    // TTBR1, kernel L1
     paging[PAGE_TABLE_IDX(0, 0)] = (unsigned long)((unsigned char *)&__page_table + 1 * PAGE_SIZE) |
         PT_TABLE | 
         PT_AF | 
@@ -25,7 +24,7 @@ inline void MMU_SetupVirtKernelSpace()
         PT_ISH | 
         PT_MEM;
 
-    for (r = 1; r < PAGE_TABLE_SIZE; r++)
+    for (r = L1_IDX(DRAM_START); r < PAGE_TABLE_SIZE; r++)
     {
         uint64_t flags = PT_ISH | PT_MEM;
         if(r == L1_IDX(MMIO_BASE) ||
@@ -48,7 +47,7 @@ inline void MMU_SetupVirtKernelSpace()
         PT_ISH | 
         PT_MEM;
     
-    for (r = 1; r < PAGE_TABLE_SIZE; r++)
+    for (r = L2_IDX(DRAM_START); r < PAGE_TABLE_SIZE; r++)
     {
         uint64_t flags = PT_ISH | PT_MEM;
         if(r == L2_IDX(MMIO_BASE) ||
@@ -64,7 +63,7 @@ inline void MMU_SetupVirtKernelSpace()
     }
 
     // Kernel L3
-    for (r = 0; r < PAGE_TABLE_SIZE; r++) 
+    for (r = L3_IDX(DRAM_START); r < PAGE_TABLE_SIZE; r++) 
     {
         uint64_t flags = PT_MEM | PT_RW;
         if(r >= kips && r < kips_end)
@@ -102,10 +101,21 @@ void MMU_ClearIdentityMap()
     MMU_UnmapMemPages(ttbr0, KERN_VADDR_TO_PADDR(start), end - start);
 }
 
-void MMU_MapMemPages(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size_t size, uint8_t isKernelMem)
+uint64_t *MMU_GetKernelPageTable()
 {
-    LOG("Mapping mem @ 0x%X(0x%X) [0x%X bytes]\n", paddr, vaddr, size);
+    return (uint64_t*)(&__page_table);
+}
+
+void MMU_MapMemPages(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size_t size, MemoryAttribs attrib)
+{
+    LOG("Mapping mem page @ 0x%X(0x%X) [0x%X bytes]\n", paddr, vaddr, size);
     size_t pageCnt = (size + PAGE_SIZE - 1) / PAGE_SIZE;
+
+    uint64_t el_flags = (attrib & ATTR_KERNEL) ? PT_KERNEL : PT_USER;
+    uint64_t inout_flags = (attrib & ATTR_OUTER_SHARE) ? PT_OSH : PT_ISH;
+    uint64_t memdev_flags = (attrib & ATTR_DEVICE) ? PT_DEV : PT_MEM;
+    uint64_t nx_flags = (attrib & ATTR_NOEXEC) ? PT_NX : 0;
+    uint64_t rwx_flags = (attrib & ATTR_READONLY) ? PT_RO : PT_RW;
 
     for(int i = 0; i < pageCnt; i++)
     {        
@@ -120,8 +130,6 @@ void MMU_MapMemPages(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size
         uint64_t *L2_tbl_ptr = 0;
         uint64_t *L3_tbl_ptr = 0;
 
-        uint64_t comm_flags = (isKernelMem ? PT_KERNEL : PT_USER);
-
         //L1        
         L1_tbl_ptr = (uint64_t*)(pageTable);
         L1_entry = L1_tbl_ptr[L1_IDX(va)];
@@ -130,13 +138,15 @@ void MMU_MapMemPages(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size
         if(L1_type != PT_TABLE)
         {
             //Allocate table
+            LOG("[MapPage] Allocating for L2 page table\n");
             L2_tbl_ptr = (uint64_t*)kMemCalloc(PAGE_SIZE);
             L2_entry = KERN_VADDR_TO_PADDR((uint64_t)L2_tbl_ptr);
             L1_tbl_ptr[L1_IDX(va)] = (L2_entry) |
                 PT_TABLE | 
                 PT_AF | 
-                PT_ISH |
-                comm_flags;
+                el_flags |
+                inout_flags |
+                memdev_flags;
         }
         else
         {
@@ -149,13 +159,15 @@ void MMU_MapMemPages(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size
         uint64_t L2_type = (L2_entry & 0b11);
         if(L2_type != PT_TABLE)
         {
+            LOG("[MapPage] Allocating for L3 page table\n");
             L3_tbl_ptr = (uint64_t*)kMemCalloc(PAGE_SIZE);
             L3_entry = KERN_VADDR_TO_PADDR((uint64_t)L3_tbl_ptr);
             L2_tbl_ptr[L2_IDX(va)] = (L3_entry) |
                 PT_TABLE | 
                 PT_AF | 
-                PT_ISH |
-                comm_flags;
+                el_flags |
+                inout_flags |
+                memdev_flags;
         }
         else
         {
@@ -167,8 +179,11 @@ void MMU_MapMemPages(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size
         L3_tbl_ptr[L3_IDX(va)] = (pa & ~((1UL << L3_SHIFT) - 1)) |
             PT_PAGE | 
             PT_AF |
-            PT_ISH |
-            comm_flags;
+            el_flags |
+            inout_flags |
+            memdev_flags |
+            rwx_flags |
+            nx_flags;
     }
 
     asm volatile("tlbi vmalle1is"); 
@@ -176,26 +191,93 @@ void MMU_MapMemPages(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size
     asm volatile("isb");
 }
 
-void MMU_MapMemBlocks(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size_t size, uint8_t isKernelMem)
+void MMU_MapMemBlocks(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size_t size, MemoryAttribs attrib)
 {
+    LOG("Mapping mem block @ 0x%X(0x%X) [0x%X bytes]\n", paddr, vaddr, size);
     size_t remaining_size = size;
-    uint64_t curr_vaddr = vaddr;
-    uint64_t curr_paddr = paddr;
-    UNUSED(curr_paddr);
-    UNUSED(curr_vaddr);
+    uint64_t va = vaddr;
+    uint64_t pa = paddr;
 
-    //Blocks are 2MB min
-    if(size < MB2_SIZE) return;
+    // Extract flags once
+    uint64_t el_flags     = (attrib & ATTR_KERNEL) ? PT_KERNEL : PT_USER;
+    uint64_t share_flags  = (attrib & ATTR_OUTER_SHARE) ? PT_OSH : PT_ISH;
+    uint64_t mem_flags    = (attrib & ATTR_DEVICE) ? PT_DEV : PT_MEM;
+    uint64_t nx_flags     = (attrib & ATTR_NOEXEC) ? PT_NX : 0;
+    uint64_t rwx_flags    = (attrib & ATTR_READONLY) ? PT_RO : PT_RW;
 
-    while(remaining_size > 0)
+    while (remaining_size > 0)
     {
-        //TODO: the rest
+        //Try L1 block (1 GiB)
+        if ((va % GB_SIZE == 0) && (pa % GB_SIZE == 0) && remaining_size >= GB_SIZE)
+        {
+            uint64_t* L1_tbl_ptr = (uint64_t*)pageTable;
+            L1_tbl_ptr[L1_IDX(va)] = (pa) |
+                PT_BLOCK |
+                PT_AF |
+                PT_UXN |
+                el_flags |
+                share_flags |
+                mem_flags |
+                rwx_flags |
+                nx_flags;
 
-        remaining_size -= PAGE_SIZE;
-        curr_vaddr += PAGE_SIZE;
-        curr_paddr += PAGE_SIZE;
+            va += GB_SIZE;
+            pa += GB_SIZE;
+            remaining_size -= GB_SIZE;
+            continue;
+        }
+
+        //Try L2 block (2 MiB)
+        uint64_t* L1_tbl_ptr = (uint64_t*)pageTable;
+        uint64_t L1_entry = L1_tbl_ptr[L1_IDX(va)];
+
+        uint64_t* L2_tbl_ptr;
+        uint64_t L2_entry = KERN_VADDR_TO_PADDR((uint64_t)L2_tbl_ptr);
+        uint64_t L2_type = (L2_entry & 0b11);
+        if (L2_type != PT_TABLE)
+        {
+            LOG("[MapBlock] Allocating for L2 page table\n");
+            L2_tbl_ptr = (uint64_t*)kMemCalloc(PAGE_SIZE);
+            uintptr_t L2_entry = KERN_VADDR_TO_PADDR((uintptr_t)L2_tbl_ptr);
+            L1_tbl_ptr[L1_IDX(va)] = L2_entry |
+                PT_TABLE |
+                PT_AF |
+                el_flags |
+                share_flags |
+                mem_flags;
+        }
+        else
+        {
+            L2_tbl_ptr = (uint64_t*)((L1_entry & PHYS_ADDR_MASK) + KERNEL_VIRT_BASE);
+        }
+
+        if ((va % MB2_SIZE == 0) && (pa % MB2_SIZE == 0) && remaining_size >= MB2_SIZE)
+        {
+            L2_tbl_ptr[L2_IDX(va)] = (pa) |
+                PT_BLOCK |
+                PT_AF |
+                PT_UXN |
+                el_flags |
+                share_flags |
+                mem_flags |
+                rwx_flags |
+                nx_flags;
+
+            va += MB2_SIZE;
+            pa += MB2_SIZE;
+            remaining_size -= MB2_SIZE;
+            continue;
+        }
+
+        //Skip if unaligned or not big enough
+        //Could optionally fall back to page mapping here
+        break;
     }
+
+    asm volatile("dsb sy");
+    asm volatile("isb");
 }
+
 
 void MMU_UnmapMemPages(uintptr_t pageTable, uintptr_t vaddr, size_t size)
 {
@@ -276,9 +358,4 @@ void MMU_UnmapMemPages(uintptr_t pageTable, uintptr_t vaddr, size_t size)
 void MMU_SetTtrb0(uintptr_t pageTable)
 {
     asm volatile ("msr ttbr0_el1, %0" :: "r" (pageTable));
-}
-
-uint64_t *MMU_GetKernelPageTable()
-{
-    return (uint64_t*)(&__page_table);
 }

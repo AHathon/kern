@@ -12,11 +12,14 @@
 #include "libraries/hardware/gic.h"
 #include "libraries/types.h"
 #include "libraries/services/smc.h"
-
-void kMain(void)
+void testnig()
 {
-    LOGT("Starting kernel targetting %s\n", PLATFORM);
-
+    uint32_t t = 0;
+    smcTest(&t);
+    LOGT("T:%d\n", t);
+}
+void kMain(void)
+{    
     uint64_t vbar;
     asm volatile ("mrs %0, vbar_el1" : "=r" (vbar));
     LOGT("Exception vector: 0x%X\n", vbar);
@@ -29,4 +32,5 @@ void kMain(void)
 
     kScheduler_Init();
     LOGT("Kernel init done!\n");
+    testnig();
 }

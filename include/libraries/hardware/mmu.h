@@ -35,6 +35,18 @@
 
 #define TTBR_CNP 1
 
+#define PAGE_TABLE_SIZE (PAGE_SIZE / sizeof(unsigned long))
+#define PAGE_TABLE_IDX(i, o) (i * PAGE_TABLE_SIZE + o)
+
 #define PAGE_SIZE 4096
 #define MB2_SIZE (PAGE_TABLE_SIZE * PAGE_SIZE)
 #define GB_SIZE (PAGE_TABLE_SIZE * MB2_SIZE)
+
+typedef enum
+{
+    ATTR_OUTER_SHARE    = (1 << 0),
+    ATTR_DEVICE         = (1 << 1),
+    ATTR_KERNEL         = (1 << 2),
+    ATTR_NOEXEC         = (1 << 3),
+    ATTR_READONLY       = (1 << 4)
+} MemoryAttribs;
