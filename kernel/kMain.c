@@ -12,12 +12,7 @@
 #include "libraries/hardware/gic.h"
 #include "libraries/types.h"
 #include "libraries/services/smc.h"
-void testnig()
-{
-    uint32_t t = 0;
-    smcTest(&t);
-    LOGT("T:%d\n", t);
-}
+
 void kMain(void)
 {    
     uint64_t vbar;
@@ -32,5 +27,4 @@ void kMain(void)
 
     kScheduler_Init();
     LOGT("Kernel init done!\n");
-    testnig();
 }

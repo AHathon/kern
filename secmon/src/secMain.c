@@ -11,10 +11,18 @@ int secMain(void *dtb_ptr)
 
     UART0_Init();
 
-    GicDisable();
-    //GicSetGroup(LOCAL_TIMER_IRQ_PNS, 1);
-    //GicRouteIRQ(LOCAL_TIMER_IRQ_PNS);
-    GicEnable();
+    GIC_Disable();
+
+    uint32_t max_ints = GIC_GetGicMaxIRQs();
+
+    //Clear and disable all
+    for(int i = 0; i < max_ints; i++)
+    {
+        GICD_ClearActiveIRQ(i);
+        GICD_ClearPendingIRQ(i);
+        GICD_DisableIRQ(i);
+    }
+    GIC_Enable();
     
     return 0;
 }
