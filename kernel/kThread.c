@@ -18,12 +18,13 @@ kThread *kThread_Create(void *parent, void *entryPtr, size_t stackSize, ThreadTy
     kProcess *p = (kProcess*)parent;
     thread->entryPtr = entryPtr;
 
+    uint64_t flags = (type == THREAD_KERNEL) ? ATTR_KERNEL : 0;
     thread->stackBase = KERN_VADDR_TO_PADDR(kMemAlloc(stackSize));
-    MMU_MapMemPages(p->pageTables, (uintptr_t)(thread->stackBase), (uintptr_t)(thread->stackBase), stackSize, type == THREAD_KERNEL);
+    MMU_MapMemPages(p->pageTables, (uintptr_t)(thread->stackBase), (uintptr_t)(thread->stackBase), stackSize, flags);
     thread->sp = (uintptr_t)thread->stackBase + stackSize - (stackSize / 2);
 
     thread->contextStack = kMemAlloc(kernStackSize);
-    MMU_MapMemPages(p->pageTables, (uintptr_t)KERN_VADDR_TO_PADDR(thread->contextStack), (uintptr_t)(thread->contextStack), PAGE_SIZE * 2, 1);
+    MMU_MapMemPages(p->pageTables, (uintptr_t)KERN_VADDR_TO_PADDR(thread->contextStack), (uintptr_t)(thread->contextStack), PAGE_SIZE * 2, ATTR_KERNEL);
     thread->kern_sp = (uintptr_t)thread->contextStack + kernStackSize - (kernStackSize / 2);
 
     LOG("Creating thread [id:%d]\n", thread->id);

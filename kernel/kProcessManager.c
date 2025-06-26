@@ -30,8 +30,9 @@ void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, u
 	
 	//Create main thread and map mem 
 	//[processes should all have the same virtual mapping give or take kern vaddr for ttrb0/1 routing]
-	processTable[p].pageTables = (uintptr_t)kMemCalloc(PAGE_SIZE);	
-	MMU_MapMemPages(processTable[p].pageTables, processTable[p].code.text.addr, USERLAND_VIRT_BASE, codeSize, isKernelProc);
+	processTable[p].pageTables = (uintptr_t)kMemCalloc(PAGE_SIZE);
+	uint64_t flags = isKernelProc ? ATTR_KERNEL : 0;
+	MMU_MapMemPages(processTable[p].pageTables, processTable[p].code.text.addr, USERLAND_VIRT_BASE, codeSize, flags);
 	
 	processTable[p].mainThread = kThread_Create(&processTable[p], (void*)(USERLAND_VIRT_BASE), userStackSize, isKernelProc ? THREAD_KERNEL : THREAD_USER);
 
