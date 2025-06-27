@@ -18,6 +18,7 @@ void kMain(void)
     uint64_t vbar;
     asm volatile ("mrs %0, vbar_el1" : "=r" (vbar));
     LOGT("Exception vector: 0x%X\n", vbar);
+    LOGT("GIC [%s] (%d IRQs)\n", GIC_GetGicVersion(), GIC_GetGicMaxIRQs());
     LOGT("MMIO base: 0x%X\n", MMIO_ADDR);
     LOGT("Running at EL%d\n", GetCurrentEL());
 

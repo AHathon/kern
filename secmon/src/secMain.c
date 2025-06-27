@@ -13,6 +13,17 @@ int secMain(void *dtb_ptr)
 
     uint32_t max_ints = GIC_GetGicMaxIRQs();
 
+    uint64_t mpidr = 0;
+    asm volatile("mrs %0, MPIDR_EL1" : "=r"(mpidr));
+    if(mpidr != 3) //primary core
+    {
+        GICD_Enable();
+    }
+
+    //Core0
+    GICD_Enable();
+    GICC_Enable();
+
     //Clear and disable all
     for(int i = 0; i < max_ints; i++)
     {
@@ -20,13 +31,10 @@ int secMain(void *dtb_ptr)
         GICD_ClearPendingIRQ(i);
         GICD_DisableIRQ(i);
     }
-    GIC_Disable();
 
     //Even tho PPI bypass GICD, we still need to reg it for GICC. (ARM moment)
     GICD_EnableIRQ(LOCAL_TIMER_IRQ_PNS);
     GICD_SetGroup(LOCAL_TIMER_IRQ_PNS, 1);
-
-    GIC_Enable();
     
     return 0;
 }

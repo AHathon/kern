@@ -32,18 +32,15 @@ void GICD_SetGroup(uint32_t irq, uint8_t grp)
     *(volatile uint32_t *)GICD_IGROUPR(irq / 32) |= (grp << (irq % 32));
 }
 
-void GICD_RouteIRQ(uint32_t irq)
+void GICD_RouteIRQ(uint32_t irq, uint32_t target)
 {
     *(volatile uint32_t *)GICD_ICFGR(irq / 16) = 0;
 
     //Set target CPU
-    ((volatile uint8_t *)GICD_ITARGETSR(irq >> 2))[irq % 4] = GICD_ITARGETSR_CORE0;
+    ((volatile uint8_t *)GICD_ITARGETSR(irq >> 2))[irq % 4] = target;
 
     //Set priority
     ((volatile uint8_t *)GICD_IPRIORITYR(irq >> 2))[irq % 4] = 0;
-
-   
-    //LOGT("Enabling GIC IRQ #%d\n", irq);
 }
 
 void GICD_ClearPendingIRQ(uint32_t irq)
@@ -67,23 +64,30 @@ void GICD_DisableIRQ(uint32_t irq)
     *(volatile uint32_t *)(GICD_ICENABLER(irq >> 5)) = (1 << (irq % 32));
 }
 
-void GIC_Enable()
+void GICC_Enable()
 {
-    uint32_t groupsEn = CTLR_EN_GRP1;
-
-    //Enable GIC Distributor
-    *(volatile uint32_t *)GICD_CTLR = groupsEn;
+    uint32_t groupsEn = CTLR_EN_GRP0 | CTLR_EN_GRP1;
 
     //Enable GIC CPU Interface
     *(volatile uint32_t *)GICC_PMR = 0;
     *(volatile uint32_t *)GICC_BPR = 0;
-    *(volatile uint32_t *)GICC_CTLR = CTLR_EN_GRP1;
-
-    //LOGT("Initialized GIC [%s] (%d IRQs)\n", GIC_GetGicVersion(), GIC_GetGicMaxIRQs());
+    *(volatile uint32_t *)GICC_CTLR = groupsEn;
 }
 
-void GIC_Disable()
+void GICC_Disable()
+{
+    *(volatile uint32_t *)GICC_CTLR = 0;
+}
+
+void GICD_Enable()
+{
+    uint32_t groupsEn = CTLR_EN_GRP0 | CTLR_EN_GRP1;
+
+    //Enable GIC Distributor
+    *(volatile uint32_t *)GICD_CTLR = groupsEn;
+}
+
+void GICD_Disable()
 {
     *(volatile uint32_t *)GICD_CTLR = 0;
-    *(volatile uint32_t *)GICC_CTLR = 0;
 }
