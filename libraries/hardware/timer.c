@@ -41,6 +41,9 @@ void localTimerIrqInit()
     //Reset timer
     localTimerIrqReset();
 
+    //Disable EL0 access 
+    asm volatile("msr cntkctl_el1, %0" :: "r"(0L));
+
     //Enable local timer
     asm volatile("msr cntp_ctl_el0, %0" :: "r"(1L));
 

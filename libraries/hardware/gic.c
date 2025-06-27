@@ -69,7 +69,7 @@ void GICD_DisableIRQ(uint32_t irq)
 
 void GIC_Enable()
 {
-    uint32_t groupsEn = CTLR_EN_GRP0 | CTLR_EN_GRP1;
+    uint32_t groupsEn = CTLR_EN_GRP1;
 
     //Enable GIC Distributor
     *(volatile uint32_t *)GICD_CTLR = groupsEn;
@@ -77,7 +77,7 @@ void GIC_Enable()
     //Enable GIC CPU Interface
     *(volatile uint32_t *)GICC_PMR = 0;
     *(volatile uint32_t *)GICC_BPR = 0;
-    *(volatile uint32_t *)GICC_CTLR = 0x1E7;
+    *(volatile uint32_t *)GICC_CTLR = CTLR_EN_GRP1;
 
     //LOGT("Initialized GIC [%s] (%d IRQs)\n", GIC_GetGicVersion(), GIC_GetGicMaxIRQs());
 }

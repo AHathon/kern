@@ -32,6 +32,7 @@
 #define EC_DATA_ABORT_EL1       0x25
 
 //Local IRQ
+#define LOCAL_TIMER_IRQ_V       27
 #define LOCAL_TIMER_IRQ_PS      29
 #define LOCAL_TIMER_IRQ_PNS     30
 

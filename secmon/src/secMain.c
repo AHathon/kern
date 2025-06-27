@@ -11,8 +11,6 @@ int secMain(void *dtb_ptr)
 
     UART0_Init();
 
-    GIC_Disable();
-
     uint32_t max_ints = GIC_GetGicMaxIRQs();
 
     //Clear and disable all
@@ -22,6 +20,12 @@ int secMain(void *dtb_ptr)
         GICD_ClearPendingIRQ(i);
         GICD_DisableIRQ(i);
     }
+    GIC_Disable();
+
+    //Even tho PPI bypass GICD, we still need to reg it for GICC. (ARM moment)
+    GICD_EnableIRQ(LOCAL_TIMER_IRQ_PNS);
+    GICD_SetGroup(LOCAL_TIMER_IRQ_PNS, 1);
+
     GIC_Enable();
     
     return 0;
