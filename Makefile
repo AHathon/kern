@@ -15,15 +15,18 @@ OC=llvm-objcopy
 LD=ld.lld
 INCLUDE := include
 LIBS    := $(BUILD)/libraries/libraries.a
-QEMU_MACH := raspi4b
-ifeq ($(PI),3)
-	QEMU_MACH := raspi3b
+COMMON := -Wall -g -O0 -ffreestanding -nostdinc -nostdlib -march=armv8-a -mcpu=cortex-a72+nosimd
+
+QEMU_ARGS := -M raspi4b \
+			-serial stdio \
+			-kernel $(boot).bin 
+ifeq ($(PLAT),PI3)
+	COMMON += -DPI3
+	QEMU_ARGS := -M raspi3b \
+				-serial stdio \
+				-kernel $(boot).bin 
 endif
 
-COMMON := -Wall -g -O0 -ffreestanding -nostdinc -nostdlib -march=armv8-a -mcpu=cortex-a72+nosimd
-ifeq ($(PI),3)
-	COMMON += -DPI3
-endif
 CFLAGS := -I$(INCLUDE) $(COMMON)
 ASFLAGS := -I$(INCLUDE) -D__ASSEMBLY__ $(COMMON)
 
@@ -51,17 +54,10 @@ clean:
 	$(MAKE) -C libraries clean
 
 qemu:
-	qemu-system-aarch64 \
-		-M $(QEMU_MACH) \
-		-serial stdio \
-		-kernel $(boot).bin 
+	qemu-system-aarch64 $(QEMU_ARGS)
 
 qemu-gdb:
-	qemu-system-aarch64 \
-		-M $(QEMU_MACH) \
-		-serial stdio \
-		-kernel $(boot).bin \
-		-S -s
+	qemu-system-aarch64 $(QEMU_ARGS) -S -s
 image:
 	dd if=/dev/zero of=$(Project).img bs=1M count=$(IMAGE_SIZE_MB)
 	mkfs.fat -F 32 -n "BOOT" $(Project).img
@@ -72,14 +68,14 @@ image:
 	mcopy -i $(Project).img "secmon.bin" "::/"
 
 library:
-	$(MAKE) -C libraries
+	$(MAKE) -C libraries PLAT=$(PLAT)
 	cp libraries/libraries.a $(BUILD)/libraries
 
 KIPs:
-	$(MAKE) -C KIPs
+	$(MAKE) -C KIPs PLAT=$(PLAT)
 
 secmon: 
-	$(MAKE) -C secmon
+	$(MAKE) -C secmon PLAT=$(PLAT)
 	cp secmon/secmon.bin .
 
 boot: $(boot).elf

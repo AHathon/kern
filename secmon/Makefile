@@ -10,6 +10,11 @@ INCLUDE := include
 LIBS    := $(PROJECT_ROOT)/libraries/libraries.a
 
 COMMON := -Wall -O2 -ffreestanding -nostdinc -nostdlib -march=armv8-a -mcpu=cortex-a72+nosimd
+
+ifeq ($(PLAT),PI3)
+	COMMON += -DPI3
+endif
+
 CFLAGS := -I$(INCLUDE) -I$(PROJECT_ROOT)/include $(COMMON)
 ASFLAGS := -I$(INCLUDE) -I$(PROJECT_ROOT)/include -D__ASSEMBLY__ $(COMMON)
 

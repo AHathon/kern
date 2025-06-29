@@ -10,8 +10,9 @@
 #include "libraries/hardware/framebuffer.h"
 #include "libraries/ui/terminal.h"
 #include "libraries/hardware/gic.h"
+#include "libraries/hardware/timer.h"
 #include "libraries/types.h"
-#include "libraries/services/smc.h"
+#include "libraries/hardware/irq.h"
 
 void kMain(void)
 {    

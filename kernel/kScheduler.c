@@ -3,6 +3,7 @@
 #include "libraries/hardware/timer.h"
 #include "kernel/kProcessManager.h"
 #include "libraries/hardware/irq.h"
+#include "libraries/hardware/gic.h"
 
 static run_queue_t runqueue;
 kThread *current = 0;
@@ -27,9 +28,11 @@ kThread *runq_pop(run_queue_t *rq) {
 void kScheduler_Init()
 {
     localTimerIrqInit();
-    schedulerInit = 1;
     localTimerIrqReset();
     LOGT("Initialized kScheduler\n");
+    schedulerInit = 1;
+    //Unmask irq
+    enable_irq();
 }
 
 void kScheduler_AddThread(kThread *thread)

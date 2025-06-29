@@ -42,12 +42,10 @@ void localTimerIrqInit()
     localTimerIrqReset();
 
     //Disable EL0 access 
-    asm volatile("msr cntkctl_el1, %0" :: "r"(0L));
+    asm volatile("msr cntkctl_el1, %0" :: "r"(1L));
 
     //Enable local timer
     asm volatile("msr cntp_ctl_el0, %0" :: "r"(1L));
 
-    //Unamsk irq
-    enable_irq();
     LOGT("Initialized local timer with %d ticks per hit\n", clkTicks);
 }

@@ -92,6 +92,8 @@ _setup_el3:
     msr CPUECTLR_EL1, x0
 
     bl secMain
+    dsb sy
+    isb
 
     /*
      * Set up SCTLR_EL2
