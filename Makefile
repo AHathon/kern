@@ -6,7 +6,11 @@ secmon	:= secmon
 
 BUILD 	  := build
 RESOURCES := resources
-IMAGE_SIZE_MB := 32
+IMAGE_SIZE_MB := 64
+
+#Pi4 firmware; start4.elf must come from the same release as fixup4.dat
+FW_COMMIT := effea745e592ec8a97fc54093a5673a7e6e515c9
+FW_URL    := https://raw.githubusercontent.com/raspberrypi/firmware/$(FW_COMMIT)/boot
 
 export PROJECT_ROOT := $(CURDIR)
 
@@ -17,15 +21,15 @@ INCLUDE := include
 LIBS    := $(BUILD)/libraries/libraries.a
 COMMON := -Wall -g -O0 -ffreestanding -nostdinc -nostdlib -march=armv8-a -mcpu=cortex-a72+nosimd
 
-QEMU_ARGS := -M raspi4b \
-			-serial stdio \
-			-kernel $(boot).bin 
+QEMU_MACHINE := raspi4b
 ifeq ($(PLAT),PI3)
 	COMMON += -DPI3
-	QEMU_ARGS := -M raspi3b \
-				-serial stdio \
-				-kernel $(boot).bin 
+	QEMU_MACHINE := raspi3b
 endif
+QEMU_ARGS := -M $(QEMU_MACHINE) \
+			-serial stdio \
+			-device loader,file=$(secmon).bin,addr=0x0,force-raw=on \
+			-device loader,file=$(boot).bin,addr=0x80000,force-raw=on
 
 CFLAGS := -I$(INCLUDE) $(COMMON)
 ASFLAGS := -I$(INCLUDE) -D__ASSEMBLY__ $(COMMON)
@@ -58,14 +62,20 @@ qemu:
 
 qemu-gdb:
 	qemu-system-aarch64 $(QEMU_ARGS) -S -s
-image:
+#MBR w/ single FAT32 boot partition at 1MiB
+image: $(RESOURCES)/bootfs/start4.elf
 	dd if=/dev/zero of=$(Project).img bs=1M count=$(IMAGE_SIZE_MB)
-	mkfs.fat -F 32 -n "BOOT" $(Project).img
+	echo 'start=2048, type=c, bootable' | sfdisk -q $(Project).img
+	mkfs.fat -F 32 -n "BOOT" --offset 2048 $(Project).img
 	for file in $(RESOURCES)/bootfs/*; do \
-		mcopy -i $(Project).img "$$file" "::/"; \
+		mcopy -s -i $(Project).img@@1M "$$file" "::/"; \
 	done
-	mcopy -i $(Project).img "boot.bin" "::/"
-	mcopy -i $(Project).img "secmon.bin" "::/"
+	mcopy -i $(Project).img@@1M "boot.bin" "::/"
+	mcopy -i $(Project).img@@1M "secmon.bin" "::/"
+
+$(RESOURCES)/bootfs/start4.elf:
+	curl -fL -o $@.tmp $(FW_URL)/start4.elf
+	mv $@.tmp $@
 
 library:
 	$(MAKE) -C libraries PLAT=$(PLAT)

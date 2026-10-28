@@ -1,8 +1,9 @@
 #64-bit mode
 arm_64bit=1
 
-#Custom kernel
+#Custom kernel; boot.bin is linked at 0x80000
 kernel=boot.bin
+kernel_address=0x80000
 
 #Custom secmon
 armstub=secmon.bin
@@ -14,6 +15,6 @@ arm_boost=1
 enable_uart=1
 dtoverlay=disable-bt
 
-#Enable JTAG
-gpio=22-27=np# Enable jtag pins (i.e. GPIO22-GPIO27)
+#Enable JTAG pins (i.e. GPIO22-GPIO27)
+gpio=22-27=np
 enable_jtag_gpio=1

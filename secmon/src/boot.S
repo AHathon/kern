@@ -47,7 +47,7 @@ dtb_ptr32:
 .org 0xfc
 .globl kernel_entry32
 kernel_entry32:
-    .word 0x0
+    .word 0x80000   //Overwritten by FW on hw; default for qemu
 
 _setup_el3:
     //Setup security state 
