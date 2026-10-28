@@ -21,14 +21,17 @@ INCLUDE := include
 LIBS    := $(BUILD)/libraries/libraries.a
 COMMON := -Wall -g -O0 -ffreestanding -nostdinc -nostdlib -march=armv8-a -mcpu=cortex-a72+nosimd
 
-QEMU_MACHINE := raspi4b
+#qemu's bcm2838 GIC lacks the security extensions the real GIC-400 has; without
+#them every access is treated as secure and NS IAR reads of grp1 irqs return 1022
+QEMU_MACHINE := raspi4b -global arm_gic.has-security-extensions=on
 ifeq ($(PLAT),PI3)
 	COMMON += -DPI3
 	QEMU_MACHINE := raspi3b
 endif
+QEMU_SECMON := $(BUILD)/$(secmon)_qemu.bin
 QEMU_ARGS := -M $(QEMU_MACHINE) \
 			-serial stdio \
-			-device loader,file=$(secmon).bin,addr=0x0,force-raw=on \
+			-device loader,file=$(QEMU_SECMON),addr=0x0,force-raw=on \
 			-device loader,file=$(boot).bin,addr=0x80000,force-raw=on
 
 CFLAGS := -I$(INCLUDE) $(COMMON)
@@ -57,11 +60,17 @@ clean:
 	$(MAKE) -C secmon clean
 	$(MAKE) -C libraries clean
 
-qemu:
+qemu: $(QEMU_SECMON)
 	qemu-system-aarch64 $(QEMU_ARGS)
 
-qemu-gdb:
+qemu-gdb: $(QEMU_SECMON)
 	qemu-system-aarch64 $(QEMU_ARGS) -S -s
+
+#FW clears stub magic/version at 0xf0 (doubles as spin_cpu3) before releasing cores
+$(QEMU_SECMON): $(secmon).bin
+	cp $< $@
+	dd if=/dev/zero of=$@ bs=1 seek=240 count=8 conv=notrunc status=none
+
 #MBR w/ single FAT32 boot partition at 1MiB
 image: $(RESOURCES)/bootfs/start4.elf
 	dd if=/dev/zero of=$(Project).img bs=1M count=$(IMAGE_SIZE_MB)
