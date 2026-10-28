@@ -1,5 +1,5 @@
 TARGET := kip_blob
-DIRS := init fs pm gfx
+DIRS := init fs pm
 
 KIP_FILES := $(foreach d,$(DIRS),$(d)/$(d).kip)
 
@@ -7,9 +7,13 @@ KIP_FILES := $(foreach d,$(DIRS),$(d)/$(d).kip)
 
 all: $(TARGET)
 
-$(TARGET):
-	for d in $(DIRS); do $(MAKE) -C $$d; done
-	@cat $(KIP_FILES) > kip_blob
+$(TARGET): $(KIP_FILES)
+	@cat $(KIP_FILES) > $@
+
+$(KIP_FILES): FORCE
+	$(MAKE) -C $(@D)
+
+FORCE:
 
 clean:
 	@rm -f kip_blob

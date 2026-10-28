@@ -6,10 +6,11 @@
 
 typedef struct
 {
-    int8_t isLocked;
+    volatile uint32_t isLocked;
     kThread *ownerThread;
 } kMutex_t;
 
+kMutex_t *kMutex_alloc();
 void kMutex_Init(kMutex_t *mutex);
 void kMutex_Lock(kMutex_t *mutex);
 void kMutex_Unlock(kMutex_t *mutex);

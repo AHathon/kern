@@ -47,10 +47,6 @@ kThread *kScheduler_GetCurrentThread()
 
 void kScheduler_schedule()
 {
-    ASSERT(runqueue.size > 0);
-
-    kThread *next = runq_pop(&runqueue);
-
     if(schedulerInit)
     {
         //If theres a task currently, and its still good, push it back
@@ -68,6 +64,10 @@ void kScheduler_schedule()
             kThread_Destroy(current);
         }
 
+        //Pop after pushing current back, so a lone runnable thread keeps running
+        ASSERT(runqueue.size > 0);
+        kThread *next = runq_pop(&runqueue);
+
         //Switch tasks
         current = next;
         if (current && current->state != STATE_TERMINATED)
@@ -77,7 +77,7 @@ void kScheduler_schedule()
             kProcess *parent = (kProcess*)(current->parent);
             LOG("switching: %s @ 0x%X [proc is %s and is %s]\n", parent->name, current->entryPtr, isNew ? "new" : "old", isKernel ? "kernel" : "user");
             localTimerIrqReset();
-            context_switch(current->entryPtr, current->sp, current->kern_sp, parent->pageTables, isNew);
+            context_switch(current->entryPtr, current->sp, current->kern_sp, parent->pageTables, isNew, isKernel);
         }
     }
 }

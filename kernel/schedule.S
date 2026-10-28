@@ -46,12 +46,22 @@ _handle_existing_process:
     eret
 
 _handle_new_process:
-    mov x9, #0
     mov x11, #0
-
     msr ELR_EL1, x0
-    msr SPSR_EL1, x9
-    msr SP_EL0, x1
     msr TPIDR_EL0, x11
 
+    cmp w5, #1    //isKernel
+    beq _handle_new_kernel_process
+
+    //EL0t, runs on SP_EL0
+    mov x9, #0
+    msr SPSR_EL1, x9
+    msr SP_EL0, x1
+    eret
+
+_handle_new_kernel_process:
+    //EL1h, runs on SP_EL1 using the thread's own stack
+    mov x9, #0b0101
+    msr SPSR_EL1, x9
+    mov sp, x1
     eret

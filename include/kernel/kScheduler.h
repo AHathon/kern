@@ -16,4 +16,4 @@ void kScheduler_Init();
 void kScheduler_AddThread(kThread *thread);
 void kScheduler_schedule();
 kThread *kScheduler_GetCurrentThread();
-void context_switch(void *entry, uintptr_t sp, uintptr_t kern_sp, uintptr_t pageTable, uint8_t isNew);
+void context_switch(void *entry, uintptr_t sp, uintptr_t kern_sp, uintptr_t pageTable, uint8_t isNew, uint8_t isKernel);

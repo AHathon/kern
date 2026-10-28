@@ -6,6 +6,10 @@ KIPs/**/*.kip
 KIPs/**/*.elf
 KIPs/**/*.bin
 KIPs/kip_blob
+processes/**/build/
+processes/**/*.kip
+processes/**/*.elf
+processes/**/*.bin
 *.bin
 *.elf
 *.img

@@ -4,7 +4,8 @@ SOURCES := src
 CC=clang
 OC=llvm-objcopy
 LD=ld.lld
-CFLAGS := --target=aarch64-none-elf -march=armv8-a -mcpu=cortex-a72 -O2 -nostdlib -ffreestanding
+#FP/SIMD regs aren't saved on context switch, so keep codegen to GPRs (like the kernel)
+CFLAGS := --target=aarch64-none-elf -march=armv8-a -mcpu=cortex-a72 -O2 -nostdlib -ffreestanding -mgeneral-regs-only
 ASFLAGS := -D__ASSEMBLY__ $(COMMON)
 
 rwildcard = $(foreach d, $(wildcard $1*), $(filter $(subst *, %, $2), $d) $(call rwildcard, $d/, $2))
@@ -18,8 +19,8 @@ $(TARGET).kip: $(TARGET).bin
 $(TARGET).bin: $(TARGET).elf
 	$(OC) $< -O binary $@
 
-$(TARGET).elf: $(OBJECTS)
-	$(LD) -T $(PROJECT_ROOT)/misc/linker.ld -o $@ $^ $(PROJECT_ROOT)/libraries/libraries.a
+$(TARGET).elf: $(OBJECTS) $(PROJECT_ROOT)/libraries/libraries.a $(PROJECT_ROOT)/misc/linker.ld
+	$(LD) -T $(PROJECT_ROOT)/misc/linker.ld -o $@ $(OBJECTS) $(PROJECT_ROOT)/libraries/libraries.a
 
 $(BUILD)/%.o: $(SOURCES)/%.cpp
 	@mkdir -p $(@D)

@@ -1,4 +1,5 @@
 #include "libraries/hardware/framebuffer.h"
+#include "libraries/hardware/constants.h"
 #include "libraries/types.h"
 
 int main() 

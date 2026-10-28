@@ -279,6 +279,25 @@ void MMU_MapMemBlocks(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, siz
 }
 
 
+uint8_t MMU_IsPageMapped(uintptr_t pageTable, uintptr_t vaddr)
+{
+    //L1
+    uint64_t *L1_tbl_ptr = (uint64_t*)(pageTable);
+    uint64_t L1_entry = L1_tbl_ptr[L1_IDX(vaddr)];
+    if((L1_entry & 0b11) == PT_INVALID) return 0;
+    if((L1_entry & 0b11) == PT_BLOCK) return 1;
+
+    //L2
+    uint64_t *L2_tbl_ptr = (uint64_t*)((L1_entry & PHYS_ADDR_MASK) + KERNEL_VIRT_BASE);
+    uint64_t L2_entry = L2_tbl_ptr[L2_IDX(vaddr)];
+    if((L2_entry & 0b11) == PT_INVALID) return 0;
+    if((L2_entry & 0b11) == PT_BLOCK) return 1;
+
+    //L3
+    uint64_t *L3_tbl_ptr = (uint64_t*)((L2_entry & PHYS_ADDR_MASK) + KERNEL_VIRT_BASE);
+    return (L3_tbl_ptr[L3_IDX(vaddr)] & 0b11) == PT_PAGE;
+}
+
 void MMU_UnmapMemPages(uintptr_t pageTable, uintptr_t vaddr, size_t size)
 {
     LOG("Unmapping mem @ 0x%X [0x%X bytes]\n", vaddr, size);

@@ -19,15 +19,12 @@ SECTIONS
         *(.eh_frame)
     }
 
-    . = 0x8000000;
-    .data : ALIGN(8)
+    /* data+bss sit right after rodata and bss is emitted as zeros, so the
+       flat binary is the whole image the kernel loads at 0x1000000 */
+    .data : ALIGN(4K)
     {
         *(.data .data.*)
-    }
-
-    .bss : ALIGN(8)
-    {
-        *(.bss .bss.* .COMMON)
+        *(.bss .bss.* COMMON)
     }
 
     /DISCARD/ :

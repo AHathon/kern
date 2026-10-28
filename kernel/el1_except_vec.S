@@ -130,6 +130,7 @@ svc_64:
 	ldr x16, [x27, x26, lsl #3]     // address in the syscall table
 	bl disable_irq
 	blr x16							// call sys_* routine
+	str x0, [sp, #16 * 0]			// return value -> saved x0 in trap frame
 	bl enable_irq
 	kernel_exit
 	eret

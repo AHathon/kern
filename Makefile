@@ -50,13 +50,14 @@ OBJS_boot := $(patsubst %.c, $(BUILD)/%.o, $(SRCS_C_boot)) \
 OBJS_kern := $(patsubst %.c, $(BUILD)/%.o, $(SRCS_C_kern)) \
 		$(patsubst %.S, $(BUILD)/%.o, $(SRCS_S_kern))
 
-.PHONY: all clean library KIPs secmon kernel boot image qemu qemu-gdb
+.PHONY: all clean library KIPs processes secmon kernel boot image qemu qemu-gdb
 
-all: setup library KIPs secmon kernel boot image
+all: setup library KIPs processes secmon kernel boot image
 
 clean:
 	@rm -fr $(BUILD) $(kernel).elf $(secmon).elf $(boot).elf $(kernel).img $(secmon).bin $(boot).bin $(Project).img
 	$(MAKE) -C KIPs clean
+	$(MAKE) -C processes clean
 	$(MAKE) -C secmon clean
 	$(MAKE) -C libraries clean
 
@@ -93,6 +94,9 @@ library:
 KIPs:
 	$(MAKE) -C KIPs PLAT=$(PLAT)
 
+processes:
+	$(MAKE) -C processes PLAT=$(PLAT)
+
 secmon: 
 	$(MAKE) -C secmon PLAT=$(PLAT)
 	cp secmon/secmon.bin .
@@ -109,11 +113,17 @@ $(boot).elf: $(OBJS_boot) $(LIBS)
 $(kernel).elf: $(OBJS_kern) $(LIBS)
 	$(LD) -m aarch64elf -nostdlib -T kernel/linker.ld -o $@ $^
 
+#boot.S .incbin's the kernel image, so rebuild it when the kernel changes
+$(BUILD)/boot/boot.o: $(kernel).img
+
+#kernel/boot.S .incbin's the KIP blob
+$(BUILD)/kernel/boot.o: KIPs/kip_blob
+
 $(BUILD)/%.o: %.S
-	$(CC) --target=aarch64-elf $(ASFLAGS) -c -o $@ $^
+	$(CC) --target=aarch64-elf $(ASFLAGS) -c -o $@ $<
 
 $(BUILD)/%.o: %.c
-	$(CC) --target=aarch64-elf $(CFLAGS) -c -o $@ $^
+	$(CC) --target=aarch64-elf $(CFLAGS) -c -o $@ $<
 
 setup:
 	mkdir -p $(BUILD)/kernel/memory

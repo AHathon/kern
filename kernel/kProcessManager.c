@@ -1,10 +1,19 @@
 #include "kernel/kProcessManager.h"
 #include "kernel/kThread.h"
 #include "kernel/memory/kMemoryMap.h"
+#include "kernel/kMutex.h"
 #include "libraries/libc/string.h"
+
+static kProcess processTable[MAX_PROC];
+static unsigned lastPID = 0;
+static kMutex_t *procMan_mutex = 0;
 
 void kProcessManager_Init() 
 {
+	procMan_mutex = kMutex_alloc();
+	ASSERT(procMan_mutex);
+	kMutex_Init(procMan_mutex);
+
 	memset((uint8_t*)processTable, sizeof(kProcess) * MAX_PROC);
 	for(int i = 0; i < MAX_PROC; i++)
 		processTable[i].flags = 0;
@@ -18,6 +27,8 @@ kProcess *kProcessManager_GetCurrentProcess()
 
 void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, uint8_t isKernelProc)
 {
+	kMutex_Lock(procMan_mutex);
+
 	size_t userStackSize = PAGE_SIZE * 2;
 
 	//Create proc in procTable
@@ -49,6 +60,8 @@ void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, u
 	//Add main thread to scheduler
 	kScheduler_AddThread(processTable[p].mainThread);
 	LOGT("Added process: %s [pid:%d]\n", processTable[p].name, processTable[p].PID);
+
+	kMutex_Unlock(procMan_mutex);
 }
 
 void kProcessManager_KillProcess(unsigned ind) 

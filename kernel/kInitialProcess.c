@@ -16,7 +16,7 @@ void kInitialProcess_Setup()
         LOGT("Module: %s\n", hdr->magic);
         ASSERT(strlen(hdr->magic) > 0);
         
-        kProcessManager_CreateProcess(hdr->magic, (uint8_t*)hdr + hdr->headerSize, hdr->codeSize, 0);
+        kProcessManager_CreateProcess(hdr->magic, (uint8_t*)hdr + hdr->headerSize, hdr->codeSize, 1);
 
         off += hdr->totalSize;
     }
