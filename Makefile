@@ -32,7 +32,8 @@ QEMU_SECMON := $(BUILD)/$(secmon)_qemu.bin
 QEMU_ARGS := -M $(QEMU_MACHINE) \
 			-serial stdio \
 			-device loader,file=$(QEMU_SECMON),addr=0x0,force-raw=on \
-			-device loader,file=$(boot).bin,addr=0x80000,force-raw=on
+			-device loader,file=$(boot).bin,addr=0x80000,force-raw=on \
+			-drive file=$(Project).img,if=sd,format=raw
 
 CFLAGS := -I$(INCLUDE) $(COMMON)
 ASFLAGS := -I$(INCLUDE) -D__ASSEMBLY__ $(COMMON)

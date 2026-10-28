@@ -113,7 +113,7 @@ void panic() {
     }
 }
 
-void kprintf(char *fmt, ...) {
+void kprintf(const char *fmt, ...) {
 	static char buf[128];
 	va_list list;
 	va_start(list, fmt);
