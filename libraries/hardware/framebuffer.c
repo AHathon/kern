@@ -4,6 +4,7 @@
 #include "libraries/hardware/mmio_vars.h"
 
 uint32_t width, height, pitch, isrgb;
+uint32_t fbSize;
 uint8_t *fb;
 
 static uint32_t vgapal[] = {
@@ -56,7 +57,7 @@ void Framebuffer_Init(uint32_t w, uint32_t h)
     mbox[21] = TAG_SETPXLORDR;
     mbox[22] = 4;
     mbox[23] = 4;
-    mbox[24] = 1; // RGB
+    mbox[24] = 0; // BGR: palette entries are 0xRRGGBB words, i.e. B,G,R in memory
 
     mbox[25] = TAG_GETFB;
     mbox[26] = 8;
@@ -76,7 +77,32 @@ void Framebuffer_Init(uint32_t w, uint32_t h)
     {
         mbox[28] &= 0x3FFFFFFF; // Convert GPU address to ARM address
         fb = (uint8_t *)(mbox[28]);
+        fbSize = mbox[29];
+        width = mbox[5];
+        height = mbox[6];
+        pitch = mbox[33];
     }
+}
+
+//For processes handed an already set up framebuffer mapping
+void Framebuffer_Attach(uint8_t *ptr, uint32_t w, uint32_t h, uint32_t p)
+{
+    fb = ptr;
+    width = w;
+    height = h;
+    pitch = p;
+    fbSize = p * h;
+    FB_OFF = 0;
+}
+
+uint32_t Framebuffer_GetSize()
+{
+    return fbSize;
+}
+
+uint32_t Framebuffer_GetPitch()
+{
+    return pitch;
 }
 
 uint8_t *Framebuffer_GetPtr()
@@ -86,7 +112,9 @@ uint8_t *Framebuffer_GetPtr()
 
 void Framebuffer_DrawPixel(int32_t x, int32_t y, uint8_t attr)
 {
-    int32_t offs = (y * mbox[33]) + (x * 4);
+    if(!fb || x < 0 || y < 0 || (uint32_t)x >= width || (uint32_t)y >= height)
+        return;
+    int32_t offs = (y * pitch) + (x * 4);
     *((uint32_t*)(fb + offs + FB_OFF)) = vgapal[attr & 0x0f];
 }
 

@@ -6,6 +6,8 @@ long svcImpl_MapMem(void *addr, long size);
 void svcImpl_FreeMem(void *addr);
 void svcImpl_ExitProcess();
 long svcImpl_CreateProcess(const char *name, const void *code, long size);
+long svcImpl_StartProcess(long pid);
+long svcImpl_MapPhysicalMemory(long pid, void *addr, uintptr_t paddr, long size);
 long svcImpl_CreatePort(const char *name);
 long svcImpl_ConnectToPort(const char *name);
 long svcImpl_SendSyncRequest(long session);

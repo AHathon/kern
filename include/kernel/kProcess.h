@@ -7,6 +7,7 @@
 #define MAX_PAGES_OWNED 32
 #define MAX_THREADS_OWNED 32
 #define IS_ACTIVE_PROC 1 << 0
+#define IS_STARTED_PROC 1 << 1
 #define MAX_HANDLES 32
 
 typedef enum

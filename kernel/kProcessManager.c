@@ -26,7 +26,7 @@ kProcess *kProcessManager_GetCurrentProcess()
 	return (kProcess *)currThread->parent;
 }
 
-int64_t kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, uint8_t isKernelProc)
+int64_t kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, uint8_t isKernelProc, uint8_t start)
 {
 	kMutex_Lock(procMan_mutex);
 
@@ -80,7 +80,8 @@ int64_t kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize
 	processTable[p].threadCnt++;
 
 	//Add main thread to scheduler
-	kScheduler_AddThread(processTable[p].mainThread);
+	if(start)
+		kProcessManager_StartProcess(p);
 	LOGT("Added process: %s [pid:%d]\n", processTable[p].name, processTable[p].PID);
 
 	kMutex_Unlock(procMan_mutex);
@@ -109,4 +110,21 @@ void kProcessManager_PrintDebugProc() {
 			);
 		}
 	}
+}
+kProcess *kProcessManager_GetProcess(int64_t pid)
+{
+	if(pid < 1 || pid > lastPID || !(processTable[pid].flags & IS_ACTIVE_PROC))
+		return 0;
+	return &processTable[pid];
+}
+
+int64_t kProcessManager_StartProcess(int64_t pid)
+{
+	kProcess *proc = kProcessManager_GetProcess(pid);
+	if(!proc || (proc->flags & IS_STARTED_PROC))
+		return -1;
+
+	SET_BIT(proc->flags, IS_STARTED_PROC);
+	kScheduler_AddThread(proc->mainThread);
+	return 0;
 }

@@ -92,8 +92,45 @@ long svcImpl_CreateProcess(const char *name, const void *code, long size)
     if(r != SVC_OK)
         return r;
 
-    int64_t pid = kProcessManager_CreateProcess(procName, (uint8_t*)code, size, 0);
+    int64_t pid = kProcessManager_CreateProcess(procName, (uint8_t*)code, size, 0, 0);
     return pid < 0 ? SVC_ERR_PROC_LIMIT : pid;
+}
+
+long svcImpl_StartProcess(long pid)
+{
+    return kProcessManager_StartProcess(pid) == 0 ? SVC_OK : SVC_ERR_INVALID_PROCESS;
+}
+
+long svcImpl_MapPhysicalMemory(long pid, void *addr, uintptr_t paddr, long size)
+{
+    kProcess *caller = kProcessManager_GetCurrentProcess();
+    if(caller->mainThread->threadType != THREAD_KERNEL)
+        return SVC_ERR_NOT_PERMITTED;
+
+    kProcess *target = kProcessManager_GetProcess(pid);
+    if(!target)
+        return SVC_ERR_INVALID_PROCESS;
+
+    uintptr_t va = (uintptr_t)addr;
+    if(va == 0 || (va & (PAGE_SIZE - 1)) || va >= USERLAND_VIRT_END || (paddr & (PAGE_SIZE - 1)))
+        return SVC_ERR_INVALID_ADDR;
+    if(size <= 0 || size > USERLAND_VIRT_END - va)
+        return SVC_ERR_INVALID_SIZE;
+
+    size_t mapSize = (size + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+    if(paddr < DRAM_START + MAX_PAGES * PAGE_SIZE)
+        return SVC_ERR_INVALID_ADDR;
+
+    uintptr_t pageTable = KERN_PADDR_TO_VADDR(target->pageTables);
+    for(size_t off = 0; off < mapSize; off += PAGE_SIZE)
+        if(MMU_IsPageMapped(pageTable, va + off))
+            return SVC_ERR_ALREADY_MAPPED;
+
+    uint64_t flags = ATTR_NOEXEC | ATTR_UNCACHED;
+    if(target->mainThread->threadType == THREAD_KERNEL)
+        flags |= ATTR_KERNEL;
+    MMU_MapMemPages(pageTable, paddr, va, mapSize, flags);
+    return SVC_OK;
 }
 
 long svcImpl_CreatePort(const char *name)

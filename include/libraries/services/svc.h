@@ -1,5 +1,7 @@
 #pragma once
 
+#include "libraries/types.h"
+
 #define SVC_OK                  0
 #define SVC_ERR_INVALID_ADDR    -1
 #define SVC_ERR_INVALID_SIZE    -2
@@ -10,6 +12,8 @@
 #define SVC_ERR_SESSION_CLOSED  -7
 #define SVC_ERR_LIMIT           -8
 #define SVC_ERR_BUSY            -9
+#define SVC_ERR_NOT_PERMITTED   -10
+#define SVC_ERR_INVALID_PROCESS -11
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,7 +22,9 @@ extern "C" {
 long svcMapMem(void *addr, long size);
 inline void svcFreeMem(void *addr);
 inline void svcExitProcess();
-long svcCreateProcess(const char *name, const void *code, long size);
+long svcCreateProcess(const char *name, const void *code, long size); //returns PID; not scheduled until svcStartProcess
+long svcStartProcess(long pid);
+long svcMapPhysicalMemory(long pid, void *addr, uintptr_t paddr, long size);
 
 long svcCreatePort(const char *name);
 long svcConnectToPort(const char *name);

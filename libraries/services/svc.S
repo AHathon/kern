@@ -58,6 +58,18 @@ svcYield:
     svc 9
     ret
 
+.globl svcStartProcess
+.type svcStartProcess, %function;
+svcStartProcess:
+    svc 10
+    ret
+
+.globl svcMapPhysicalMemory
+.type svcMapPhysicalMemory, %function;
+svcMapPhysicalMemory:
+    svc 11
+    ret
+
 .globl svcDebug
 .type svcDebug, %function;
 svcDebug:

@@ -49,5 +49,6 @@ typedef enum
     ATTR_DEVICE         = (1 << 1),
     ATTR_KERNEL         = (1 << 2),
     ATTR_NOEXEC         = (1 << 3),
-    ATTR_READONLY       = (1 << 4)
+    ATTR_READONLY       = (1 << 4),
+    ATTR_UNCACHED       = (1 << 5)
 } MemoryAttribs;

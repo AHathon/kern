@@ -113,7 +113,7 @@ void MMU_MapMemPages(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size
 
     uint64_t el_flags = (attrib & ATTR_KERNEL) ? PT_KERNEL : PT_USER;
     uint64_t inout_flags = (attrib & ATTR_OUTER_SHARE) ? PT_OSH : PT_ISH;
-    uint64_t memdev_flags = (attrib & ATTR_DEVICE) ? PT_DEV : PT_MEM;
+    uint64_t memdev_flags = (attrib & ATTR_DEVICE) ? PT_DEV : (attrib & ATTR_UNCACHED) ? PT_NC : PT_MEM;
     uint64_t nx_flags = (attrib & ATTR_NOEXEC) ? PT_NX : 0;
     uint64_t rwx_flags = (attrib & ATTR_READONLY) ? PT_RO : PT_RW;
 

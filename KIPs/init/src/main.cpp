@@ -44,6 +44,16 @@ static int HasSuffix(const char *s, const char *suffix)
     return 1;
 }
 
+static int StrEq(const char *a, const char *b)
+{
+    while(*a && *a == *b)
+    {
+        a++;
+        b++;
+    }
+    return *a == *b;
+}
+
 static void LoadProcess(Service *fs, FsDirEntry *entry)
 {
     char path[FS_MAX_PATH];
@@ -86,7 +96,21 @@ static void LoadProcess(Service *fs, FsDirEntry *entry)
 
     long pid = svcCreateProcess(name, buf, entry->size);
     if(pid < 0)
-        ERROR("[init] failed to start %s (err -%d)\n", name, -pid);
+    {
+        ERROR("[init] failed to create %s (err -%d)\n", name, -pid);
+        return;
+    }
+
+    if(StrEq(name, "gfx") && Framebuffer_GetPtr())
+    {
+        long r = svcMapPhysicalMemory(pid, (void*)USERLAND_FB_VIRT_BASE, (uintptr_t)Framebuffer_GetPtr(), Framebuffer_GetSize());
+        if(r != SVC_OK)
+            ERROR("[init] couldn't map framebuffer into gfx (err -%d)\n", -r);
+    }
+
+    long r = svcStartProcess(pid);
+    if(r != SVC_OK)
+        ERROR("[init] failed to start %s (err -%d)\n", name, -r);
     else
         LOG("[init] started %s [pid:%d]\n", name, pid);
 }

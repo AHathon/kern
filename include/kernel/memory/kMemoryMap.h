@@ -6,6 +6,7 @@
 
 //Virtual
 #define USERLAND_VIRT_BASE      0x0000000001000000ULL
+#define USERLAND_FB_VIRT_BASE   0x0000000050000000ULL //where init maps the framebuffer into gfx
 #define USERLAND_VIRT_END       0x0000008000000000ULL //TTBR0 range (T0SZ=25)
 #define KERNEL_VIRT_BASE        0xFFFFFF8000000000ULL
 

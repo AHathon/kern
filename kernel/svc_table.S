@@ -38,6 +38,14 @@ hndlr_svcCloseHandle:
 hndlr_svcYield:
     b svcImpl_Yield
 
+.globl hndlr_svcStartProcess
+hndlr_svcStartProcess:
+    b svcImpl_StartProcess
+
+.globl hndlr_svcMapPhysicalMemory
+hndlr_svcMapPhysicalMemory:
+    b svcImpl_MapPhysicalMemory
+
 .globl hndlr_svcDebug
 hndlr_svcDebug:
     b svcImpl_Debug
@@ -59,8 +67,10 @@ swi_table:
     .dword hndlr_svcReplyAndReceive
     .dword hndlr_svcCloseHandle
     .dword hndlr_svcYield
+    .dword hndlr_svcStartProcess
+    .dword hndlr_svcMapPhysicalMemory
 
-    .rept 0xFF - 10
+    .rept 0xFF - 12
     .dword hndlr_svcUnknown
     .endr
     
