@@ -2,6 +2,7 @@
 #include "kernel/kThread.h"
 #include "kernel/memory/kMemoryMap.h"
 #include "kernel/kMutex.h"
+#include "kernel/kIpc.h"
 #include "libraries/libc/string.h"
 
 static kProcess processTable[MAX_PROC];
@@ -91,6 +92,7 @@ void kProcessManager_KillProcess(unsigned ind)
 	if(ind >= MAX_PROC) return;
 	//Set process as inactive and set all threads to terminated
 	CLR_BIT(processTable[ind].flags, IS_ACTIVE_PROC);
+	kIpc_ProcessExit(&processTable[ind]);
 	while(processTable[ind].threadCnt)
 	{
 		processTable[ind].threadsOwned[processTable[ind].threadCnt-- - 1]->state = STATE_TERMINATED;

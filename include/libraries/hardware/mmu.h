@@ -32,6 +32,7 @@
 #define L3_IDX(x) ((x >> L3_SHIFT) & 0x1FF)
 
 #define PHYS_ADDR_MASK  (~((PAGE_SIZE) - 1ULL))
+#define PT_OUTPUT_ADDR_MASK 0x0000FFFFFFFFF000ULL //drops upper attribute bits (PXN/UXN...)
 
 #define TTBR_CNP 1
 

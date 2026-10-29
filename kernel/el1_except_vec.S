@@ -127,8 +127,14 @@ svc_64:
 	mov x25, #NR_SYSCALLS
 	cmp x26, x25                    //Check upper syscall limit
 	b.hs sync_invalid_el1h
-	ldr x16, [x27, x26, lsl #3]     // address in the syscall table
 	bl disable_irq
+	mov x0, sp						// blocking svcs resume from this frame
+	bl kScheduler_SaveTrapFrame
+	ldp x0, x1, [sp, #16 * 0]		// restore svc args clobbered by the call
+	ldp x2, x3, [sp, #16 * 1]
+	ldp x4, x5, [sp, #16 * 2]
+	ldp x6, x7, [sp, #16 * 3]
+	ldr x16, [x27, x26, lsl #3]     // address in the syscall table
 	blr x16							// call sys_* routine
 	str x0, [sp, #16 * 0]			// return value -> saved x0 in trap frame
 	bl enable_irq
@@ -162,8 +168,9 @@ irq_el0_64:
 .type el1_vector_base, %function;
 
 el1_vector_base:
-	ventry	sync_invalid_el1t			// Synchronous EL1t
-	ventry	irq_invalid_el1t			// IRQ EL1t
+	// Kernel threads (KIPs) run in EL1t; same handling as EL1h
+	ventry	sync_el1h					// Synchronous EL1t
+	ventry	irq_el1h					// IRQ EL1t
 	ventry	fiq_invalid_el1t			// FIQ EL1t
 	ventry	error_invalid_el1t			// Error EL1t
 

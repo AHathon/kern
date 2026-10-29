@@ -30,8 +30,10 @@ typedef struct
     uintptr_t sp;
     uintptr_t kern_sp;
     size_t stackSize;
+    void *ipcBuf;
     ThreadType threadType;
     ThreadState state;
+    uint8_t started;
 } kThread;
 
 kThread *kThread_Create(void *parent, void *entryPtr, size_t stackSize, ThreadType type);

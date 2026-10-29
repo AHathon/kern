@@ -4,6 +4,8 @@
 #include "kernel/memory/kMemoryMap.h"
 #include "kernel/memory/mmu.h"
 #include "libraries/services/svc.h"
+#include "libraries/services/ipc.h"
+#include "kernel/kIpc.h"
 
 long svcImpl_MapMem(void *addr, long size)
 {
@@ -60,6 +62,21 @@ static uint8_t svc_IsRangeMapped(uintptr_t pageTable, uintptr_t va, size_t size)
     return 1;
 }
 
+static long svc_CopyName(uintptr_t pageTable, const char *name, char out[IPC_PORT_NAME_LEN])
+{
+    size_t n = 0;
+    for(; n < IPC_PORT_NAME_LEN - 1; n++)
+    {
+        if(!svc_IsRangeMapped(pageTable, (uintptr_t)&name[n], 1))
+            return SVC_ERR_INVALID_ADDR;
+        if(!name[n])
+            break;
+        out[n] = name[n];
+    }
+    out[n] = 0;
+    return n == 0 ? SVC_ERR_INVALID_ADDR : SVC_OK;
+}
+
 long svcImpl_CreateProcess(const char *name, const void *code, long size)
 {
     kProcess *proc = kProcessManager_GetCurrentProcess();
@@ -70,23 +87,49 @@ long svcImpl_CreateProcess(const char *name, const void *code, long size)
     if(!svc_IsRangeMapped(pageTable, (uintptr_t)code, size))
         return SVC_ERR_INVALID_ADDR;
 
-    //Process names are at most 7 chars + NUL
-    char procName[8];
-    size_t n = 0;
-    for(; n < sizeof(procName) - 1; n++)
-    {
-        if(!svc_IsRangeMapped(pageTable, (uintptr_t)&name[n], 1))
-            return SVC_ERR_INVALID_ADDR;
-        if(!name[n])
-            break;
-        procName[n] = name[n];
-    }
-    procName[n] = 0;
-    if(n == 0)
-        return SVC_ERR_INVALID_ADDR;
+    char procName[IPC_PORT_NAME_LEN];
+    long r = svc_CopyName(pageTable, name, procName);
+    if(r != SVC_OK)
+        return r;
 
     int64_t pid = kProcessManager_CreateProcess(procName, (uint8_t*)code, size, 0);
     return pid < 0 ? SVC_ERR_PROC_LIMIT : pid;
+}
+
+long svcImpl_CreatePort(const char *name)
+{
+    kProcess *proc = kProcessManager_GetCurrentProcess();
+    char portName[IPC_PORT_NAME_LEN];
+    long r = svc_CopyName(KERN_PADDR_TO_VADDR(proc->pageTables), name, portName);
+    return r != SVC_OK ? r : kIpc_CreatePort(portName);
+}
+
+long svcImpl_ConnectToPort(const char *name)
+{
+    kProcess *proc = kProcessManager_GetCurrentProcess();
+    char portName[IPC_PORT_NAME_LEN];
+    long r = svc_CopyName(KERN_PADDR_TO_VADDR(proc->pageTables), name, portName);
+    return r != SVC_OK ? r : kIpc_ConnectToPort(portName);
+}
+
+long svcImpl_SendSyncRequest(long session)
+{
+    return kIpc_SendSyncRequest(session);
+}
+
+long svcImpl_ReplyAndReceive(long port, long replyTo)
+{
+    return kIpc_ReplyAndReceive(port, replyTo);
+}
+
+long svcImpl_CloseHandle(long handle)
+{
+    return kIpc_CloseHandle(handle);
+}
+
+long svcImpl_Yield()
+{
+    kScheduler_Yield();
 }
 
 void svcImpl_Debug(void)

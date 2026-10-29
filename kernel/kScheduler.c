@@ -4,6 +4,7 @@
 #include "kernel/kProcessManager.h"
 #include "libraries/hardware/irq.h"
 #include "libraries/hardware/gic.h"
+#include "libraries/libc/string.h"
 
 static run_queue_t runqueue;
 kThread *current = 0;
@@ -45,39 +46,85 @@ kThread *kScheduler_GetCurrentThread()
     return current;
 }
 
+//svc entry records the trap frame so a blocking svc can be resumed from it
+void kScheduler_SaveTrapFrame(uintptr_t sp)
+{
+    if(current)
+        current->kern_sp = sp;
+}
+
+//Result a blocked/yielding thread sees in x0 once it's resumed (x0 sits at the bottom of the frame)
+void kScheduler_SetReturn(kThread *thread, uint64_t value)
+{
+    *(uint64_t*)thread->kern_sp = value;
+}
+
+void kScheduler_Block()
+{
+    current->state = STATE_WAITING;
+    kScheduler_schedule();
+    __builtin_unreachable();
+}
+
+void kScheduler_Wake(kThread *thread, uint64_t retval)
+{
+    kScheduler_SetReturn(thread, retval);
+    thread->state = STATE_READY;
+    runq_push(&runqueue, thread);
+}
+
+void kScheduler_Yield()
+{
+    kScheduler_SetReturn(current, 0);
+    kScheduler_schedule();
+    __builtin_unreachable();
+}
+
 void kScheduler_schedule()
 {
-    if(schedulerInit)
+    if(!schedulerInit)
+        return;
+
+    if(current)
     {
-        //If theres a task currently, and its still good, push it back
-        if (current && current->state != STATE_TERMINATED)
+        if(current->state == STATE_TERMINATED)
         {
-            kProcess *parent = (kProcess*)(current->parent);
-            LOG("pushing: %s\n", parent->name);
-            current->state = STATE_RUNNING;
-            runq_push(&runqueue, current);
-        }
-        if(current && current->state == STATE_TERMINATED)
-        {
-            //Cleanup terminated threads
             LOG("relinquishing thread [id:%d]\n", current->id);
             kThread_Destroy(current);
         }
-
-        //Pop after pushing current back, so a lone runnable thread keeps running
-        ASSERT(runqueue.size > 0);
-        kThread *next = runq_pop(&runqueue);
-
-        //Switch tasks
-        current = next;
-        if (current && current->state != STATE_TERMINATED)
+        else if(current->state != STATE_WAITING)
         {
-            uint8_t isNew = current->state == STATE_READY;
-            uint8_t isKernel = current->threadType == THREAD_KERNEL;
-            kProcess *parent = (kProcess*)(current->parent);
-            LOG("switching: %s @ 0x%X [proc is %s and is %s]\n", parent->name, current->entryPtr, isNew ? "new" : "old", isKernel ? "kernel" : "user");
-            localTimerIrqReset();
-            context_switch(current->entryPtr, current->sp, current->kern_sp, parent->pageTables, isNew, isKernel);
+            //Push before popping so a lone runnable thread keeps running
+            current->state = STATE_READY;
+            runq_push(&runqueue, current);
         }
     }
+
+    //Threads killed while queued get cleaned up here
+    kThread *next;
+    while((next = runq_pop(&runqueue)) && next->state == STATE_TERMINATED)
+    {
+        LOG("relinquishing thread [id:%d]\n", next->id);
+        kThread_Destroy(next);
+    }
+    //Only threads wake threads (no IRQ-driven wakeups yet), so an empty queue means
+    //everything has exited or is blocked for good
+    if(!next)
+    {
+        LOGT("No runnable threads left\n");
+        disable_irq();
+        panic();
+    }
+
+    uint8_t isNew = !next->started;
+    uint8_t isKernel = next->threadType == THREAD_KERNEL;
+    kProcess *parent = (kProcess*)(next->parent);
+    if(next != current)
+        LOG("switching: %s @ 0x%X [proc is %s and is %s]\n", parent->name, next->entryPtr, isNew ? "new" : "old", isKernel ? "kernel" : "user");
+
+    current = next;
+    current->started = 1;
+    current->state = STATE_RUNNING;
+    localTimerIrqReset();
+    context_switch(current->entryPtr, current->sp, current->kern_sp, parent->pageTables, isNew, isKernel);
 }

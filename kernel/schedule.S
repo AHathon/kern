@@ -60,8 +60,8 @@ _handle_new_process:
     eret
 
 _handle_new_kernel_process:
-    //EL1h, runs on SP_EL1 using the thread's own stack
-    mov x9, #0b0101
+    //EL1t: runs on its own stack via SP_EL0, so exceptions switch to SP_EL1 (kern_sp, kernel memory)
+    mov x9, #0b0100
     msr SPSR_EL1, x9
-    mov sp, x1
+    msr SP_EL0, x1
     eret

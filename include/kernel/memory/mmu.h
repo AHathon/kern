@@ -22,6 +22,7 @@ void MMU_MapMemPages(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size
 void MMU_MapMemBlocks(uintptr_t pageTable, uintptr_t paddr, uintptr_t vaddr, size_t size, MemoryAttribs attrib);
 void MMU_UnmapMemPages(uintptr_t pageTable, uintptr_t vaddr, size_t size);
 uint8_t MMU_IsPageMapped(uintptr_t pageTable, uintptr_t vaddr);
+uint64_t MMU_GetPageEntry(uintptr_t pageTable, uintptr_t vaddr);
 void MMU_ClearIdentityMap();
 void MMU_SetTtrb0(uintptr_t pageTable);
 uint64_t *MMU_GetKernelPageTable();

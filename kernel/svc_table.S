@@ -14,6 +14,30 @@ hndlr_svcExitProcess:
 hndlr_svcCreateProcess:
     b svcImpl_CreateProcess
 
+.globl hndlr_svcCreatePort
+hndlr_svcCreatePort:
+    b svcImpl_CreatePort
+
+.globl hndlr_svcConnectToPort
+hndlr_svcConnectToPort:
+    b svcImpl_ConnectToPort
+
+.globl hndlr_svcSendSyncRequest
+hndlr_svcSendSyncRequest:
+    b svcImpl_SendSyncRequest
+
+.globl hndlr_svcReplyAndReceive
+hndlr_svcReplyAndReceive:
+    b svcImpl_ReplyAndReceive
+
+.globl hndlr_svcCloseHandle
+hndlr_svcCloseHandle:
+    b svcImpl_CloseHandle
+
+.globl hndlr_svcYield
+hndlr_svcYield:
+    b svcImpl_Yield
+
 .globl hndlr_svcDebug
 hndlr_svcDebug:
     b svcImpl_Debug
@@ -29,8 +53,14 @@ swi_table:
     .dword hndlr_svcFreeMem
     .dword hndlr_svcExitProcess
     .dword hndlr_svcCreateProcess
+    .dword hndlr_svcCreatePort
+    .dword hndlr_svcConnectToPort
+    .dword hndlr_svcSendSyncRequest
+    .dword hndlr_svcReplyAndReceive
+    .dword hndlr_svcCloseHandle
+    .dword hndlr_svcYield
 
-    .rept 0xFF - 4
+    .rept 0xFF - 10
     .dword hndlr_svcUnknown
     .endr
     

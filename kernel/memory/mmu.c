@@ -298,6 +298,21 @@ uint8_t MMU_IsPageMapped(uintptr_t pageTable, uintptr_t vaddr)
     return (L3_tbl_ptr[L3_IDX(vaddr)] & 0b11) == PT_PAGE;
 }
 
+//L3 descriptor for vaddr, or 0 if it isn't mapped by a page
+uint64_t MMU_GetPageEntry(uintptr_t pageTable, uintptr_t vaddr)
+{
+    uint64_t L1_entry = ((uint64_t*)pageTable)[L1_IDX(vaddr)];
+    if((L1_entry & 0b11) != PT_TABLE) return 0;
+
+    uint64_t *L2_tbl_ptr = (uint64_t*)((L1_entry & PT_OUTPUT_ADDR_MASK) + KERNEL_VIRT_BASE);
+    uint64_t L2_entry = L2_tbl_ptr[L2_IDX(vaddr)];
+    if((L2_entry & 0b11) != PT_TABLE) return 0;
+
+    uint64_t *L3_tbl_ptr = (uint64_t*)((L2_entry & PT_OUTPUT_ADDR_MASK) + KERNEL_VIRT_BASE);
+    uint64_t L3_entry = L3_tbl_ptr[L3_IDX(vaddr)];
+    return (L3_entry & 0b11) == PT_PAGE ? L3_entry : 0;
+}
+
 void MMU_UnmapMemPages(uintptr_t pageTable, uintptr_t vaddr, size_t size)
 {
     LOG("Unmapping mem @ 0x%X [0x%X bytes]\n", vaddr, size);

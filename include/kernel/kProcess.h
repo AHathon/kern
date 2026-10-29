@@ -7,6 +7,21 @@
 #define MAX_PAGES_OWNED 32
 #define MAX_THREADS_OWNED 32
 #define IS_ACTIVE_PROC 1 << 0
+#define MAX_HANDLES 32
+
+typedef enum
+{
+    HANDLE_NONE,
+    HANDLE_PORT,
+    HANDLE_SESSION_CLIENT,
+    HANDLE_SESSION_SERVER
+} HandleType;
+
+typedef struct
+{
+    uint8_t type;
+    uint8_t index;
+} kHandle;
 
 typedef struct
 {
@@ -20,4 +35,5 @@ typedef struct
     kThread *threadsOwned[MAX_THREADS_OWNED];
     size_t threadCnt;
     kCodeSet code;
+    kHandle handles[MAX_HANDLES];
 } kProcess;

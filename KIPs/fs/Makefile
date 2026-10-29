@@ -1,5 +1,5 @@
 TARGET := fs
-INCLUDE := 
+INCLUDE := -Iinclude
 LIBS :=
 
 include $(PROJECT_ROOT)/misc/base_service_rules

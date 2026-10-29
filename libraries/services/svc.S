@@ -22,6 +22,42 @@ svcCreateProcess:
     svc 3
     ret
 
+.globl svcCreatePort
+.type svcCreatePort, %function;
+svcCreatePort:
+    svc 4
+    ret
+
+.globl svcConnectToPort
+.type svcConnectToPort, %function;
+svcConnectToPort:
+    svc 5
+    ret
+
+.globl svcSendSyncRequest
+.type svcSendSyncRequest, %function;
+svcSendSyncRequest:
+    svc 6
+    ret
+
+.globl svcReplyAndReceive
+.type svcReplyAndReceive, %function;
+svcReplyAndReceive:
+    svc 7
+    ret
+
+.globl svcCloseHandle
+.type svcCloseHandle, %function;
+svcCloseHandle:
+    svc 8
+    ret
+
+.globl svcYield
+.type svcYield, %function;
+svcYield:
+    svc 9
+    ret
+
 .globl svcDebug
 .type svcDebug, %function;
 svcDebug:
