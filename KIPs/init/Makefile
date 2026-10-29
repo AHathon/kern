@@ -1,5 +1,5 @@
 TARGET := init
-INCLUDE := -I$(PROJECT_ROOT)/KIPs/fs/include
+INCLUDE := 
 LIBS :=
 
 include $(PROJECT_ROOT)/misc/base_service_rules

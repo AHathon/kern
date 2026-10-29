@@ -1,5 +1,5 @@
 #include "libraries/services/svc.h"
-#include "fs.h"
+#include "libraries/ipc/fs.h"
 #include "libraries/hardware/framebuffer.h"
 #include "libraries/hardware/mmio_vars.h"
 #include "libraries/hardware/debug.h"
@@ -44,7 +44,7 @@ static int HasSuffix(const char *s, const char *suffix)
     return 1;
 }
 
-static void LoadProcess(long fs, FsDirEntry *entry)
+static void LoadProcess(Service *fs, FsDirEntry *entry)
 {
     char path[FS_MAX_PATH];
     size_t n = 0;
@@ -68,10 +68,11 @@ static void LoadProcess(long fs, FsDirEntry *entry)
         if(chunk > IPC_MAX_COPY)
             chunk = IPC_MAX_COPY;
 
-        long got = FS_ReadFile(fs, path, off, buf + off, chunk, 0);
-        if(got <= 0)
+        uint32_t got = 0;
+        long r = fsReadFile(fs, path, off, buf + off, chunk, &got, 0);
+        if(r != FS_OK || got == 0)
         {
-            ERROR("[init] failed to read %s (err -%d)\n", path, -got);
+            ERROR("[init] failed to read %s (err -%d)\n", path, -r);
             return;
         }
         off += got;
@@ -98,33 +99,34 @@ int main()
 
     Framebuffer_Init(MAIN_DISP_WIDTH, MAIN_DISP_HEIGHT);
 
-    //Blocks until fs registers its port
-    long fs = svcConnectToPort(FS_PORT_NAME);
-    if(fs < 0)
+    Service fs;
+    long r = fsInitialize(&fs);
+    if(r != FS_OK)
     {
-        ERROR("[init] couldn't connect to fs (err -%d)\n", -fs);
+        ERROR("[init] couldn't connect to fs (err -%d)\n", -r);
         return 0;
     }
 
     uint32_t start = 0;
     while(1)
     {
-        long count = FS_ListDir(fs, PROC_DIR, start, entries, sizeof(entries) / sizeof(entries[0]));
-        if(count < 0)
+        uint32_t count = 0;
+        r = fsListDir(&fs, PROC_DIR, start, entries, sizeof(entries) / sizeof(entries[0]), &count);
+        if(r != FS_OK)
         {
-            ERROR("[init] can't list %s (err -%d)\n", PROC_DIR, -count);
+            ERROR("[init] can't list %s (err -%d)\n", PROC_DIR, -r);
             break;
         }
 
-        for(long i = 0; i < count; i++)
+        for(uint32_t i = 0; i < count; i++)
             if(!(entries[i].attr & FS_ATTR_DIRECTORY) && HasSuffix(entries[i].name, PROC_EXT))
-                LoadProcess(fs, &entries[i]);
+                LoadProcess(&fs, &entries[i]);
 
-        if(count < (long)(sizeof(entries) / sizeof(entries[0])))
+        if(count < sizeof(entries) / sizeof(entries[0]))
             break;
         start += count;
     }
 
-    svcCloseHandle(fs);
+    fsExit(&fs);
     return 0;
 }

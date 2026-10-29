@@ -2,17 +2,17 @@
 #include "libraries/hardware/mmio_vars.h"
 #include "libraries/hardware/debug.h"
 #include "libraries/services/svc.h"
-#include "libraries/services/ipc.h"
+#include "libraries/ipc/server.h"
 #include "fs.h"
 #include "kernel/memory/kMemoryMap.h"
 #include "libraries/types.h"
 #include "fat32.h"
 
-//Reply data is staged here; the kernel copies it into the client's buffer
 #define FS_BUF_VA       0x40000000UL
 #define FS_MAX_LIST     64
 
 static Fat32_t fat;
+static int mounted = 0;
 static FsDirEntry listBuf[FS_MAX_LIST];
 
 typedef struct
@@ -28,65 +28,93 @@ static int FS_ListVisitor(Fat32_t *fs, Fat32Entry_t *entry, void *ctx)
     UNUSED(fs);
     FsListCtx *list = (FsListCtx*)ctx;
     if(entry->name[0] == '.')
-        return 0; //. and ..
+        return 0;
     if(list->index++ < list->start)
         return 0;
 
     FsDirEntry *out = &listBuf[list->count++];
-    for(int i = 0; i < (int)sizeof(out->name); i++)
-        out->name[i] = entry->name[i];
+    size_t n = 0;
+    for(; entry->name[n] && n < sizeof(out->name) - 1; n++)
+        out->name[n] = entry->name[n];
+    out->name[n] = 0;
     out->attr = entry->attr;
     out->size = entry->size;
     return list->count >= list->max;
 }
 
-//Both handlers read the request before writing the reply over it
-static int32_t FS_HandleReadFile(IpcMessage *msg, FsRequest *req)
+static long FS_ReadFile(ServerRequest *req, const char *path, uint32_t offset)
 {
     Fat32Entry_t entry;
-    if(Fat32_Open(&fat, req->path, &entry) != 0)
+    if(Fat32_Open(&fat, path, &entry) != 0)
         return FS_ERR_NOT_FOUND;
     if(entry.attr & FAT_ATTR_DIRECTORY)
         return FS_ERR_IS_DIR;
 
-    uint32_t size = msg->bufCount ? msg->bufs[0].size : 0;
+    uint32_t size = req->bufCapacity[0];
     if(size > IPC_MAX_COPY)
         size = IPC_MAX_COPY;
 
-    long n = Fat32_ReadAt(&fat, &entry, req->offset, (uint8_t*)FS_BUF_VA, size);
+    long n = Fat32_ReadAt(&fat, &entry, offset, (uint8_t*)FS_BUF_VA, size);
     if(n < 0)
         return FS_ERR_IO;
 
-    ((FsReply*)msg->data)->total = entry.size;
-    msg->dataSize = sizeof(FsReply);
-    msg->bufCount = 1;
-    msg->bufs[0].va = FS_BUF_VA;
-    msg->bufs[0].size = n;
+    FsReadFileOut *out = (FsReadFileOut*)req->out;
+    out->bytesRead = n;
+    out->fileSize = entry.size;
+    req->outSize = sizeof(*out);
+    req->replyBufs[0].ptr = (void*)FS_BUF_VA;
+    req->replyBufs[0].size = n;
     return FS_OK;
 }
 
-static int32_t FS_HandleListDir(IpcMessage *msg, FsRequest *req)
+static long FS_ListDir(ServerRequest *req, const char *path, uint32_t start)
 {
     Fat32Entry_t dir;
-    if(Fat32_Open(&fat, req->path, &dir) != 0)
+    if(Fat32_Open(&fat, path, &dir) != 0)
         return FS_ERR_NOT_FOUND;
     if(!(dir.attr & FAT_ATTR_DIRECTORY))
         return FS_ERR_NOT_DIR;
 
-    FsListCtx list = { req->offset, 0, 0, FS_MAX_LIST };
-    uint32_t cap = msg->bufCount ? msg->bufs[0].size / sizeof(FsDirEntry) : 0;
+    FsListCtx list = { start, 0, 0, FS_MAX_LIST };
+    uint32_t cap = req->bufCapacity[0] / sizeof(FsDirEntry);
     if(cap < list.max)
         list.max = cap;
 
     if(list.max && Fat32_ListDir(&fat, dir.cluster, FS_ListVisitor, &list) != 0)
         return FS_ERR_IO;
 
-    ((FsReply*)msg->data)->total = list.count;
-    msg->dataSize = sizeof(FsReply);
-    msg->bufCount = 1;
-    msg->bufs[0].va = (uintptr_t)listBuf;
-    msg->bufs[0].size = list.count * sizeof(FsDirEntry);
+    FsListDirOut *out = (FsListDirOut*)req->out;
+    out->count = list.count;
+    req->outSize = sizeof(*out);
+    req->replyBufs[0].ptr = listBuf;
+    req->replyBufs[0].size = list.count * sizeof(FsDirEntry);
     return FS_OK;
+}
+
+static long FS_Handle(ServerRequest *req, void *ctx)
+{
+    UNUSED(ctx);
+    if(!mounted)
+        return FS_ERR_IO;
+    if(req->inSize < sizeof(FsPathIn) || req->bufCount < 1)
+        return FS_ERR_INVALID;
+
+    const FsPathIn *in = (const FsPathIn*)req->in;
+    char path[FS_MAX_PATH];
+    size_t n = 0;
+    for(; in->path[n] && n < sizeof(path) - 1; n++)
+        path[n] = in->path[n];
+    path[n] = 0;
+
+    switch(req->cmd)
+    {
+        case FS_CMD_READ_FILE:
+            return FS_ReadFile(req, path, in->offset);
+        case FS_CMD_LIST_DIR:
+            return FS_ListDir(req, path, in->offset);
+        default:
+            return FS_ERR_INVALID;
+    }
 }
 
 int main()
@@ -94,7 +122,7 @@ int main()
     //KIPs run at EL1 but link their own copy of the libraries; point them at the kernel's linear map
     MMIO_ADDR = MMIO_BASE + KERNEL_VIRT_BASE;
 
-    long port = svcCreatePort(FS_PORT_NAME);
+    long port = serverRegister(FS_PORT_NAME);
     if(port < 0)
     {
         ERROR("[fs] couldn't register port (err -%d)\n", -port);
@@ -108,48 +136,11 @@ int main()
     }
 
     //Keep serving even without a card so clients get errors instead of hanging
-    int mounted = EMMC_Init() == 0 && Fat32_Mount(&fat) == 0;
+    mounted = EMMC_Init() == 0 && Fat32_Mount(&fat) == 0;
     if(!mounted)
         ERROR("[fs] no boot volume; all requests will fail\n");
 
-    long reply = 0;
-    while(1)
-    {
-        long session = svcReplyAndReceive(port, reply);
-        if(session < 0)
-        {
-            //A failed reply still leaves us able to receive; anything else is fatal
-            if(!reply)
-            {
-                ERROR("[fs] receive failed (err -%d)\n", -session);
-                return 0;
-            }
-            reply = 0;
-            continue;
-        }
-
-        IpcMessage *msg = Ipc_GetMessage();
-        FsRequest *req = (FsRequest*)msg->data;
-        req->path[FS_MAX_PATH - 1] = 0;
-
-        int32_t result;
-        if(!mounted)
-            result = FS_ERR_IO;
-        else if(msg->dataSize < sizeof(FsRequest))
-            result = FS_ERR_INVALID;
-        else if(msg->cmd == FS_CMD_READ_FILE)
-            result = FS_HandleReadFile(msg, req);
-        else if(msg->cmd == FS_CMD_LIST_DIR)
-            result = FS_HandleListDir(msg, req);
-        else
-            result = FS_ERR_INVALID;
-
-        if(result != FS_OK)
-        {
-            msg->dataSize = 0;
-            msg->bufCount = 0;
-        }
-        msg->cmd = (uint32_t)result;
-        reply = session;
-    }
+    long r = serverRun(port, FS_Handle, 0);
+    ERROR("[fs] server stopped (err -%d)\n", -r);
+    return 0;
 }

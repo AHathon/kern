@@ -14,7 +14,8 @@ ifeq ($(PLAT),PI3)
 	COMMON += -DPI3
 endif
 
-CFLAGS := -I$(INCLUDE) $(COMMON)
+#Service clients pull protocol definitions from the services themselves
+CFLAGS := -I$(INCLUDE) -I$(PROJECT_ROOT)/KIPs/fs/include $(COMMON)
 ASFLAGS := -I$(INCLUDE) -D__ASSEMBLY__ $(COMMON)
 
 rwildcard = $(foreach d, $(wildcard $1*), $(filter $(subst *, %, $2), $d) $(call rwildcard, $d/, $2))
@@ -22,12 +23,14 @@ rwildcard = $(foreach d, $(wildcard $1*), $(filter $(subst *, %, $2), $d) $(call
 SRCS_S := $(call rwildcard, hardware, *.S) 	\
 		  $(call rwildcard, services, *.S) 	\
 		  $(call rwildcard, ui, *.S)		\
-		  $(call rwildcard, libc, *.S)
+		  $(call rwildcard, libc, *.S)		\
+		  $(call rwildcard, ipc, *.S)
 
 SRCS_C := $(call rwildcard, hardware, *.c) 	\
 		  $(call rwildcard, services, *.c) 	\
 		  $(call rwildcard, ui, *.c)		\
-		  $(call rwildcard, libc, *.c)
+		  $(call rwildcard, libc, *.c)		\
+		  $(call rwildcard, ipc, *.c)
 
 OBJS := $(patsubst %.c, $(BUILD)/%.o, $(SRCS_C)) \
 		$(patsubst %.S, $(BUILD)/%.o, $(SRCS_S))
@@ -53,3 +56,4 @@ setup:
 	mkdir -p $(BUILD)/services
 	mkdir -p $(BUILD)/ui
 	mkdir -p $(BUILD)/libc
+	mkdir -p $(BUILD)/ipc
