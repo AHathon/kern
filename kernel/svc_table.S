@@ -10,6 +10,10 @@ hndlr_svcFreeMem:
 hndlr_svcExitProcess:
     b svcImpl_ExitProcess
 
+.globl hndlr_svcCreateProcess
+hndlr_svcCreateProcess:
+    b svcImpl_CreateProcess
+
 .globl hndlr_svcDebug
 hndlr_svcDebug:
     b svcImpl_Debug
@@ -24,8 +28,9 @@ swi_table:
     .dword hndlr_svcMapMem
     .dword hndlr_svcFreeMem
     .dword hndlr_svcExitProcess
+    .dword hndlr_svcCreateProcess
 
-    .rept 0xFF - 3
+    .rept 0xFF - 4
     .dword hndlr_svcUnknown
     .endr
     

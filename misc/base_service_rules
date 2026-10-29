@@ -16,6 +16,8 @@ $(TARGET).kip: $(TARGET).bin
 	$(CC) -c -x assembler-with-cpp $(CFLAGS) -DSERVICE_MAGIC="\"$(TARGET)\"" -DSERVICE_BIN="\"$(TARGET).bin\"" $(PROJECT_ROOT)/misc/container.S -o $(BUILD)/container.o
 	$(OC) -O binary $(BUILD)/container.o $@
 
+.INTERMEDIATE: $(TARGET).bin
+
 $(TARGET).bin: $(TARGET).elf
 	$(OC) $< -O binary $@
 

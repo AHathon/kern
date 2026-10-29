@@ -49,6 +49,46 @@ void svcImpl_ExitProcess()
     kScheduler_schedule();
 }
 
+static uint8_t svc_IsRangeMapped(uintptr_t pageTable, uintptr_t va, size_t size)
+{
+    if(size == 0 || va >= USERLAND_VIRT_END || size > USERLAND_VIRT_END - va)
+        return 0;
+
+    for(uintptr_t page = va & ~(PAGE_SIZE - 1); page < va + size; page += PAGE_SIZE)
+        if(!MMU_IsPageMapped(pageTable, page))
+            return 0;
+    return 1;
+}
+
+long svcImpl_CreateProcess(const char *name, const void *code, long size)
+{
+    kProcess *proc = kProcessManager_GetCurrentProcess();
+    uintptr_t pageTable = KERN_PADDR_TO_VADDR(proc->pageTables);
+
+    if(size <= 0)
+        return SVC_ERR_INVALID_SIZE;
+    if(!svc_IsRangeMapped(pageTable, (uintptr_t)code, size))
+        return SVC_ERR_INVALID_ADDR;
+
+    //Process names are at most 7 chars + NUL
+    char procName[8];
+    size_t n = 0;
+    for(; n < sizeof(procName) - 1; n++)
+    {
+        if(!svc_IsRangeMapped(pageTable, (uintptr_t)&name[n], 1))
+            return SVC_ERR_INVALID_ADDR;
+        if(!name[n])
+            break;
+        procName[n] = name[n];
+    }
+    procName[n] = 0;
+    if(n == 0)
+        return SVC_ERR_INVALID_ADDR;
+
+    int64_t pid = kProcessManager_CreateProcess(procName, (uint8_t*)code, size, 0);
+    return pid < 0 ? SVC_ERR_PROC_LIMIT : pid;
+}
+
 void svcImpl_Debug(void)
 {
     LOGT("svcDebug()\n");

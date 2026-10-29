@@ -35,7 +35,9 @@ kThread *kThread_Create(void *parent, void *entryPtr, size_t stackSize, ThreadTy
 void kThread_Destroy(kThread *thread)
 {
     thread->state = STATE_TERMINATED;
-    kMemFree(thread->stackBase, thread->stackSize);
+    //stackBase is physical; kMemFree takes the kernel mapping
+    kMemFree((void*)KERN_PADDR_TO_VADDR((uintptr_t)thread->stackBase), thread->stackSize);
     thread->stackBase = 0;
-    kMemFree(thread, sizeof(kThread));
+    //Threads come from the slab; freeing the page would release its neighbours too
+    kSlabAlloc_Free(kThreadAllocator_GetInst(), (slab_node_t*)thread);
 }

@@ -7,7 +7,7 @@
 #define MAX_PROC 256
 
 void kProcessManager_Init();
-void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, uint8_t isKernelProc);
+int64_t kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, uint8_t isKernelProc);
 kProcess *kProcessManager_GetCurrentProcess();
 void kProcessManager_KillProcess(unsigned ind);
 void kProcessManager_PrintDebugProc();

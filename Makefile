@@ -7,6 +7,7 @@ secmon	:= secmon
 BUILD 	  := build
 RESOURCES := resources
 IMAGE_SIZE_MB := 64
+PROC_DIR      := bin
 
 #Pi4 firmware; start4.elf must come from the same release as fixup4.dat
 FW_COMMIT := effea745e592ec8a97fc54093a5673a7e6e515c9
@@ -83,6 +84,12 @@ image: $(RESOURCES)/bootfs/start4.elf
 	done
 	mcopy -i $(Project).img@@1M "boot.bin" "::/"
 	mcopy -i $(Project).img@@1M "secmon.bin" "::/"
+#Userland process binaries; init loads everything in here (see PROC_DIR in KIPs/init)
+	mmd -i $(Project).img@@1M "::/$(PROC_DIR)"
+	for d in processes/*/src; do \
+		p=$$(basename $$(dirname $$d)); \
+		mcopy -i $(Project).img@@1M "processes/$$p/$$p.bin" "::/$(PROC_DIR)/"; \
+	done
 
 $(RESOURCES)/bootfs/start4.elf:
 	curl -fL -o $@.tmp $(FW_URL)/start4.elf

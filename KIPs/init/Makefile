@@ -9,4 +9,4 @@ include $(PROJECT_ROOT)/misc/base_service_rules
 all: $(TARGET)
 
 clean:
-	rm -rf $(BUILD) $(TARGET).elf $(TARGET).bin $(TARGET)
+	rm -rf $(BUILD) $(TARGET).elf $(TARGET).kip $(TARGET)

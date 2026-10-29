@@ -25,24 +25,45 @@ kProcess *kProcessManager_GetCurrentProcess()
 	return (kProcess *)currThread->parent;
 }
 
-void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, uint8_t isKernelProc)
+int64_t kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, uint8_t isKernelProc)
 {
 	kMutex_Lock(procMan_mutex);
 
 	size_t userStackSize = PAGE_SIZE * 2;
 
+	if(lastPID + 1 >= MAX_PROC)
+	{
+		kMutex_Unlock(procMan_mutex);
+		return -1;
+	}
+
+	uint8_t *codeMem = kMemAlloc(codeSize);
+	uint8_t *pageTables = kMemCalloc(PAGE_SIZE);
+	if(!codeMem || !pageTables)
+	{
+		if(codeMem) 
+			kMemFree(codeMem, codeSize);
+		if(pageTables) 
+			kMemFree(pageTables, PAGE_SIZE);
+		kMutex_Unlock(procMan_mutex);
+		return -1;
+	}
+
 	//Create proc in procTable
 	unsigned p = ++lastPID;
-	strcpy(processTable[p].name, name);
+	size_t n = 0;
+	for(; name[n] && n < sizeof(processTable[p].name) - 1; n++)
+		processTable[p].name[n] = name[n];
+	processTable[p].name[n] = 0;
 	processTable[p].PID = p;
 	SET_BIT(processTable[p].flags, IS_ACTIVE_PROC);
-	processTable[p].code.text.addr = (uintptr_t)KERN_VADDR_TO_PADDR(kMemAlloc(codeSize));
+	processTable[p].code.text.addr = (uintptr_t)KERN_VADDR_TO_PADDR(codeMem);
     processTable[p].code.text.size = codeSize;
-	memcpy((uint8_t*)KERN_PADDR_TO_VADDR(processTable[p].code.text.addr), code, codeSize);
-	
-	//Create main thread and map mem 
+	memcpy(codeMem, code, codeSize);
+
+	//Create main thread and map mem
 	//[processes should all have the same virtual mapping give or take kern vaddr for ttrb0/1 routing]
-	processTable[p].pageTables = (uintptr_t)kMemCalloc(PAGE_SIZE);
+	processTable[p].pageTables = (uintptr_t)pageTables;
 	uint64_t flags = isKernelProc ? ATTR_KERNEL : 0;
 	MMU_MapMemPages(processTable[p].pageTables, processTable[p].code.text.addr, USERLAND_VIRT_BASE, codeSize, flags);
 	
@@ -62,6 +83,7 @@ void kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize, u
 	LOGT("Added process: %s [pid:%d]\n", processTable[p].name, processTable[p].PID);
 
 	kMutex_Unlock(procMan_mutex);
+	return p;
 }
 
 void kProcessManager_KillProcess(unsigned ind) 

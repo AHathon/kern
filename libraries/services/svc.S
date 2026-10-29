@@ -16,6 +16,12 @@ svcExitProcess:
     svc 2
     ret
 
+.globl svcCreateProcess
+.type svcCreateProcess, %function;
+svcCreateProcess:
+    svc 3
+    ret
+
 .globl svcDebug
 .type svcDebug, %function;
 svcDebug:
