@@ -1,6 +1,6 @@
-#include "usb.h"
+#include "driver/usb.h"
 #include "libraries/services/svc.h"
-#include "libc/stdio.h"
+#include "libraries/libc/stdio.h"
 
 #define REQ_IN                  0x80
 #define REQ_CLASS               0x20

@@ -1,6 +1,6 @@
 #include "rasterizer.h"
-#include "libc/stdlib.h"
-#include "libc/math.h"
+#include "libraries/libc/stdlib.h"
+#include "libraries/libc/math.h"
 
 static uint32_t *target = nullptr;
 static int targetWidth = 0;

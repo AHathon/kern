@@ -1,4 +1,4 @@
-#include "libc/math.h"
+#include "libraries/libc/math.h"
 
 #define PI      3.14159265358979323846
 #define LN2     0.69314718055994530942

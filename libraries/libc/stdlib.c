@@ -1,6 +1,6 @@
-#include "libc/stdlib.h"
-#include "libc/string.h"
-#include "libc/assert.h"
+#include "libraries/libc/stdlib.h"
+#include "libraries/libc/string.h"
+#include "libraries/libc/assert.h"
 #include "libraries/services/svc.h"
 #include "kernel/memory/kMemoryMap.h"
 

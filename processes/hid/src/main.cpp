@@ -1,9 +1,9 @@
 #include "libraries/ipc/server.h"
 #include "libraries/services/svc.h"
 #include "libraries/hardware/constants.h"
-#include "libc/string.h"
+#include "libraries/libc/string.h"
 #include "hid.h"
-#include "usb.h"
+#include "driver/usb.h"
 
 #define MAX_DEVICES         DWC2_MAX_PIPES
 #define KEY_ROLLOVER_ERROR  0x01

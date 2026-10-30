@@ -1,7 +1,7 @@
-#include "dwc2.h"
+#include "driver/dwc2.h"
 #include "libraries/services/svc.h"
 #include "kernel/memory/kMemoryMap.h"
-#include "libc/string.h"
+#include "libraries/libc/string.h"
 
 #define REG(off)            (*(volatile uint32_t*)(USERLAND_USB_VIRT_BASE + (off)))
 

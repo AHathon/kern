@@ -2,9 +2,9 @@
 #include "libraries/services/svc.h"
 #include "libraries/hardware/constants.h"
 #include "kernel/memory/kMemoryMap.h"
-#include "libc/stdio.h"
-#include "libc/stdlib.h"
-#include "libc/string.h"
+#include "libraries/libc/stdio.h"
+#include "libraries/libc/stdlib.h"
+#include "libraries/libc/string.h"
 #include "gfx.h"
 #include "rasterizer.h"
 

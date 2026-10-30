@@ -1,19 +1,13 @@
-#include "imgui/imgui.h"
-#include "imguiBackend.h"
+#include "backend/imgui/imgui.h"
+#include "backend/imguiBackend.h"
 #include "libraries/services/svc.h"
 #include "libraries/hardware/constants.h"
+#include <time.h>
 
 static uint64_t Counter()
 {
     uint64_t v;
     asm volatile("isb; mrs %0, cntpct_el0" : "=r"(v));
-    return v;
-}
-
-static uint64_t CounterFreq()
-{
-    uint64_t v;
-    asm volatile("mrs %0, cntfrq_el0" : "=r"(v));
     return v;
 }
 
