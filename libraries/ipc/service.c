@@ -24,8 +24,8 @@ void serviceClose(Service *s)
     s->session = 0;
 }
 
-long serviceDispatch(Service *s, uint32_t cmd, const void *in, size_t inSize, void *out, size_t outSize,
-                     const SfBuffer *bufs, size_t bufCount)
+static long ipc_Dispatch(Service *s, uint32_t cmd, const void *in, size_t inSize, void *out, size_t outSize,
+                        const SfBuffer *bufs, size_t bufCount, long handle)
 {
     IpcMessage *msg = Ipc_GetMessage();
     if(!serviceIsActive(s))
@@ -36,6 +36,7 @@ long serviceDispatch(Service *s, uint32_t cmd, const void *in, size_t inSize, vo
     msg->cmd = cmd;
     msg->dataSize = inSize;
     msg->bufCount = bufCount;
+    msg->copyHandle = handle;
     ipc_Copy(msg->data, in, inSize);
     for(size_t i = 0; i < bufCount; i++)
     {
@@ -55,6 +56,17 @@ long serviceDispatch(Service *s, uint32_t cmd, const void *in, size_t inSize, vo
         return SVC_ERR_INVALID_SIZE;
     ipc_Copy(out, msg->data, outSize);
     return SVC_OK;
+}
+
+long serviceDispatch(Service *s, uint32_t cmd, const void *in, size_t inSize, void *out, size_t outSize,
+                     const SfBuffer *bufs, size_t bufCount)
+{
+    return ipc_Dispatch(s, cmd, in, inSize, out, outSize, bufs, bufCount, 0);
+}
+
+long serviceDispatchHandle(Service *s, uint32_t cmd, const void *in, size_t inSize, long handle)
+{
+    return ipc_Dispatch(s, cmd, in, inSize, 0, 0, 0, 0, handle);
 }
 
 //Requests are copied out so handlers can read them while the reply is built in the IPC buffer
@@ -87,6 +99,7 @@ long serverRun(long port, ServerHandler handler, void *ctx)
         req.cmd = request.cmd;
         req.in = request.data;
         req.inSize = request.dataSize > sizeof(request.data) ? sizeof(request.data) : request.dataSize;
+        req.copyHandle = request.copyHandle;
         req.bufCount = request.bufCount > IPC_MAX_BUFS ? IPC_MAX_BUFS : request.bufCount;
         for(int i = 0; i < IPC_MAX_BUFS; i++)
         {
@@ -103,6 +116,7 @@ long serverRun(long port, ServerHandler handler, void *ctx)
         msg->cmd = (uint32_t)result;
         msg->dataSize = 0;
         msg->bufCount = 0;
+        msg->copyHandle = 0;
         if(result == SVC_OK)
         {
             msg->dataSize = req.outSize > req.outCapacity ? req.outCapacity : req.outSize;

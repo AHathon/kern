@@ -1,72 +1,69 @@
 #include "imgui/imgui.h"
+#include "imguiBackend.h"
 #include "libraries/services/svc.h"
-#include "libc/stdio.h"
+#include "libraries/hardware/constants.h"
 
-static void UpdateTextures(ImDrawData *data)
+static uint64_t Counter()
 {
-    for(ImTextureData *tex : *data->Textures)
-    {
-        if(tex->Status == ImTextureStatus_OK)
-            continue;
-
-        char line[96];
-        snprintf(line, sizeof(line), "texture %d: status %d, %dx%d", tex->UniqueID, (int)tex->Status, tex->Width, tex->Height);
-        svcDebug(line);
-
-        if(tex->Status == ImTextureStatus_WantDestroy)
-        {
-            tex->SetTexID(ImTextureID_Invalid);
-            tex->SetStatus(ImTextureStatus_Destroyed);
-        }
-        else
-        {
-            tex->SetTexID((ImTextureID)(uintptr_t)tex->UniqueID + 1);
-            tex->SetStatus(ImTextureStatus_OK);
-        }
-    }
+    uint64_t v;
+    asm volatile("isb; mrs %0, cntpct_el0" : "=r"(v));
+    return v;
 }
 
-static void RenderDrawData(ImDrawData *data)
+static uint64_t CounterFreq()
 {
-    UpdateTextures(data);
-
-    int commands = 0;
-    for(ImDrawList *list : data->CmdLists)
-        commands += list->CmdBuffer.Size;
-
-    char line[96];
-    snprintf(line, sizeof(line), "frame: %d lists, %d cmds, %d vtx, %d idx", data->CmdLists.Size, commands, data->TotalVtxCount, data->TotalIdxCount);
-    svcDebug(line);
+    uint64_t v;
+    asm volatile("mrs %0, cntfrq_el0" : "=r"(v));
+    return v;
 }
 
 int main()
 {
+    Service gfx;
+    if(gfxInitialize(&gfx) != GFX_OK)
+    {
+        svcDebug("couldn't connect to gfx");
+        return 0;
+    }
+
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
 
     ImGuiIO &io = ImGui::GetIO();
     io.IniFilename = nullptr;
     io.LogFilename = nullptr;
-    io.DisplaySize = ImVec2(800, 480);
-    io.DeltaTime = 1.0f / 60.0f;
-    io.BackendFlags |= ImGuiBackendFlags_RendererHasTextures;
-    ImGui::GetPlatformIO().Renderer_TextureMaxWidth = 2048;
-    ImGui::GetPlatformIO().Renderer_TextureMaxHeight = 2048;
+    io.DisplaySize = ImVec2(MAIN_DISP_WIDTH, MAIN_DISP_HEIGHT);
+    ImGuiBackend_Init(&gfx);
 
-    float value = 0.25f;
-    for(int frame = 0; frame < 3; frame++)
+    uint64_t freq = CounterFreq();
+    uint64_t last = Counter();
+    float progress = 0.0f;
+
+    while(1)
     {
+        uint64_t now = Counter();
+        io.DeltaTime = (float)(now - last) / (float)freq;
+        if(io.DeltaTime <= 0.0f)
+            io.DeltaTime = 1.0f / 1000.0f;
+        last = now;
+
+        progress += io.DeltaTime * 0.25f;
+        if(progress > 1.0f)
+            progress -= 1.0f;
+
         ImGui::NewFrame();
+        ImGui::SetNextWindowPos(ImVec2(40, 40));
+        ImGui::SetNextWindowSize(ImVec2(420, 220));
         ImGui::Begin("dash");
-        ImGui::Text("frame %d, pi %.3f", frame, 3.14159f);
-        ImGui::SliderFloat("value", &value, 0.0f, 1.0f);
-        ImGui::Button("ok");
+        ImGui::Text("Dear ImGui %s", IMGUI_VERSION);
+        ImGui::Text("%.1f FPS", io.Framerate);
+        ImGui::Separator();
+        ImGui::ProgressBar(progress);
+        ImGui::SliderFloat("progress", &progress, 0.0f, 1.0f);
+        ImGui::Button("Button");
         ImGui::End();
         ImGui::Render();
-        RenderDrawData(ImGui::GetDrawData());
-    }
 
-    ImGui::DestroyContext();
-    svcDebug("done");
-    return 0;
+        ImGuiBackend_Render(ImGui::GetDrawData());
+    }
 }

@@ -23,8 +23,10 @@ typedef struct
     uint16_t dataSize;
     uint8_t bufCount;
     uint8_t _pad;
+    int32_t copyHandle; //requests only; the kernel duplicates it into the server's handle table
+    uint32_t _pad2;
     IpcBufDesc bufs[IPC_MAX_BUFS];
-    uint8_t data[IPC_BUFFER_SIZE - 8 - IPC_MAX_BUFS * sizeof(IpcBufDesc)];
+    uint8_t data[IPC_BUFFER_SIZE - 16 - IPC_MAX_BUFS * sizeof(IpcBufDesc)];
 } IpcMessage;
 
 static inline IpcMessage *Ipc_GetMessage()

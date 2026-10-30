@@ -70,6 +70,18 @@ svcMapPhysicalMemory:
     svc 11
     ret
 
+.globl svcCreateSharedMemory
+.type svcCreateSharedMemory, %function;
+svcCreateSharedMemory:
+    svc 12
+    ret
+
+.globl svcMapSharedMemory
+.type svcMapSharedMemory, %function;
+svcMapSharedMemory:
+    svc 13
+    ret
+
 .globl svcDebug
 .type svcDebug, %function;
 svcDebug:

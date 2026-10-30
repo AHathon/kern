@@ -164,6 +164,16 @@ long svcImpl_CloseHandle(long handle)
     return kIpc_CloseHandle(handle);
 }
 
+long svcImpl_CreateSharedMemory(long size)
+{
+    return kIpc_CreateSharedMemory(size);
+}
+
+long svcImpl_MapSharedMemory(long handle, void *addr)
+{
+    return kIpc_MapSharedMemory(handle, (uintptr_t)addr);
+}
+
 long svcImpl_Yield()
 {
     kScheduler_Yield();

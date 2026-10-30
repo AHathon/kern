@@ -13,6 +13,8 @@ long svcImpl_ConnectToPort(const char *name);
 long svcImpl_SendSyncRequest(long session);
 long svcImpl_ReplyAndReceive(long port, long replyTo);
 long svcImpl_CloseHandle(long handle);
+long svcImpl_CreateSharedMemory(long size);
+long svcImpl_MapSharedMemory(long handle, void *addr);
 long svcImpl_Yield();
 void svcImpl_Debug(const char *msg);
 

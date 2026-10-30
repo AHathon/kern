@@ -31,6 +31,8 @@ long svcConnectToPort(const char *name);
 long svcSendSyncRequest(long session);
 long svcReplyAndReceive(long port, long replyTo);
 long svcCloseHandle(long handle);
+long svcCreateSharedMemory(long size);
+long svcMapSharedMemory(long handle, void *addr); //returns the mapped size
 long svcYield();
 void svcDebug(const char *msg);
 

@@ -30,6 +30,7 @@ static inline int serviceIsActive(Service *s)
 //Sends cmd with `in` as the request data and copies the reply data into `out` on success.
 //Returns SVC_ERR_* if the kernel failed the call, otherwise the server's result.
 long serviceDispatch(Service *s, uint32_t cmd, const void *in, size_t inSize, void *out, size_t outSize, const SfBuffer *bufs, size_t bufCount);
+long serviceDispatchHandle(Service *s, uint32_t cmd, const void *in, size_t inSize, long handle);
 
 #ifdef __cplusplus
 }

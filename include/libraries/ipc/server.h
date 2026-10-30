@@ -8,6 +8,7 @@ typedef struct
     uint32_t cmd;
     const void *in;
     size_t inSize;
+    long copyHandle;
     uint8_t bufCount;
     uint32_t bufCapacity[IPC_MAX_BUFS];
 

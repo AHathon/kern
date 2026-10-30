@@ -46,9 +46,18 @@ typedef struct
     char name[IPC_PORT_NAME_LEN];
 } kConnectWaiter;
 
+typedef struct
+{
+    uint8_t inUse;
+    uint32_t refs;
+    void *mem;
+    size_t size;
+} kSharedMem;
+
 static kPort ports[IPC_MAX_PORTS];
 static kSession sessions[IPC_MAX_SESSIONS];
 static kConnectWaiter waiters[IPC_MAX_WAITERS];
+static kSharedMem sharedMems[IPC_MAX_SHARED_MEM];
 
 static kThread *Ipc_CurrentThread()
 {
@@ -80,6 +89,7 @@ static long Ipc_AllocHandle(kProcess *proc, uint8_t type, uint8_t index)
         {
             proc->handles[i].type = type;
             proc->handles[i].index = index;
+            proc->handles[i].mapped = 0;
             return i + 1;
         }
     }
@@ -221,10 +231,25 @@ static long Ipc_Connect(kPort *port, kProcess *client)
     return clientHandle;
 }
 
+static long Ipc_CopySharedMem(kProcess *src, long handle, kProcess *dst)
+{
+    kHandle *h = Ipc_GetHandle(src, handle, HANDLE_SHARED_MEM);
+    if(!h)
+        return 0;
+
+    long copy = Ipc_AllocHandle(dst, HANDLE_SHARED_MEM, h->index);
+    if(copy < 0)
+        return 0;
+
+    sharedMems[h->index].refs++;
+    return copy;
+}
+
 static void Ipc_Deliver(kSession *s, kThread *server)
 {
     IpcMessage *req = (IpcMessage*)s->clientThread->ipcBuf;
     memcpy((uint8_t*)server->ipcBuf, (uint8_t*)req, IPC_BUFFER_SIZE);
+    ((IpcMessage*)server->ipcBuf)->copyHandle = Ipc_CopySharedMem(s->client, req->copyHandle, s->port->owner);
 
     //Remember where the client wants reply data; the reply overwrites its message
     s->clientBufCount = req->bufCount > IPC_MAX_BUFS ? IPC_MAX_BUFS : req->bufCount;
@@ -433,7 +458,69 @@ long kIpc_ReplyAndReceive(long portHandle, long replyTo)
     kScheduler_Block();
 }
 
-static long Ipc_CloseHandleOf(kProcess *proc, long handle)
+long kIpc_CreateSharedMemory(long size)
+{
+    if(size <= 0)
+        return SVC_ERR_INVALID_SIZE;
+
+    int idx = -1;
+    for(int i = 0; i < IPC_MAX_SHARED_MEM; i++)
+        if(!sharedMems[i].inUse)
+        {
+            idx = i;
+            break;
+        }
+    if(idx < 0)
+        return SVC_ERR_LIMIT;
+
+    size_t mapSize = (size + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+    void *mem = kMemCalloc(mapSize);
+    if(!mem)
+        return SVC_ERR_OUT_OF_MEMORY;
+
+    long handle = Ipc_AllocHandle(Ipc_CurrentProcess(), HANDLE_SHARED_MEM, idx);
+    if(handle < 0)
+    {
+        kMemFree(mem, mapSize);
+        return handle;
+    }
+
+    sharedMems[idx].inUse = 1;
+    sharedMems[idx].refs = 1;
+    sharedMems[idx].mem = mem;
+    sharedMems[idx].size = mapSize;
+    return handle;
+}
+
+//Returns the mapped size, which only the kernel can vouch for
+long kIpc_MapSharedMemory(long handle, uintptr_t va)
+{
+    kProcess *proc = Ipc_CurrentProcess();
+    kHandle *h = Ipc_GetHandle(proc, handle, HANDLE_SHARED_MEM);
+    if(!h)
+        return SVC_ERR_INVALID_HANDLE;
+    if(h->mapped)
+        return SVC_ERR_ALREADY_MAPPED;
+
+    kSharedMem *mem = &sharedMems[h->index];
+    if(va == 0 || (va & (PAGE_SIZE - 1)) || va >= USERLAND_VIRT_END || mem->size > USERLAND_VIRT_END - va)
+        return SVC_ERR_INVALID_ADDR;
+
+    uintptr_t pageTable = KERN_PADDR_TO_VADDR(proc->pageTables);
+    for(size_t off = 0; off < mem->size; off += PAGE_SIZE)
+        if(MMU_IsPageMapped(pageTable, va + off))
+            return SVC_ERR_ALREADY_MAPPED;
+
+    uint64_t flags = ATTR_NOEXEC;
+    if(proc->mainThread->threadType == THREAD_KERNEL)
+        flags |= ATTR_KERNEL;
+    MMU_MapMemPages(pageTable, KERN_VADDR_TO_PADDR((uintptr_t)mem->mem), va, mem->size, flags);
+
+    h->mapped = 1;
+    return mem->size;
+}
+
+static long Ipc_CloseHandleOf(kProcess *proc, long handle, uint8_t exiting)
 {
     if(handle < 1 || handle > MAX_HANDLES)
         return SVC_ERR_INVALID_HANDLE;
@@ -463,6 +550,21 @@ static long Ipc_CloseHandleOf(kProcess *proc, long handle)
             Ipc_DetachSession(&sessions[h.index]);
             break;
 
+        case HANDLE_SHARED_MEM:
+        {
+            //There's no unmap yet, so the pages have to outlive the mapping
+            if(h.mapped && !exiting)
+                return SVC_ERR_BUSY;
+
+            kSharedMem *mem = &sharedMems[h.index];
+            if(--mem->refs == 0)
+            {
+                kMemFree(mem->mem, mem->size);
+                memset((uint8_t*)mem, 0, sizeof(kSharedMem));
+            }
+            break;
+        }
+
         default:
             return SVC_ERR_INVALID_HANDLE;
     }
@@ -473,14 +575,14 @@ static long Ipc_CloseHandleOf(kProcess *proc, long handle)
 
 long kIpc_CloseHandle(long handle)
 {
-    return Ipc_CloseHandleOf(Ipc_CurrentProcess(), handle);
+    return Ipc_CloseHandleOf(Ipc_CurrentProcess(), handle, 0);
 }
 
 void kIpc_ProcessExit(kProcess *proc)
 {
     for(int i = 0; i < MAX_HANDLES; i++)
         if(proc->handles[i].type != HANDLE_NONE)
-            Ipc_CloseHandleOf(proc, i + 1);
+            Ipc_CloseHandleOf(proc, i + 1, 1);
 
     for(int i = 0; i < IPC_MAX_WAITERS; i++)
         if(waiters[i].proc == proc)

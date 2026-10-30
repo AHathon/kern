@@ -15,13 +15,15 @@ typedef enum
     HANDLE_NONE,
     HANDLE_PORT,
     HANDLE_SESSION_CLIENT,
-    HANDLE_SESSION_SERVER
+    HANDLE_SESSION_SERVER,
+    HANDLE_SHARED_MEM
 } HandleType;
 
 typedef struct
 {
     uint8_t type;
     uint8_t index;
+    uint8_t mapped;
 } kHandle;
 
 typedef struct

@@ -46,6 +46,14 @@ hndlr_svcStartProcess:
 hndlr_svcMapPhysicalMemory:
     b svcImpl_MapPhysicalMemory
 
+.globl hndlr_svcCreateSharedMemory
+hndlr_svcCreateSharedMemory:
+    b svcImpl_CreateSharedMemory
+
+.globl hndlr_svcMapSharedMemory
+hndlr_svcMapSharedMemory:
+    b svcImpl_MapSharedMemory
+
 .globl hndlr_svcDebug
 hndlr_svcDebug:
     b svcImpl_Debug
@@ -69,8 +77,10 @@ swi_table:
     .dword hndlr_svcYield
     .dword hndlr_svcStartProcess
     .dword hndlr_svcMapPhysicalMemory
+    .dword hndlr_svcCreateSharedMemory
+    .dword hndlr_svcMapSharedMemory
 
-    .rept 0xFF - 12
+    .rept 0xFF - 14
     .dword hndlr_svcUnknown
     .endr
     
