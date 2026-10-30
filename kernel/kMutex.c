@@ -10,7 +10,6 @@ void kMutex_Init(kMutex_t *mutex)
 {
     mutex->isLocked = 0;
     mutex->ownerThread = 0;
-    LOGT("kMutex_Init\n");
 }
 
 void kMutex_Lock(kMutex_t *mutex)
@@ -19,7 +18,6 @@ void kMutex_Lock(kMutex_t *mutex)
         asm volatile("wfe");
 
     mutex->ownerThread = kScheduler_GetCurrentThread();
-    LOGT("kMutex_Lock\n");
 }
 
 void kMutex_Unlock(kMutex_t *mutex)
@@ -30,7 +28,6 @@ void kMutex_Unlock(kMutex_t *mutex)
     if(mutex->ownerThread != kScheduler_GetCurrentThread())
         return;
 
-    LOGT("kMutex_Unlock\n");
     mutex->ownerThread = 0;
     __atomic_store_n(&mutex->isLocked, 0, __ATOMIC_RELEASE);
     asm volatile("sev");

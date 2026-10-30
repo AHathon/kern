@@ -121,9 +121,6 @@ void kScheduler_schedule()
     uint8_t isNew = !next->started;
     uint8_t isKernel = next->threadType == THREAD_KERNEL;
     kProcess *parent = (kProcess*)(next->parent);
-    if(next != current)
-        LOG("switching: %s @ 0x%X [proc is %s and is %s]\n", parent->name, next->entryPtr, isNew ? "new" : "old", isKernel ? "kernel" : "user");
-
     if(next != prev)
     {
         if(prev)

@@ -199,9 +199,21 @@ void Raster_Present(void *framebuffer, int pitch)
 {
     for(int y = 0; y < targetHeight; y++)
     {
-        volatile uint32_t *dst = (volatile uint32_t*)((uint8_t*)framebuffer + y * pitch);
-        const uint32_t *src = target + y * targetWidth;
-        for(int x = 0; x < targetWidth; x++)
-            dst[x] = src[x];
+        uint8_t *dst = (uint8_t*)framebuffer + y * pitch;
+        const uint8_t *src = (const uint8_t*)(target + y * targetWidth);
+        int bytes = targetWidth * sizeof(uint32_t);
+        int i = 0;
+
+        //The framebuffer is uncached, so wide writes are far cheaper than one per pixel
+        for(; i + 64 <= bytes; i += 64)
+        {
+            asm volatile("ldp q0, q1, [%1]\n"
+                         "ldp q2, q3, [%1, #32]\n"
+                         "stp q0, q1, [%0]\n"
+                         "stp q2, q3, [%0, #32]\n"
+                         : : "r"(dst + i), "r"(src + i) : "v0", "v1", "v2", "v3", "memory");
+        }
+        for(; i < bytes; i += sizeof(uint32_t))
+            *(volatile uint32_t*)(dst + i) = *(const uint32_t*)(src + i);
     }
 }
