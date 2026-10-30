@@ -30,7 +30,7 @@ int64_t kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize
 {
 	kMutex_Lock(procMan_mutex);
 
-	size_t userStackSize = PAGE_SIZE * 2;
+	size_t stackSize = isKernelProc ? PAGE_SIZE * 2 : USERLAND_STACK_SIZE;
 
 	if(lastPID + 1 >= MAX_PROC)
 	{
@@ -68,7 +68,7 @@ int64_t kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize
 	uint64_t flags = isKernelProc ? ATTR_KERNEL : 0;
 	MMU_MapMemPages(processTable[p].pageTables, processTable[p].code.text.addr, USERLAND_VIRT_BASE, codeSize, flags);
 	
-	processTable[p].mainThread = kThread_Create(&processTable[p], (void*)(USERLAND_VIRT_BASE), userStackSize, isKernelProc ? THREAD_KERNEL : THREAD_USER);
+	processTable[p].mainThread = kThread_Create(&processTable[p], (void*)(USERLAND_VIRT_BASE), stackSize, isKernelProc ? THREAD_KERNEL : THREAD_USER);
 
 	//set pagetable as phys addr
 	processTable[p].pageTables = KERN_VADDR_TO_PADDR(processTable[p].pageTables);

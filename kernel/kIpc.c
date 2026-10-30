@@ -109,7 +109,7 @@ static uintptr_t Ipc_Translate(kProcess *proc, uintptr_t va, uint8_t write)
     if(!pte || (write && (pte & PT_RO)))
         return (uintptr_t)-1;
 
-    //EL0 processes may only pass memory they can touch themselves (not e.g. their kernel stack alias)
+    //EL0 processes may only pass memory they can touch themselves
     if(proc->mainThread->threadType == THREAD_USER && !(pte & PT_USER))
         return (uintptr_t)-1;
 

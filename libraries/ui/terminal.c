@@ -40,7 +40,7 @@ void Terminal_DrawString(char *s, uint8_t attr)
         else if(*s == '\n')
         {
             termX = termPosX; 
-            termY += (FONT_HEIGHT + (FONT_HEIGHT * 0.2));
+            termY += FONT_HEIGHT + FONT_HEIGHT / 5;
         }
         else 
         {

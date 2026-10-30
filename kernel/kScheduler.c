@@ -85,12 +85,14 @@ void kScheduler_schedule()
     if(!schedulerInit)
         return;
 
+    kThread *prev = current;
     if(current)
     {
         if(current->state == STATE_TERMINATED)
         {
             LOG("relinquishing thread [id:%d]\n", current->id);
             kThread_Destroy(current);
+            prev = 0;
         }
         else if(current->state != STATE_WAITING)
         {
@@ -121,6 +123,13 @@ void kScheduler_schedule()
     kProcess *parent = (kProcess*)(next->parent);
     if(next != current)
         LOG("switching: %s @ 0x%X [proc is %s and is %s]\n", parent->name, next->entryPtr, isNew ? "new" : "old", isKernel ? "kernel" : "user");
+
+    if(next != prev)
+    {
+        if(prev)
+            kFpu_Save(&prev->fpu);
+        kFpu_Restore(&next->fpu);
+    }
 
     current = next;
     current->started = 1;

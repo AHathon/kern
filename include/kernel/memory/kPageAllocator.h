@@ -5,7 +5,7 @@
 #include "kernel/memory/mmu.h"
 #include "libraries/libc/string.h"
 
-#define MAX_PAGES 4096
+#define MAX_PAGES 32768
 
 static char pageBitmap[MAX_PAGES / 8] ALIGN(4) = {};
 

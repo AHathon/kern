@@ -19,15 +19,16 @@ kThread *kThread_Create(void *parent, void *entryPtr, size_t stackSize, ThreadTy
     thread->stackSize = stackSize;
     kProcess *p = (kProcess*)parent;
     thread->entryPtr = entryPtr;
+    memset((uint8_t*)&thread->fpu, sizeof(thread->fpu));
 
     uint64_t flags = (type == THREAD_KERNEL) ? ATTR_KERNEL : 0;
     thread->stackBase = KERN_VADDR_TO_PADDR(kMemAlloc(stackSize));
-    MMU_MapMemPages(p->pageTables, (uintptr_t)(thread->stackBase), (uintptr_t)(thread->stackBase), stackSize, flags);
-    thread->sp = (uintptr_t)thread->stackBase + stackSize - (stackSize / 2);
+    //TODO: one stack VA per process, same as the IPC buffer
+    MMU_MapMemPages(p->pageTables, (uintptr_t)(thread->stackBase), USERLAND_STACK_TOP - stackSize, stackSize, flags | ATTR_NOEXEC);
+    thread->sp = USERLAND_STACK_TOP;
 
     thread->contextStack = kMemAlloc(kernStackSize);
-    MMU_MapMemPages(p->pageTables, (uintptr_t)KERN_VADDR_TO_PADDR(thread->contextStack), (uintptr_t)(thread->contextStack), PAGE_SIZE * 2, ATTR_KERNEL);
-    thread->kern_sp = (uintptr_t)thread->contextStack + kernStackSize - (kernStackSize / 2);
+    thread->kern_sp = (uintptr_t)thread->contextStack + kernStackSize;
 
     //TODO: one IPC VA per process; a second thread would need its own slot
     thread->ipcBuf = kMemCalloc(PAGE_SIZE);

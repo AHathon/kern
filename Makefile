@@ -36,7 +36,7 @@ QEMU_ARGS := -M $(QEMU_MACHINE) \
 			-device loader,file=$(boot).bin,addr=0x80000,force-raw=on \
 			-drive file=$(Project).img,if=sd,format=raw
 
-CFLAGS := -I$(INCLUDE) $(COMMON)
+CFLAGS := -I$(INCLUDE) $(COMMON) -mgeneral-regs-only
 ASFLAGS := -I$(INCLUDE) -D__ASSEMBLY__ $(COMMON)
 
 rwildcard = $(foreach d, $(wildcard $1*), $(filter $(subst *, %, $2), $d) $(call rwildcard, $d/, $2))

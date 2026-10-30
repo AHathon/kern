@@ -21,4 +21,6 @@ void kScheduler_SetReturn(kThread *thread, uint64_t value);
 void kScheduler_Block() __attribute__((noreturn));
 void kScheduler_Wake(kThread *thread, uint64_t retval);
 void kScheduler_Yield() __attribute__((noreturn));
+void kFpu_Save(kFpuState *state);
+void kFpu_Restore(const kFpuState *state);
 void context_switch(void *entry, uintptr_t sp, uintptr_t kern_sp, uintptr_t pageTable, uint8_t isNew, uint8_t isKernel) __attribute__((noreturn));

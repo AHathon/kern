@@ -22,6 +22,13 @@ typedef enum
 
 typedef struct
 {
+    uint64_t q[64];
+    uint64_t fpcr;
+    uint64_t fpsr;
+} __attribute__((aligned(16))) kFpuState;
+
+typedef struct
+{
     uint64_t id;
     uintptr_t parent;
     void *entryPtr;
@@ -34,6 +41,7 @@ typedef struct
     ThreadType threadType;
     ThreadState state;
     uint8_t started;
+    kFpuState fpu;
 } kThread;
 
 kThread *kThread_Create(void *parent, void *entryPtr, size_t stackSize, ThreadType type);
