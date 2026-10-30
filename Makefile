@@ -34,7 +34,8 @@ QEMU_ARGS := -M $(QEMU_MACHINE) \
 			-serial stdio \
 			-device loader,file=$(QEMU_SECMON),addr=0x0,force-raw=on \
 			-device loader,file=$(boot).bin,addr=0x80000,force-raw=on \
-			-drive file=$(Project).img,if=sd,format=raw
+			-drive file=$(Project).img,if=sd,format=raw \
+			-device usb-kbd -device usb-mouse
 
 CFLAGS := -I$(INCLUDE) $(COMMON) -mgeneral-regs-only
 ASFLAGS := -I$(INCLUDE) -D__ASSEMBLY__ $(COMMON)

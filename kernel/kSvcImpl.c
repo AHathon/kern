@@ -126,7 +126,7 @@ long svcImpl_MapPhysicalMemory(long pid, void *addr, uintptr_t paddr, long size)
         if(MMU_IsPageMapped(pageTable, va + off))
             return SVC_ERR_ALREADY_MAPPED;
 
-    uint64_t flags = ATTR_NOEXEC | ATTR_UNCACHED;
+    uint64_t flags = ATTR_NOEXEC | (paddr >= MMIO_BASE ? ATTR_DEVICE : ATTR_UNCACHED);
     if(target->mainThread->threadType == THREAD_KERNEL)
         flags |= ATTR_KERNEL;
     MMU_MapMemPages(pageTable, paddr, va, mapSize, flags);

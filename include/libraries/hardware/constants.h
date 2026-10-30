@@ -18,6 +18,7 @@
 #endif
 #define ARM_LOCAL_BASE          0xFF800000
 #define GIC_BASE                0xFF840000
+#define USB_BASE                (MMIO_BASE + 0x980000)
 
 #define EC_UNKNOWN              0x00
 #define EC_TRAPPED_WF           0x01

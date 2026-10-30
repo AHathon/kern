@@ -26,6 +26,10 @@ int main()
         return 0;
     }
 
+    Service hid;
+    if(hidInitialize(&hid) != HID_OK)
+        svcDebug("couldn't connect to hid");
+
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
 
@@ -38,9 +42,15 @@ int main()
     uint64_t freq = CounterFreq();
     uint64_t last = Counter();
     float progress = 0.0f;
+    char text[64] = "";
+    int clicks = 0;
+    HidState input = {};
 
     while(1)
     {
+        if(hidGetState(&hid, &input) == HID_OK)
+            ImGuiBackend_UpdateInput(&input);
+
         uint64_t now = Counter();
         io.DeltaTime = (float)(now - last) / (float)freq;
         if(io.DeltaTime <= 0.0f)
@@ -52,15 +62,22 @@ int main()
             progress -= 1.0f;
 
         ImGui::NewFrame();
-        ImGui::SetNextWindowPos(ImVec2(40, 40));
-        ImGui::SetNextWindowSize(ImVec2(420, 220));
+        ImGui::SetNextWindowPos(ImVec2(40, 40), ImGuiCond_Once);
+        ImGui::SetNextWindowSize(ImVec2(420, 220), ImGuiCond_Once);
         ImGui::Begin("dash");
         ImGui::Text("Dear ImGui %s", IMGUI_VERSION);
         ImGui::Text("%.1f FPS", io.Framerate);
         ImGui::Separator();
         ImGui::ProgressBar(progress);
         ImGui::SliderFloat("progress", &progress, 0.0f, 1.0f);
-        ImGui::Button("Button");
+        if(ImGui::Button("Button"))
+            clicks++;
+        ImGui::SameLine();
+        ImGui::Text("clicked %d times", clicks);
+        ImGui::InputText("text", text, sizeof(text));
+        ImGui::Text("keyboard: %s  mouse: %s",
+            (input.devices & HID_DEVICE_KEYBOARD) ? "yes" : "no",
+            (input.devices & HID_DEVICE_MOUSE) ? "yes" : "no");
         ImGui::End();
         ImGui::Render();
 

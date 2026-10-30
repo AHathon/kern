@@ -1,6 +1,7 @@
 #include "libraries/services/svc.h"
 #include "libraries/ipc/fs.h"
 #include "libraries/hardware/framebuffer.h"
+#include "libraries/hardware/mailbox.h"
 #include "libraries/hardware/mmio_vars.h"
 #include "libraries/hardware/debug.h"
 #include "libraries/hardware/mmu.h"
@@ -13,6 +14,9 @@
 
 //Process images are read into here; grown with svcMapMem as needed
 #define LOAD_BUF_VA 0x40000000UL
+
+#define POWER_DEVICE_USB    3
+#define POWER_ON_AND_WAIT   3
 
 static size_t loadBufSize = 0;
 static FsDirEntry entries[16];
@@ -52,6 +56,32 @@ static int StrEq(const char *a, const char *b)
         b++;
     }
     return *a == *b;
+}
+
+static void PowerOnUsb()
+{
+    mbox[0] = 8 * 4;
+    mbox[1] = MBOX_REQUEST;
+    mbox[2] = TAG_SETPOWER;
+    mbox[3] = 8;
+    mbox[4] = 8;
+    mbox[5] = POWER_DEVICE_USB;
+    mbox[6] = POWER_ON_AND_WAIT;
+    mbox[7] = TAG_LAST;
+
+    if(!Mailbox_Call(CH_PROP))
+        ERROR("[init] couldn't power on usb\n");
+}
+
+static void MapUsb(long pid)
+{
+    PowerOnUsb();
+
+    long r = svcMapPhysicalMemory(pid, (void*)USERLAND_USB_VIRT_BASE, USB_BASE, USERLAND_USB_SIZE);
+    if(r == SVC_OK)
+        r = svcMapPhysicalMemory(pid, (void*)USERLAND_USB_DMA_VIRT_BASE, USERLAND_USB_DMA_PHYS, USERLAND_USB_DMA_SIZE);
+    if(r != SVC_OK)
+        ERROR("[init] couldn't map usb into hid (err -%d)\n", -r);
 }
 
 static void LoadProcess(Service *fs, FsDirEntry *entry)
@@ -107,6 +137,9 @@ static void LoadProcess(Service *fs, FsDirEntry *entry)
         if(r != SVC_OK)
             ERROR("[init] couldn't map framebuffer into gfx (err -%d)\n", -r);
     }
+
+    if(StrEq(name, "hid"))
+        MapUsb(pid);
 
     long r = svcStartProcess(pid);
     if(r != SVC_OK)

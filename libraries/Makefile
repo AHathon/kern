@@ -15,7 +15,7 @@ ifeq ($(PLAT),PI3)
 endif
 
 #Service clients pull protocol definitions from the services themselves
-CFLAGS := -I$(INCLUDE) -I$(PROJECT_ROOT)/KIPs/fs/include -I$(PROJECT_ROOT)/processes/gfx/include $(COMMON) -mgeneral-regs-only
+CFLAGS := -I$(INCLUDE) -I$(PROJECT_ROOT)/KIPs/fs/include -I$(PROJECT_ROOT)/processes/gfx/include -I$(PROJECT_ROOT)/processes/hid/include $(COMMON) -mgeneral-regs-only
 ASFLAGS := -I$(INCLUDE) -D__ASSEMBLY__ $(COMMON)
 
 rwildcard = $(foreach d, $(wildcard $1*), $(filter $(subst *, %, $2), $d) $(call rwildcard, $d/, $2))

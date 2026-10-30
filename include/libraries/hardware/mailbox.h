@@ -2,6 +2,10 @@
 
 #include "libraries/types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern volatile uint32_t mbox[36];
 
 enum 
@@ -26,6 +30,7 @@ typedef enum
 //Mailbox tags
 typedef enum 
 {
+    TAG_SETPOWER       = 0x28001,
     TAG_SETPHYWH       = 0x48003,
     TAG_SETVIRTWH      = 0x48004,
     TAG_SETVIRTOFF     = 0x48009,
@@ -39,3 +44,7 @@ typedef enum
 
 void Mailbox_Append(MailboxTag tag, ...);
 uint32_t Mailbox_Call(uint8_t c);
+
+#ifdef __cplusplus
+}
+#endif
