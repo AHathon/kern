@@ -45,6 +45,10 @@ clean:
 $(TARGET).a: $(OBJS)
 	$(AR) rc $@ $^
 
+#math and stdio use FP registers, so they can't be general-regs-only; the kernel never links them
+$(BUILD)/libc/%.o: CFLAGS += -O2
+$(BUILD)/libc/math.o $(BUILD)/libc/stdio.o: CFLAGS := -I$(INCLUDE) $(COMMON) -O2
+
 $(BUILD)/%.o: %.S
 	$(CC) --target=aarch64-elf $(ASFLAGS) -c -o $@ $^
 

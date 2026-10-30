@@ -145,7 +145,7 @@ static void Ipc_FreeSession(kSession *s)
 {
     if(s->port && s->serverHandle)
         Ipc_FreeHandle(s->port->owner, s->serverHandle);
-    memset((uint8_t*)s, sizeof(kSession));
+    memset((uint8_t*)s, 0, sizeof(kSession));
 }
 
 static void Ipc_Unqueue(kSession *s)
@@ -211,7 +211,7 @@ static long Ipc_Connect(kPort *port, kProcess *client)
     }
 
     kSession *s = &sessions[idx];
-    memset((uint8_t*)s, sizeof(kSession));
+    memset((uint8_t*)s, 0, sizeof(kSession));
     s->inUse = 1;
     s->state = SESSION_IDLE;
     s->clientOpen = 1;
@@ -298,7 +298,7 @@ static void Ipc_ClosePort(kPort *port)
     for(int i = 0; i < IPC_MAX_SESSIONS; i++)
         if(sessions[i].inUse && sessions[i].port == port)
             Ipc_DetachSession(&sessions[i]);
-    memset((uint8_t*)port, sizeof(kPort));
+    memset((uint8_t*)port, 0, sizeof(kPort));
 }
 
 long kIpc_CreatePort(const char *name)
@@ -322,7 +322,7 @@ long kIpc_CreatePort(const char *name)
         return handle;
 
     kPort *port = &ports[idx];
-    memset((uint8_t*)port, sizeof(kPort));
+    memset((uint8_t*)port, 0, sizeof(kPort));
     port->inUse = 1;
     port->owner = proc;
     for(int i = 0; i < IPC_PORT_NAME_LEN && name[i]; i++)

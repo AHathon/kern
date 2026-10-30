@@ -169,9 +169,21 @@ long svcImpl_Yield()
     kScheduler_Yield();
 }
 
-void svcImpl_Debug(void)
+void svcImpl_Debug(const char *msg)
 {
-    LOGT("svcDebug()\n");
+    kProcess *proc = kProcessManager_GetCurrentProcess();
+    uintptr_t pageTable = KERN_PADDR_TO_VADDR(proc->pageTables);
+
+    char buf[100];
+    size_t n = 0;
+    for(; n < sizeof(buf) - 1; n++)
+    {
+        if(!svc_IsRangeMapped(pageTable, (uintptr_t)&msg[n], 1) || !msg[n])
+            break;
+        buf[n] = msg[n];
+    }
+    buf[n] = 0;
+    LOG("[%s] %s\n", proc->name, buf);
 }
 
 //-----------------

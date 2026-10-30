@@ -19,7 +19,7 @@ kThread *kThread_Create(void *parent, void *entryPtr, size_t stackSize, ThreadTy
     thread->stackSize = stackSize;
     kProcess *p = (kProcess*)parent;
     thread->entryPtr = entryPtr;
-    memset((uint8_t*)&thread->fpu, sizeof(thread->fpu));
+    memset((uint8_t*)&thread->fpu, 0, sizeof(thread->fpu));
 
     uint64_t flags = (type == THREAD_KERNEL) ? ATTR_KERNEL : 0;
     thread->stackBase = KERN_VADDR_TO_PADDR(kMemAlloc(stackSize));

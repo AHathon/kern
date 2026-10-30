@@ -15,7 +15,7 @@ void kProcessManager_Init()
 	ASSERT(procMan_mutex);
 	kMutex_Init(procMan_mutex);
 
-	memset((uint8_t*)processTable, sizeof(kProcess) * MAX_PROC);
+	memset((uint8_t*)processTable, 0, sizeof(kProcess) * MAX_PROC);
 	for(int i = 0; i < MAX_PROC; i++)
 		processTable[i].flags = 0;
 }
@@ -75,7 +75,7 @@ int64_t kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize
 	LOG("Page tables @ 0x%X\n", processTable[p].pageTables);
 
 	processTable[p].threadCnt = 0;
-	memset((uint8_t*)processTable[p].threadsOwned, sizeof(kThread*) * MAX_THREADS_OWNED);
+	memset((uint8_t*)processTable[p].threadsOwned, 0, sizeof(kThread*) * MAX_THREADS_OWNED);
 	processTable[p].threadsOwned[0] = processTable[p].mainThread; //TODO: cleaner impl
 	processTable[p].threadCnt++;
 

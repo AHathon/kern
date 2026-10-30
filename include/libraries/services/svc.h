@@ -32,7 +32,7 @@ long svcSendSyncRequest(long session);
 long svcReplyAndReceive(long port, long replyTo);
 long svcCloseHandle(long handle);
 long svcYield();
-inline void svcDebug(void);
+void svcDebug(const char *msg);
 
 #ifdef __cplusplus
 }

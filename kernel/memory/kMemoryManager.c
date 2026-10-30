@@ -21,7 +21,7 @@ void *kMemCalloc(size_t size)
     uint8_t *ptr = kMemAlloc(size);
     if(!ptr)
         return 0;
-    memset(ptr, size);
+    memset(ptr, 0, size);
     return (void*)ptr;
 }
 

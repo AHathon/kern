@@ -14,6 +14,6 @@ long svcImpl_SendSyncRequest(long session);
 long svcImpl_ReplyAndReceive(long port, long replyTo);
 long svcImpl_CloseHandle(long handle);
 long svcImpl_Yield();
-void svcImpl_Debug(void);
+void svcImpl_Debug(const char *msg);
 
 void svc_unknown(uint8_t svc);

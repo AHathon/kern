@@ -5,6 +5,7 @@ CC=clang
 OC=llvm-objcopy
 LD=ld.lld
 CFLAGS := --target=aarch64-none-elf -march=armv8-a -mcpu=cortex-a72 -O2 -nostdlib -ffreestanding
+CXXFLAGS := -fno-exceptions -fno-rtti -fno-threadsafe-statics
 ASFLAGS := -D__ASSEMBLY__ $(COMMON)
 
 rwildcard = $(foreach d, $(wildcard $1*), $(filter $(subst *, %, $2), $d) $(call rwildcard, $d/, $2))
@@ -25,7 +26,7 @@ $(TARGET).elf: $(OBJECTS) $(PROJECT_ROOT)/libraries/libraries.a $(PROJECT_ROOT)/
 
 $(BUILD)/%.o: $(SOURCES)/%.cpp
 	@mkdir -p $(@D)
-	$(CC) -c $< $(CFLAGS) $(INCLUDE) -I$(PROJECT_ROOT)/include -o $@
+	$(CC) -c $< $(CFLAGS) $(CXXFLAGS) $(INCLUDE) -I$(PROJECT_ROOT)/include -I$(PROJECT_ROOT)/include/libc -o $@
 
 $(BUILD)/%.o: $(SOURCES)/%.S
 	$(CC) --target=aarch64-elf $(ASFLAGS) $(INCLUDE) -I$(PROJECT_ROOT)/include -c -o $@ $^
