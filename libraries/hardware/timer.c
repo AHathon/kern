@@ -29,7 +29,17 @@ uint64_t GetCounterFreq()
 
 void localTimerIrqReset()
 {
-    asm volatile("msr cntp_tval_el0, %0" :: "r"(clkTicks));
+    localTimerIrqSet(clkTicks);
+}
+
+void localTimerIrqSet(uint64_t ticks)
+{
+    asm volatile("msr cntp_tval_el0, %0" :: "r"(ticks));
+}
+
+uint64_t localTimerTicks()
+{
+    return clkTicks;
 }
 
 void localTimerIrqInit() 

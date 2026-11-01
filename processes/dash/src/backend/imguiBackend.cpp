@@ -7,6 +7,9 @@ static_assert(sizeof(ImDrawIdx) == sizeof(uint16_t), "gfx takes 16-bit indices")
 
 #define DEFAULT_CLEAR_COLOR 0x001E5AA0
 
+#define HASH_SEED   0xCBF29CE484222325ULL
+#define HASH_PRIME  0x100000001B3ULL
+
 #define USAGE_A            0x04
 #define USAGE_Z             0x1D
 #define USAGE_1             0x1E
@@ -21,6 +24,7 @@ static_assert(sizeof(ImDrawIdx) == sizeof(uint16_t), "gfx takes 16-bit indices")
 static HidState previous;
 static bool capsLock = false;
 static uint32_t clearColor = DEFAULT_CLEAR_COLOR;
+static uint64_t lastFrameHash = 0;
 
 void ImGuiBackend_Init()
 {
@@ -164,13 +168,19 @@ static void CreateTexture(ImTextureData *tex)
     tex->SetStatus(ImTextureStatus_OK);
 }
 
-static void UpdateTextures(ImDrawData *data)
+//Returns whether anything changed
+static bool UpdateTextures(ImDrawData *data)
 {
     if(!data->Textures)
-        return;
+        return false;
 
+    bool changed = false;
     for(ImTextureData *tex : *data->Textures)
     {
+        if(tex->Status == ImTextureStatus_OK || tex->Status == ImTextureStatus_Destroyed)
+            continue;
+
+        changed = true;
         if(tex->Status == ImTextureStatus_WantCreate)
             CreateTexture(tex);
         else if(tex->Status == ImTextureStatus_WantUpdates)
@@ -186,11 +196,43 @@ static void UpdateTextures(ImDrawData *data)
             tex->SetStatus(ImTextureStatus_Destroyed);
         }
     }
+    return changed;
+}
+
+static uint64_t Hash(uint64_t hash, const void *data, size_t size)
+{
+    const uint32_t *words = (const uint32_t*)data;
+    size_t count = size / sizeof(uint32_t);
+    for(size_t i = 0; i < count; i++)
+        hash = (hash ^ words[i]) * HASH_PRIME;
+
+    //Index buffers can end mid-word
+    const uint8_t *tail = (const uint8_t*)(words + count);
+    for(size_t i = 0; i < size % sizeof(uint32_t); i++)
+        hash = (hash ^ tail[i]) * HASH_PRIME;
+    return hash;
+}
+
+static uint64_t HashFrame(ImDrawData *data)
+{
+    uint64_t hash = Hash(HASH_SEED, &clearColor, sizeof(clearColor));
+    for(const ImDrawList *list : data->CmdLists)
+    {
+        hash = Hash(hash, list->VtxBuffer.Data, list->VtxBuffer.size_in_bytes());
+        hash = Hash(hash, list->IdxBuffer.Data, list->IdxBuffer.size_in_bytes());
+        hash = Hash(hash, list->CmdBuffer.Data, list->CmdBuffer.size_in_bytes());
+    }
+    return hash;
 }
 
 void ImGuiBackend_Render(ImDrawData *data)
 {
-    UpdateTextures(data);
+    bool texturesChanged = UpdateTextures(data);
+    uint64_t hash = HashFrame(data);
+    if(!texturesChanged && hash == lastFrameHash)
+        return;
+    lastFrameHash = hash;
+
     gfxBeginFrame(&gfx, clearColor);
 
     ImVector<GfxDrawCmd> cmds;

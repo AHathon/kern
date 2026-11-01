@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-extern volatile uint32_t mbox[36];
+extern volatile uint32_t mbox[48];
 
 enum 
 {

@@ -6,6 +6,9 @@
 #include "libraries/services/svc.h"
 #include "libraries/services/ipc.h"
 #include "kernel/kIpc.h"
+#include "libraries/libc/time.h"
+
+#define USEC_PER_SEC 1000000
 
 long svcImpl_MapMem(void *addr, long size)
 {
@@ -177,6 +180,15 @@ long svcImpl_MapSharedMemory(long handle, void *addr)
 long svcImpl_Yield()
 {
     kScheduler_Yield();
+}
+
+long svcImpl_Sleep(long us)
+{
+    if(us <= 0)
+        kScheduler_Yield();
+
+    uint64_t freq = CounterFreq();
+    kScheduler_Sleep(us / USEC_PER_SEC * freq + us % USEC_PER_SEC * freq / USEC_PER_SEC);
 }
 
 long svcImpl_IsMapped(void *addr)

@@ -41,6 +41,7 @@ typedef struct
     ThreadType threadType;
     ThreadState state;
     uint8_t started;
+    uint64_t wakeTime;
     kFpuState fpu;
 } kThread;
 

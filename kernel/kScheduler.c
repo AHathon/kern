@@ -5,8 +5,13 @@
 #include "libraries/hardware/irq.h"
 #include "libraries/hardware/gic.h"
 #include "libraries/libc/string.h"
+#include "libraries/libc/time.h"
+
+#define MAX_TIMER_TICKS 0x7FFFFFFF
 
 static run_queue_t runqueue;
+static kThread *sleepers[MAX_THREADS];
+static int sleeperCount = 0;
 kThread *current = 0;
 
 void runq_push(run_queue_t *rq, kThread *t) {
@@ -80,6 +85,55 @@ void kScheduler_Yield()
     __builtin_unreachable();
 }
 
+void kScheduler_Sleep(uint64_t ticks)
+{
+    kScheduler_SetReturn(current, 0);
+    current->wakeTime = Counter() + ticks;
+    current->state = STATE_WAITING;
+    sleepers[sleeperCount++] = current;
+    kScheduler_schedule();
+    __builtin_unreachable();
+}
+
+static void WakeSleepers()
+{
+    uint64_t now = Counter();
+    for(int i = 0; i < sleeperCount; )
+    {
+        kThread *t = sleepers[i];
+        if(now < t->wakeTime)
+        {
+            i++;
+            continue;
+        }
+
+        sleepers[i] = sleepers[--sleeperCount];
+        if(t->state == STATE_WAITING)
+            t->state = STATE_READY;
+        runq_push(&runqueue, t);
+    }
+}
+
+static uint64_t TicksUntilWake(uint64_t limit)
+{
+    uint64_t now = Counter();
+    for(int i = 0; i < sleeperCount; i++)
+    {
+        uint64_t wake = sleepers[i]->wakeTime;
+        uint64_t left = wake > now ? wake - now : 1;
+        if(left < limit)
+            limit = left;
+    }
+    return limit;
+}
+
+static void IdleUntilWake()
+{
+    localTimerIrqSet(TicksUntilWake(MAX_TIMER_TICKS));
+    asm volatile("dsb sy");
+    asm volatile("wfi");
+}
+
 void kScheduler_schedule()
 {
     if(!schedulerInit)
@@ -102,20 +156,26 @@ void kScheduler_schedule()
         }
     }
 
-    //Threads killed while queued get cleaned up here
     kThread *next;
-    while((next = runq_pop(&runqueue)) && next->state == STATE_TERMINATED)
+    while(1)
     {
-        LOG("relinquishing thread [id:%d]\n", next->id);
-        kThread_Destroy(next);
-    }
-    //Only threads wake threads (no IRQ-driven wakeups yet), so an empty queue means
-    //everything has exited or is blocked for good
-    if(!next)
-    {
-        LOGT("No runnable threads left\n");
-        disable_irq();
-        panic();
+        WakeSleepers();
+
+        while((next = runq_pop(&runqueue)) && next->state == STATE_TERMINATED)
+        {
+            LOG("relinquishing thread [id:%d]\n", next->id);
+            kThread_Destroy(next);
+        }
+        if(next)
+            break;
+
+        if(sleeperCount == 0)
+        {
+            LOGT("No runnable threads left\n");
+            disable_irq();
+            panic();
+        }
+        IdleUntilWake();
     }
 
     uint8_t isNew = !next->started;
@@ -131,6 +191,6 @@ void kScheduler_schedule()
     current = next;
     current->started = 1;
     current->state = STATE_RUNNING;
-    localTimerIrqReset();
+    localTimerIrqSet(TicksUntilWake(localTimerTicks()));
     context_switch(current->entryPtr, current->sp, current->kern_sp, parent->pageTables, isNew, isKernel);
 }

@@ -85,7 +85,9 @@ memset:
 start_mmu:
     bl VMM_Init
     mrs x1, sctlr_el1
-    orr x1, x1, #1
+    orr x1, x1, #1          //MMU
+    orr x1, x1, #(1 << 2)   //D-cache
+    orr x1, x1, #(1 << 12)  //I-cache
     msr sctlr_el1, x1
     isb
 

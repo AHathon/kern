@@ -25,8 +25,10 @@ private:
     bool AddWindow(Window *window);
     void AddProgram(Window *window);
     void AddPlace(Window *window);
+    void WaitForNextFrame();
 
     uint64_t lastTick = 0;
+    uint64_t nextFrame = 0;
 
     Wallpaper wallpaper;
     Taskbar taskbar;

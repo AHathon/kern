@@ -1,8 +1,10 @@
 #include "libraries/hardware/mailbox.h"
+#include "libraries/hardware/cache.h"
 #include "libraries/hardware/mmio.h"
 #include "libraries/hardware/mmio_vars.h"
 
-volatile uint32_t __attribute__((aligned(16))) mbox[36];
+//Whole cache lines, so maintenance on it can't touch a neighbouring variable
+volatile uint32_t __attribute__((aligned(64))) mbox[48];
 
 static uint32_t Mailbox_GetBufferPhys()
 {
@@ -21,6 +23,7 @@ uint32_t Mailbox_Call(uint8_t c)
     //[31:4] = address of message buffer
     //[3:0] = channel number
     uint32_t r = (mboxPhys &~ 0xF) | (c & 0xF);
+    Cache_CleanInvalidate(mbox, sizeof(mbox));
 
     while (*VC_MBOX_STATUS & MBOX_FULL);
     
@@ -31,7 +34,10 @@ uint32_t Mailbox_Call(uint8_t c)
 
         uint32_t response = *VC_MBOX_READ;
         if ((response & ~0xF) == (mboxPhys & ~0xF))
+        {
+            Cache_CleanInvalidate(mbox, sizeof(mbox));
             return mbox[1] == MBOX_RESPONSE;
+        }
     }
 
     return 0;

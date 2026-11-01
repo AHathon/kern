@@ -92,3 +92,9 @@ svcDebug:
 svcIsMapped:
     svc 14
     ret
+
+.globl svcSleep
+.type svcSleep, %function;
+svcSleep:
+    svc 15
+    ret

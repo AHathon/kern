@@ -34,6 +34,7 @@ long svcCloseHandle(long handle);
 long svcCreateSharedMemory(long size);
 long svcMapSharedMemory(long handle, void *addr); //returns the mapped size
 long svcYield();
+long svcSleep(long us);
 void svcDebug(const char *msg);
 long svcIsMapped(void *addr);
 

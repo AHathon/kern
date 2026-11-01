@@ -4,6 +4,7 @@
 #include "kernel/kMutex.h"
 #include "kernel/kIpc.h"
 #include "libraries/libc/string.h"
+#include "libraries/hardware/cache.h"
 
 static kProcess processTable[MAX_PROC];
 static unsigned lastPID = 0;
@@ -61,6 +62,7 @@ int64_t kProcessManager_CreateProcess(char *name, uint8_t *code, size_t codeSize
 	processTable[p].code.text.addr = (uintptr_t)KERN_VADDR_TO_PADDR(codeMem);
     processTable[p].code.text.size = codeSize;
 	memcpy(codeMem, code, codeSize);
+	Cache_SyncCode(codeMem, codeSize);
 
 	//Create main thread and map mem
 	//[processes should all have the same virtual mapping give or take kern vaddr for ttrb0/1 routing]

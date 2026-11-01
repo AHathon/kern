@@ -1,5 +1,6 @@
 #include "libraries/hardware/framebuffer.h"
 #include "libraries/hardware/mailbox.h"
+#include "libraries/hardware/cache.h"
 #include "libraries/hardware/debug.h"
 #include "libraries/hardware/mmio_vars.h"
 
@@ -115,7 +116,10 @@ void Framebuffer_DrawPixel(int32_t x, int32_t y, uint8_t attr)
     if(!fb || x < 0 || y < 0 || (uint32_t)x >= width || (uint32_t)y >= height)
         return;
     int32_t offs = (y * pitch) + (x * 4);
-    *((uint32_t*)(fb + offs + FB_OFF)) = vgapal[attr & 0x0f];
+    uint32_t *pixel = (uint32_t*)(fb + offs + FB_OFF);
+    *pixel = vgapal[attr & 0x0f];
+    //Goes through the kernel's cached linear map, and the VC scans out from memory
+    Cache_CleanInvalidate(pixel, sizeof(*pixel));
 }
 
 void Framebuffer_DrawRect(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint8_t attr, int32_t fill)

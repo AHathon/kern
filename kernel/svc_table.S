@@ -62,6 +62,10 @@ hndlr_svcIsMapped:
 hndlr_svcDebug:
     b svcImpl_Debug
 
+.globl hndlr_svcSleep
+hndlr_svcSleep:
+    b svcImpl_Sleep
+
 .globl hndlr_svcUnknown
 hndlr_svcUnknown:
     mov x0, x26
@@ -84,8 +88,9 @@ swi_table:
     .dword hndlr_svcCreateSharedMemory
     .dword hndlr_svcMapSharedMemory
     .dword hndlr_svcIsMapped
+    .dword hndlr_svcSleep
 
-    .rept 0xFF - 15
+    .rept 0xFF - 16
     .dword hndlr_svcUnknown
     .endr
     

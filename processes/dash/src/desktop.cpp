@@ -9,6 +9,10 @@
 #include "libraries/services/svc.h"
 #include <time.h>
 
+#define FRAME_RATE      60
+#define INPUT_POLL_US   4000
+#define USEC_PER_SEC    1000000
+
 extern const char openSansTtf[];
 extern const char openSansTtfEnd[];
 
@@ -41,6 +45,7 @@ void Desktop::Initialize()
     AddPlace(new ComputerInfo());
 
     lastTick = Counter();
+    nextFrame = lastTick;
 }
 
 void Desktop::Finalize()
@@ -77,6 +82,29 @@ void Desktop::AddPlace(Window *window)
         startMenu.AddPlace(window);
 }
 
+void Desktop::WaitForNextFrame()
+{
+    uint64_t freq = CounterFreq();
+    nextFrame += freq / FRAME_RATE;
+
+    uint64_t now = Counter();
+    if(nextFrame <= now)
+    {
+        nextFrame = now;
+        return;
+    }
+
+    while(now < nextFrame)
+    {
+        HidState input;
+        hidGetState(&hid, &input);
+
+        uint64_t left = (nextFrame - now) * USEC_PER_SEC / freq;
+        svcSleep(left < INPUT_POLL_US ? left + 1 : INPUT_POLL_US);
+        now = Counter();
+    }
+}
+
 void Desktop::Update()
 {
     HidState input = {};
@@ -104,4 +132,5 @@ void Desktop::Update()
 
     ImGui::Render();
     ImGuiBackend_Render(ImGui::GetDrawData());
+    WaitForNextFrame();
 }
