@@ -4,7 +4,7 @@ class Window
 {
 public:
     Window(const char *title, float x, float y, float width, float height, bool open = true, float padding = 10.0f);
-    ~Window() = default;
+    virtual ~Window() = default;
 
     void Draw();
 

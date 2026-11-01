@@ -1,6 +1,6 @@
 #include "libraries/ipc/fs.h"
 
-static long fs_MakePathIn(FsPathIn *in, const char *path, uint32_t offset)
+static long fs_MakePathIn(FsPathIn *in, const char *path, uint64_t offset)
 {
     size_t n = 0;
     for(; path[n]; n++)
@@ -24,8 +24,8 @@ void fsExit(Service *fs)
     serviceClose(fs);
 }
 
-long fsReadFile(Service *fs, const char *path, uint32_t offset, void *buf, uint32_t size,
-                uint32_t *bytesRead, uint32_t *fileSize)
+long fsReadFile(Service *fs, const char *path, uint64_t offset, void *buf, uint32_t size,
+                uint32_t *bytesRead, uint64_t *fileSize)
 {
     FsPathIn in;
     FsReadFileOut out;

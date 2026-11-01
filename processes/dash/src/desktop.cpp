@@ -1,6 +1,9 @@
 #include "theme.h"
 #include "desktop.h"
+#include "computer_info.h"
+#include "file_browser.h"
 #include "services.h"
+#include "test_window.h"
 #include "backend/imguiBackend.h"
 #include "libraries/hardware/constants.h"
 #include "libraries/services/svc.h"
@@ -33,16 +36,20 @@ void Desktop::Initialize()
     Theme_LoadIcons();
     taskbar.Initialize();
 
-    AddProgram(&testWindow);
-    AddProgram(&fileBrowser);
+    AddProgram(new TestWindow());
+    AddProgram(new FileBrowser());
     
-    AddPlace(&computerInfo);
+    AddPlace(new ComputerInfo());
 
     lastTick = Counter();
 }
 
 void Desktop::Finalize()
 {
+    for(int i = 0; i < windowCount; i++)
+        delete windows[i];
+    windowCount = 0;
+
     wallpaper.Finalize();
     taskbar.Finalize();
     Theme_UnloadIcons();

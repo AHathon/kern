@@ -12,15 +12,16 @@
 #define FS_ERR_NOT_DIR      -103
 #define FS_ERR_IS_DIR       -104
 
-#define FS_MAX_PATH         128
+#define FS_MAX_PATH         200
+#define FS_MAX_NAME         256
 #define FS_ATTR_DIRECTORY   0x10
 
 typedef struct
 {
-    char name[13];
+    char name[FS_MAX_NAME];
     uint8_t attr;
-    uint16_t _pad;
-    uint32_t size;
+    uint8_t _pad[7];
+    uint64_t size;
 } FsDirEntry;
 
 typedef enum
@@ -31,14 +32,15 @@ typedef enum
 
 typedef struct
 {
-    uint32_t offset;
+    uint64_t offset;
     char path[FS_MAX_PATH];
 } FsPathIn;
 
 typedef struct
 {
     uint32_t bytesRead;
-    uint32_t fileSize;
+    uint32_t _pad;
+    uint64_t fileSize;
 } FsReadFileOut;
 
 typedef struct
@@ -52,8 +54,8 @@ extern "C" {
 
 long fsInitialize(Service *fs);
 void fsExit(Service *fs);
-long fsReadFile(Service *fs, const char *path, uint32_t offset, void *buf, uint32_t size,
-                uint32_t *bytesRead, uint32_t *fileSize);
+long fsReadFile(Service *fs, const char *path, uint64_t offset, void *buf, uint32_t size,
+                uint32_t *bytesRead, uint64_t *fileSize);
 long fsListDir(Service *fs, const char *path, uint32_t start, FsDirEntry *entries, uint32_t maxEntries,
                uint32_t *count);
 

@@ -1,67 +1,127 @@
-#include "libraries/hardware/emmc.h"
 #include "libraries/hardware/mmio_vars.h"
 #include "libraries/hardware/debug.h"
 #include "libraries/services/svc.h"
 #include "libraries/ipc/server.h"
 #include "libraries/ipc/fs.h"
+#include "libraries/libc/string.h"
 #include "kernel/memory/kMemoryMap.h"
 #include "libraries/types.h"
-#include "fat32.h"
+#include "fatfs/ff.h"
 
 #define FS_BUF_VA       0x40000000UL
-#define FS_MAX_LIST     64
+#define FS_MAX_LIST     (IPC_MAX_COPY / sizeof(FsDirEntry))
+#define FS_LABEL_SIZE   34
 
-static Fat32_t fat;
-static int mounted = 0;
-static FsDirEntry listBuf[FS_MAX_LIST];
+//Drive prefix plus a client path
+#define FS_TARGET_SIZE  (FS_MAX_PATH + 2)
 
 typedef struct
 {
-    uint32_t start;
-    uint32_t index;
-    uint32_t count;
-    uint32_t max;
-} FsListCtx;
+    FATFS fat;
+    bool mounted;
+    char label[FS_LABEL_SIZE];
+} FsVolume;
 
-static int FS_ListVisitor(Fat32_t *fs, Fat32Entry_t *entry, void *ctx)
+static_assert(sizeof(FsPathIn) <= sizeof(IpcMessage::data), "FsPathIn doesn't fit in an IPC message");
+
+PARTITION VolToPart[FF_VOLUMES] = { {0, 1}, {0, 2} };
+
+static FsVolume volumes[FF_VOLUMES];
+static FsDirEntry *const listBuf = (FsDirEntry*)FS_BUF_VA;
+
+static FIL file;
+static char filePath[FS_TARGET_SIZE];
+static bool fileOpen = false;
+static DIR dir;
+static FILINFO info;
+
+static char FS_ToLower(char c)
 {
-    UNUSED(fs);
-    FsListCtx *list = (FsListCtx*)ctx;
-    if(entry->name[0] == '.')
-        return 0;
-    if(list->index++ < list->start)
-        return 0;
-
-    FsDirEntry *out = &listBuf[list->count++];
-    size_t n = 0;
-    for(; entry->name[n] && n < sizeof(out->name) - 1; n++)
-        out->name[n] = entry->name[n];
-    out->name[n] = 0;
-    out->attr = entry->attr;
-    out->size = entry->size;
-    return list->count >= list->max;
+    return (c >= 'A' && c <= 'Z') ? c - 'A' + 'a' : c;
 }
 
-static long FS_ReadFile(ServerRequest *req, const char *path, uint32_t offset)
+static bool FS_Resolve(const char *path, char *target)
 {
-    path = Fat32_StripLabel(&fat, path);
-    Fat32Entry_t entry;
-    if(!path || Fat32_Open(&fat, path, &entry) != 0)
+    while(*path == '/')
+        path++;
+
+    for(int v = 0; v < FF_VOLUMES; v++)
+    {
+        if(!volumes[v].mounted)
+            continue;
+
+        const char *label = volumes[v].label;
+        const char *rest = path;
+        for(; *label && FS_ToLower(*rest) == FS_ToLower(*label); label++)
+            rest++;
+        if(*label || (*rest && *rest != '/'))
+            continue;
+
+        target[0] = '0' + v;
+        target[1] = ':';
+        strcpy(&target[2], rest);
+        return true;
+    }
+    return false;
+}
+
+//FatFs reports the wrong object type the same way as a missing path
+static long FS_OpenError(FRESULT r, const char *target, long wrongType)
+{
+    if(r != FR_NO_FILE && r != FR_NO_PATH && r != FR_INVALID_NAME)
+        return FS_ERR_IO;
+    return f_stat(target, &info) == FR_OK ? wrongType : FS_ERR_NOT_FOUND;
+}
+
+static void FS_FillEntry(FsDirEntry *out, const char *name, uint8_t attr, uint64_t size)
+{
+    size_t n = 0;
+    for(; name[n] && n < sizeof(out->name) - 1; n++)
+        out->name[n] = name[n];
+    out->name[n] = 0;
+    out->attr = attr;
+    out->size = size;
+}
+
+static void FS_CloseFile()
+{
+    if(fileOpen)
+        f_close(&file);
+    fileOpen = false;
+}
+
+static long FS_ReadFile(ServerRequest *req, const char *path, uint64_t offset)
+{
+    char target[FS_TARGET_SIZE];
+    if(!FS_Resolve(path, target))
         return FS_ERR_NOT_FOUND;
-    if(entry.attr & FAT_ATTR_DIRECTORY)
-        return FS_ERR_IS_DIR;
+
+    //Clients read in chunks; reopening for each one would rewalk the cluster chain
+    if(!fileOpen || strcmp(filePath, target) != 0)
+    {
+        FS_CloseFile();
+        FRESULT r = f_open(&file, target, FA_READ);
+        if(r != FR_OK)
+            return FS_OpenError(r, target, FS_ERR_IS_DIR);
+        strcpy(filePath, target);
+        fileOpen = true;
+    }
 
     uint32_t size = req->bufCapacity[0];
     if(size > IPC_MAX_COPY)
         size = IPC_MAX_COPY;
 
-    long n = Fat32_ReadAt(&fat, &entry, offset, (uint8_t*)FS_BUF_VA, size);
-    if(n < 0)
+    UINT n = 0;
+    if(f_lseek(&file, offset) != FR_OK || f_read(&file, (void*)FS_BUF_VA, size, &n) != FR_OK)
+    {
+        //FatFs latches the error in the FIL
+        FS_CloseFile();
         return FS_ERR_IO;
+    }
 
     FsReadFileOut *out = (FsReadFileOut*)req->out;
     out->bytesRead = n;
-    out->fileSize = entry.size;
+    out->fileSize = f_size(&file);
     req->outSize = sizeof(*out);
     req->replyBufs[0].ptr = (void*)FS_BUF_VA;
     req->replyBufs[0].size = n;
@@ -75,20 +135,14 @@ static bool FS_IsRoot(const char *path)
     return !*path;
 }
 
-static long FS_ListPartitions(ServerRequest *req, uint32_t start)
+static uint32_t FS_ListCapacity(ServerRequest *req)
 {
-    uint32_t count = 0;
-    if(start == 0 && req->bufCapacity[0] >= sizeof(FsDirEntry))
-    {
-        FsDirEntry *out = &listBuf[count++];
-        size_t n = 0;
-        for(; fat.label[n]; n++)
-            out->name[n] = fat.label[n];
-        out->name[n] = 0;
-        out->attr = FS_ATTR_DIRECTORY;
-        out->size = 0;
-    }
+    uint32_t cap = req->bufCapacity[0] / sizeof(FsDirEntry);
+    return cap < FS_MAX_LIST ? cap : FS_MAX_LIST;
+}
 
+static long FS_ListReply(ServerRequest *req, uint32_t count)
+{
     FsListDirOut *out = (FsListDirOut*)req->out;
     out->count = count;
     req->outSize = sizeof(*out);
@@ -97,39 +151,52 @@ static long FS_ListPartitions(ServerRequest *req, uint32_t start)
     return FS_OK;
 }
 
+static long FS_ListVolumes(ServerRequest *req, uint32_t start)
+{
+    uint32_t max = FS_ListCapacity(req);
+    uint32_t count = 0;
+    uint32_t index = 0;
+    for(int v = 0; v < FF_VOLUMES && count < max; v++)
+    {
+        if(!volumes[v].mounted)
+            continue;
+        if(index++ >= start)
+            FS_FillEntry(&listBuf[count++], volumes[v].label, FS_ATTR_DIRECTORY, 0);
+    }
+    return FS_ListReply(req, count);
+}
+
 static long FS_ListDir(ServerRequest *req, const char *path, uint32_t start)
 {
     if(FS_IsRoot(path))
-        return FS_ListPartitions(req, start);
+        return FS_ListVolumes(req, start);
 
-    path = Fat32_StripLabel(&fat, path);
-    Fat32Entry_t dir;
-    if(!path || Fat32_Open(&fat, path, &dir) != 0)
+    char target[FS_TARGET_SIZE];
+    if(!FS_Resolve(path, target))
         return FS_ERR_NOT_FOUND;
-    if(!(dir.attr & FAT_ATTR_DIRECTORY))
-        return FS_ERR_NOT_DIR;
 
-    FsListCtx list = { start, 0, 0, FS_MAX_LIST };
-    uint32_t cap = req->bufCapacity[0] / sizeof(FsDirEntry);
-    if(cap < list.max)
-        list.max = cap;
+    FRESULT r = f_opendir(&dir, target);
+    if(r != FR_OK)
+        return FS_OpenError(r, target, FS_ERR_NOT_DIR);
 
-    if(list.max && Fat32_ListDir(&fat, dir.cluster, FS_ListVisitor, &list) != 0)
-        return FS_ERR_IO;
+    uint32_t max = FS_ListCapacity(req);
+    uint32_t count = 0;
+    for(uint32_t index = 0; count < max; index++)
+    {
+        r = f_readdir(&dir, &info);
+        if(r != FR_OK || !info.fname[0])
+            break;
+        if(index >= start)
+            FS_FillEntry(&listBuf[count++], info.fname, info.fattrib, info.fsize);
+    }
+    f_closedir(&dir);
 
-    FsListDirOut *out = (FsListDirOut*)req->out;
-    out->count = list.count;
-    req->outSize = sizeof(*out);
-    req->replyBufs[0].ptr = listBuf;
-    req->replyBufs[0].size = list.count * sizeof(FsDirEntry);
-    return FS_OK;
+    return r == FR_OK ? FS_ListReply(req, count) : FS_ERR_IO;
 }
 
 static long FS_Handle(ServerRequest *req, void *ctx)
 {
     UNUSED(ctx);
-    if(!mounted)
-        return FS_ERR_IO;
     if(req->inSize < sizeof(FsPathIn) || req->bufCount < 1)
         return FS_ERR_INVALID;
 
@@ -151,6 +218,29 @@ static long FS_Handle(ServerRequest *req, void *ctx)
     }
 }
 
+static bool FS_Mount(int v)
+{
+    FsVolume *vol = &volumes[v];
+    char drive[] = { (char)('0' + v), ':', 0 };
+
+    FRESULT r = f_mount(&vol->fat, drive, 1);
+    if(r != FR_OK)
+    {
+        LOG("[fs] nothing mounted on partition %d (err %d)\n", VolToPart[v].pt, r);
+        return false;
+    }
+
+    if(f_getlabel(drive, vol->label, 0) != FR_OK || !vol->label[0])
+    {
+        strcpy(vol->label, "VOLUME0");
+        vol->label[6] += v;
+    }
+
+    LOG("[fs] %s %s on partition %d\n", vol->label, vol->fat.fs_type == FS_EXFAT ? "exFAT" : "FAT", VolToPart[v].pt);
+    vol->mounted = true;
+    return true;
+}
+
 int main()
 {
     //KIPs run at EL1 but link their own copy of the libraries; point them at the kernel's linear map
@@ -170,9 +260,11 @@ int main()
     }
 
     //Keep serving even without a card so clients get errors instead of hanging
-    mounted = EMMC_Init() == 0 && Fat32_Mount(&fat) == 0;
+    bool mounted = false;
+    for(int v = 0; v < FF_VOLUMES; v++)
+        mounted |= FS_Mount(v);
     if(!mounted)
-        ERROR("[fs] no boot volume; all requests will fail\n");
+        ERROR("[fs] no volumes; all requests will fail\n");
 
     long r = serverRun(port, FS_Handle, 0);
     ERROR("[fs] server stopped (err -%d)\n", -r);

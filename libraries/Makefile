@@ -31,7 +31,10 @@ SRCS_C := $(call rwildcard, hardware, *.c) 	\
 		  $(call rwildcard, libc, *.c)		\
 		  $(call rwildcard, ipc, *.c)
 
+SRCS_CPP := $(call rwildcard, libc, *.cpp)
+
 OBJS := $(patsubst %.c, $(BUILD)/%.o, $(SRCS_C)) \
+		$(patsubst %.cpp, $(BUILD)/%.o, $(SRCS_CPP)) \
 		$(patsubst %.S, $(BUILD)/%.o, $(SRCS_S))
 
 .PHONY: all clean $(TARGET).a
@@ -53,6 +56,9 @@ $(BUILD)/%.o: %.S
 
 $(BUILD)/%.o: %.c
 	$(CC) --target=aarch64-elf $(CFLAGS) -c -o $@ $^
+
+$(BUILD)/%.o: %.cpp
+	$(CC) --target=aarch64-elf $(CFLAGS) -fno-exceptions -fno-rtti -c -o $@ $^
 
 setup:
 	mkdir -p $(BUILD)/hardware

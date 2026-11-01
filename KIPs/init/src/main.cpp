@@ -112,7 +112,14 @@ static void LoadProcess(Service *fs, FsDirEntry *entry)
         path[n++] = *p;
     path[n++] = '/';
     for(const char *p = entry->name; *p; p++)
+    {
+        if(n >= sizeof(path) - 1)
+        {
+            ERROR("[init] path too long for %s\n", entry->name);
+            return;
+        }
         path[n++] = *p;
+    }
     path[n] = 0;
 
     if(entry->size == 0 || EnsureLoadBuf(entry->size) != 0)
@@ -123,9 +130,9 @@ static void LoadProcess(Service *fs, FsDirEntry *entry)
 
     //fs hands back at most IPC_MAX_COPY per request
     uint8_t *buf = (uint8_t*)LOAD_BUF_VA;
-    for(uint32_t off = 0; off < entry->size; )
+    for(size_t off = 0; off < entry->size; )
     {
-        uint32_t chunk = entry->size - off;
+        size_t chunk = entry->size - off;
         if(chunk > IPC_MAX_COPY)
             chunk = IPC_MAX_COPY;
 

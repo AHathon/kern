@@ -24,9 +24,9 @@ static bool SortsBefore(const FsDirEntry *a, const FsDirEntry *b)
     return strcmp(a->name, b->name) < 0;
 }
 
-static void FormatSize(char *out, size_t size, uint32_t bytes)
+static void FormatSize(char *out, size_t size, uint64_t bytes)
 {
-    snprintf(out, size, "%u KB", (bytes / 1024) + (bytes % 1024 ? 1 : 0));
+    snprintf(out, size, "%lu KB", (bytes / 1024) + (bytes % 1024 ? 1 : 0));
 }
 
 static void FormatType(char *out, size_t size, const FsDirEntry *entry)
@@ -247,6 +247,7 @@ void FileBrowser::DrawList(float x, float y, float width, float height)
 
     float rowWidth = ImGui::GetContentRegionAvail().x;
     float typeX = origin.x + rowWidth - TYPE_WIDTH;
+    float sizeX = typeX - SIZE_WIDTH;
     int open = -1;
 
     ImGuiListClipper clipper;
@@ -277,7 +278,9 @@ void FileBrowser::DrawList(float x, float y, float width, float height)
                 Theme_FileIcon(min + ImVec2(ROW_PADDING, 2));
 
             float textY = min.y + 3;
+            list->PushClipRect(min, ImVec2(sizeX, max.y), true);
             list->AddText(ImVec2(min.x + 28, textY), THEME_COLOR_TEXT, entry->name);
+            list->PopClipRect();
 
             char type[20];
             FormatType(type, sizeof(type), entry);
