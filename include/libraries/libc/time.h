@@ -6,6 +6,7 @@
 extern "C" {
 #endif
 
+uint64_t Counter();
 uint64_t CounterFreq();
 
 #ifdef __cplusplus

@@ -105,6 +105,20 @@ static inline float EdgeBias(const GfxVertex *a, const GfxVertex *b)
     return topLeft ? 0.0f : 1e-4f;
 }
 
+static inline void ClipSpan(float edge, float step, int x0, int *start, int *end)
+{
+    if(step > 0.0f)
+    {
+        int first = x0 + (int)floorf(-edge / step) - 1;
+        if(first > *start) *start = first;
+    }
+    else if(step < 0.0f)
+    {
+        int last = x0 + (int)ceilf(edge / -step) + 2;
+        if(last < *end) *end = last;
+    }
+}
+
 static void DrawTriangle(const GfxVertex *a, const GfxVertex *b, const GfxVertex *c, const RasterTexture *tex, int clipX0, int clipY0, int clipX1, int clipY1)
 {
     float area = Edge(a, b, c->x, c->y);
@@ -144,6 +158,15 @@ static void DrawTriangle(const GfxVertex *a, const GfxVertex *b, const GfxVertex
     if(flatUv)
         flat = Modulate(Sample(tex, a->u, a->v), a->color);
 
+    bool untinted = tex && flatColor && !flatUv && a->color == 0xFFFFFFFF;
+    float stepU = 0.0f;
+    float stepV = 0.0f;
+    if(untinted)
+    {
+        stepU = (a->u * stepAX + b->u * stepBX + c->u * stepCX) * invArea * tex->width;
+        stepV = (a->v * stepAX + b->v * stepBX + c->v * stepCX) * invArea * tex->height;
+    }
+
     for(int y = y0; y < y1; y++)
     {
         float px = x0 + 0.5f;
@@ -152,8 +175,41 @@ static void DrawTriangle(const GfxVertex *a, const GfxVertex *b, const GfxVertex
         float eb = Edge(c, a, px, py);
         float ec = Edge(a, b, px, py);
 
+        int start = x0;
+        int end = x1;
+        ClipSpan(ea, stepAX, x0, &start, &end);
+        ClipSpan(eb, stepBX, x0, &start, &end);
+        ClipSpan(ec, stepCX, x0, &start, &end);
+        if(start >= end)
+            continue;
+
+        px = start + 0.5f;
+        ea = Edge(b, c, px, py);
+        eb = Edge(c, a, px, py);
+        ec = Edge(a, b, px, py);
+
         uint32_t *row = target + y * targetWidth;
-        for(int x = x0; x < x1; x++, ea += stepAX, eb += stepBX, ec += stepCX)
+        if(untinted)
+        {
+            float texU = (a->u * ea + b->u * eb + c->u * ec) * invArea * tex->width;
+            float texV = (a->v * ea + b->v * eb + c->v * ec) * invArea * tex->height;
+            for(int x = start; x < end; x++, ea += stepAX, eb += stepBX, ec += stepCX, texU += stepU, texV += stepV)
+            {
+                if(ea < biasA || eb < biasB || ec < biasC)
+                    continue;
+
+                int tx = (int)texU;
+                int ty = (int)texV;
+                if(tx < 0) tx = 0;
+                if(ty < 0) ty = 0;
+                if(tx >= (int)tex->width) tx = tex->width - 1;
+                if(ty >= (int)tex->height) ty = tex->height - 1;
+                Blend(&row[x], tex->pixels[ty * tex->width + tx]);
+            }
+            continue;
+        }
+
+        for(int x = start; x < end; x++, ea += stepAX, eb += stepBX, ec += stepCX)
         {
             if(ea < biasA || eb < biasB || ec < biasC)
                 continue;

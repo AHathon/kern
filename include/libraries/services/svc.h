@@ -21,7 +21,7 @@ extern "C" {
 
 long svcMapMem(void *addr, long size);
 inline void svcFreeMem(void *addr);
-inline void svcExitProcess();
+void svcExitProcess();
 long svcCreateProcess(const char *name, const void *code, long size); //returns PID; not scheduled until svcStartProcess
 long svcStartProcess(long pid);
 long svcMapPhysicalMemory(long pid, void *addr, uintptr_t paddr, long size);

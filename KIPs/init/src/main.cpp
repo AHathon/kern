@@ -8,11 +8,9 @@
 #include "kernel/memory/kMemoryMap.h"
 #include "libraries/types.h"
 
-//Must match PROC_DIR in the top-level Makefile
 #define PROC_DIR    "/bin"
 #define PROC_EXT    ".bin"
 
-//Process images are read into here; grown with svcMapMem as needed
 #define LOAD_BUF_VA 0x40000000UL
 
 #define POWER_DEVICE_USB    3
@@ -84,12 +82,35 @@ static void MapUsb(long pid)
         ERROR("[init] couldn't map usb into hid (err -%d)\n", -r);
 }
 
+static char procDir[FS_MAX_PATH];
+
+static long FindProcDir(Service *fs)
+{
+    FsDirEntry partition;
+    uint32_t count = 0;
+    long r = fsListDir(fs, "/", 0, &partition, 1, &count);
+    if(r != FS_OK)
+        return r;
+    if(count == 0)
+        return FS_ERR_NOT_FOUND;
+
+    size_t n = 0;
+    procDir[n++] = '/';
+    for(const char *p = partition.name; *p; p++)
+        procDir[n++] = *p;
+    for(const char *p = PROC_DIR; *p; p++)
+        procDir[n++] = *p;
+    procDir[n] = 0;
+    return FS_OK;
+}
+
 static void LoadProcess(Service *fs, FsDirEntry *entry)
 {
     char path[FS_MAX_PATH];
     size_t n = 0;
-    for(const char *p = PROC_DIR "/"; *p; p++)
+    for(const char *p = procDir; *p; p++)
         path[n++] = *p;
+    path[n++] = '/';
     for(const char *p = entry->name; *p; p++)
         path[n++] = *p;
     path[n] = 0;
@@ -164,14 +185,22 @@ int main()
         return 0;
     }
 
+    r = FindProcDir(&fs);
+    if(r != FS_OK)
+    {
+        ERROR("[init] no boot partition (err -%d)\n", -r);
+        fsExit(&fs);
+        return 0;
+    }
+
     uint32_t start = 0;
     while(1)
     {
         uint32_t count = 0;
-        r = fsListDir(&fs, PROC_DIR, start, entries, sizeof(entries) / sizeof(entries[0]), &count);
+        r = fsListDir(&fs, procDir, start, entries, sizeof(entries) / sizeof(entries[0]), &count);
         if(r != FS_OK)
         {
-            ERROR("[init] can't list %s (err -%d)\n", PROC_DIR, -r);
+            ERROR("[init] can't list %s (err -%d)\n", procDir, -r);
             break;
         }
 

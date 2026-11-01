@@ -1,5 +1,4 @@
 #include "libraries/ipc/hid.h"
-#include "hid.h"
 
 long hidInitialize(Service *hid)
 {

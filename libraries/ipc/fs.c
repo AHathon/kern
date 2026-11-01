@@ -1,5 +1,4 @@
 #include "libraries/ipc/fs.h"
-#include "fs.h"
 
 static long fs_MakePathIn(FsPathIn *in, const char *path, uint32_t offset)
 {

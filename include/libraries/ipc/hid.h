@@ -3,6 +3,8 @@
 #include "libraries/types.h"
 #include "libraries/ipc/service.h"
 
+#define HID_PORT_NAME       "hid"
+
 #define HID_OK              0
 #define HID_ERR_INVALID     -300
 
@@ -27,6 +29,11 @@ typedef struct
     int32_t mouseX, mouseY;
     int32_t wheel;  //running total
 } HidState;
+
+typedef enum
+{
+    HID_CMD_GET_STATE = 1
+} HidCommand;
 
 static inline int hidKeyDown(const HidState *state, uint8_t usage)
 {

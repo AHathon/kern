@@ -1,10 +1,11 @@
 #include "imguiBackend.h"
+#include "services.h"
 #include "libraries/services/svc.h"
 
 static_assert(sizeof(ImDrawVert) == sizeof(GfxVertex) && offsetof(ImDrawVert, col) == offsetof(GfxVertex, color), "ImDrawVert must match GfxVertex");
 static_assert(sizeof(ImDrawIdx) == sizeof(uint16_t), "gfx takes 16-bit indices");
 
-#define CLEAR_COLOR 0x00202830
+#define DEFAULT_CLEAR_COLOR 0x001E5AA0
 
 #define USAGE_A            0x04
 #define USAGE_Z             0x1D
@@ -17,20 +18,37 @@ static_assert(sizeof(ImDrawIdx) == sizeof(uint16_t), "gfx takes 16-bit indices")
 #define USAGE_F12           0x45
 #define USAGE_COUNT         0x100
 
-static Service *gfx = nullptr;
 static HidState previous;
 static bool capsLock = false;
+static uint32_t clearColor = DEFAULT_CLEAR_COLOR;
 
-void ImGuiBackend_Init(Service *service)
+void ImGuiBackend_Init()
 {
-    gfx = service;
-
     ImGuiIO &io = ImGui::GetIO();
     io.BackendRendererName = "gfx";
     io.BackendFlags |= ImGuiBackendFlags_RendererHasTextures;
+    io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors; //needed to resize windows from their edges
     io.MouseDrawCursor = true; //there's no hardware cursor
     ImGui::GetPlatformIO().Renderer_TextureMaxWidth = 2048;
     ImGui::GetPlatformIO().Renderer_TextureMaxHeight = 2048;
+}
+
+void ImGuiBackend_SetClearColor(uint32_t color)
+{
+    clearColor = color;
+}
+
+void ImGuiBackend_Shutdown()
+{
+    for(ImTextureData *tex : ImGui::GetPlatformIO().Textures)
+    {
+        if(tex->RefCount != 1 || tex->Status == ImTextureStatus_Destroyed)
+            continue;
+
+        gfxDestroyTexture(&gfx, (uint32_t)tex->GetTexID());
+        tex->SetTexID(ImTextureID_Invalid);
+        tex->SetStatus(ImTextureStatus_Destroyed);
+    }
 }
 
 static ImGuiKey UsageToKey(int usage)
@@ -138,8 +156,8 @@ static void CreateTexture(ImTextureData *tex)
     IM_ASSERT(tex->Format == ImTextureFormat_RGBA32);
 
     uint32_t id = 0;
-    if(gfxCreateTexture(gfx, tex->Width, tex->Height, &id) != GFX_OK ||
-        gfxUpdateTexture(gfx, id, 0, 0, tex->Width, tex->Height, tex->GetPixels(), tex->GetPitch()) != GFX_OK)
+    if(gfxCreateTexture(&gfx, tex->Width, tex->Height, &id) != GFX_OK ||
+        gfxUpdateTexture(&gfx, id, 0, 0, tex->Width, tex->Height, tex->GetPixels(), tex->GetPitch()) != GFX_OK)
         svcDebug("couldn't create texture");
 
     tex->SetTexID((ImTextureID)id);
@@ -158,12 +176,12 @@ static void UpdateTextures(ImDrawData *data)
         else if(tex->Status == ImTextureStatus_WantUpdates)
         {
             for(const ImTextureRect &r : tex->Updates)
-                gfxUpdateTexture(gfx, (uint32_t)tex->GetTexID(), r.x, r.y, r.w, r.h, tex->GetPixelsAt(r.x, r.y), tex->GetPitch());
+                gfxUpdateTexture(&gfx, (uint32_t)tex->GetTexID(), r.x, r.y, r.w, r.h, tex->GetPixelsAt(r.x, r.y), tex->GetPitch());
             tex->SetStatus(ImTextureStatus_OK);
         }
         else if(tex->Status == ImTextureStatus_WantDestroy)
         {
-            gfxDestroyTexture(gfx, (uint32_t)tex->GetTexID());
+            gfxDestroyTexture(&gfx, (uint32_t)tex->GetTexID());
             tex->SetTexID(ImTextureID_Invalid);
             tex->SetStatus(ImTextureStatus_Destroyed);
         }
@@ -173,7 +191,7 @@ static void UpdateTextures(ImDrawData *data)
 void ImGuiBackend_Render(ImDrawData *data)
 {
     UpdateTextures(data);
-    gfxBeginFrame(gfx, CLEAR_COLOR);
+    gfxBeginFrame(&gfx, clearColor);
 
     ImVector<GfxDrawCmd> cmds;
     for(const ImDrawList *list : data->CmdLists)
@@ -196,11 +214,11 @@ void ImGuiBackend_Render(ImDrawData *data)
             cmds.push_back(out);
         }
 
-        long r = gfxDrawList(gfx, (const GfxVertex*)list->VtxBuffer.Data, list->VtxBuffer.Size,
+        long r = gfxDrawList(&gfx, (const GfxVertex*)list->VtxBuffer.Data, list->VtxBuffer.Size,
                              list->IdxBuffer.Data, list->IdxBuffer.Size, cmds.Data, cmds.Size);
         if(r != GFX_OK)
             svcDebug("draw list rejected");
     }
 
-    gfxEndFrame(gfx);
+    gfxEndFrame(&gfx);
 }

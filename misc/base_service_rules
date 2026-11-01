@@ -4,13 +4,15 @@ SOURCES := src
 CC=clang
 OC=llvm-objcopy
 LD=ld.lld
-CFLAGS := --target=aarch64-none-elf -march=armv8-a -mcpu=cortex-a72 -O2 -nostdlib -ffreestanding
+CFLAGS := --target=aarch64-none-elf -march=armv8-a -mcpu=cortex-a72 -O2 -nostdlib -ffreestanding -Wall
 CXXFLAGS := -fno-exceptions -fno-rtti -fno-threadsafe-statics
 ASFLAGS := -D__ASSEMBLY__ $(COMMON)
+DEPFLAGS := -MMD -MP
 
 rwildcard = $(foreach d, $(wildcard $1*), $(filter $(subst *, %, $2), $d) $(call rwildcard, $d/, $2))
 OBJECTS := $(patsubst $(SOURCES)/%.cpp, $(BUILD)/%.o, $(call rwildcard, $(SOURCES), *.cpp)) \
 			$(patsubst $(SOURCES)/%.S, $(BUILD)/%.o, $(call rwildcard, $(SOURCES), *.S)) 
+CRT0 := $(BUILD)/crt0.o
 
 $(TARGET).kip: $(TARGET).bin
 	$(CC) -c -x assembler-with-cpp $(CFLAGS) -DSERVICE_MAGIC="\"$(TARGET)\"" -DSERVICE_BIN="\"$(TARGET).bin\"" $(PROJECT_ROOT)/misc/container.S -o $(BUILD)/container.o
@@ -21,12 +23,21 @@ $(TARGET).kip: $(TARGET).bin
 $(TARGET).bin: $(TARGET).elf
 	$(OC) $< -O binary $@
 
-$(TARGET).elf: $(OBJECTS) $(PROJECT_ROOT)/libraries/libraries.a $(PROJECT_ROOT)/misc/linker.ld
-	$(LD) -T $(PROJECT_ROOT)/misc/linker.ld -o $@ $(OBJECTS) $(PROJECT_ROOT)/libraries/libraries.a
+$(TARGET).elf: $(CRT0) $(OBJECTS) $(PROJECT_ROOT)/libraries/libraries.a $(PROJECT_ROOT)/misc/linker.ld
+	$(LD) -T $(PROJECT_ROOT)/misc/linker.ld -o $@ $(CRT0) $(OBJECTS) $(PROJECT_ROOT)/libraries/libraries.a
+
+$(CRT0):$(PROJECT_ROOT)/misc/crt0.S
+	@mkdir -p $(@D)
+	$(CC) --target=aarch64-elf $(ASFLAGS) -c -o $@ $<
 
 $(BUILD)/%.o: $(SOURCES)/%.cpp
 	@mkdir -p $(@D)
-	$(CC) -c $< $(CFLAGS) $(CXXFLAGS) $(INCLUDE) -Iinclude -I$(PROJECT_ROOT)/include -I$(PROJECT_ROOT)/include/libraries/libc -o $@
+	$(CC) -c $< $(CFLAGS) $(CXXFLAGS) $(DEPFLAGS) $(INCLUDE) -Iinclude -I$(SOURCES) -I$(PROJECT_ROOT)/include -I$(PROJECT_ROOT)/include/libraries/libc -o $@
 
-$(BUILD)/%.o: $(SOURCES)/%.S
-	$(CC) --target=aarch64-elf $(ASFLAGS) $(INCLUDE) -I$(PROJECT_ROOT)/include -c -o $@ $^
+#.incbin isn't tracked, so anything assembled gets rebuilt when a resource changes
+$(BUILD)/%.o: $(SOURCES)/%.S $(wildcard resources/*)
+	@mkdir -p $(@D)
+	$(CC) --target=aarch64-elf $(ASFLAGS) $(DEPFLAGS) $(INCLUDE) -I$(PROJECT_ROOT)/include -c -o $@ $<
+
+#Last, so a .d rule can't become the default goal the KIPs build with
+-include $(OBJECTS:.o=.d)

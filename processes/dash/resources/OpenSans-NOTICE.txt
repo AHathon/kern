@@ -1,0 +1,5 @@
+OpenSans-Regular.ttf is Open Sans 1.10, digitized data copyright 2010-2011 Google Corporation.
+Licensed under the Apache License 2.0, see OpenSans-LICENSE.txt.
+
+Modified from the original: subset to printable ASCII (U+0020-007E) with hinting and layout
+tables removed, to keep dash small.

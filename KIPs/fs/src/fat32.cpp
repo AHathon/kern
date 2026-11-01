@@ -83,6 +83,20 @@ static void Fat32_ParseEntry(const uint8_t *d, Fat32Entry_t *e)
     e->size = rd32(&d[28]);
 }
 
+static void Fat32_ReadLabel(Fat32_t *fs, const uint8_t *bootSector)
+{
+    int n = FAT_LABEL_SIZE;
+    while(n > 0 && bootSector[71 + n - 1] == ' ')
+        n--;
+
+    const char *fallback = "VOLUME";
+    for(int i = 0; i < n; i++)
+        fs->label[i] = bootSector[71 + i];
+    fs->label[n] = 0;
+    if(n == 0)
+        for(int i = 0; (fs->label[i] = fallback[i]); i++);
+}
+
 int Fat32_Mount(Fat32_t *fs)
 {
     if(EMMC_ReadBlocks(0, 1, tmpSector) != 0 || rd16(&tmpSector[510]) != 0xAA55)
@@ -123,6 +137,7 @@ int Fat32_Mount(Fat32_t *fs)
     fs->dataLba = fs->fatLba + numFats * fatSize;
     fs->sectorsPerCluster = spc;
     fs->rootCluster = rd32(&tmpSector[44]);
+    Fat32_ReadLabel(fs, tmpSector);
 
     uint32_t metaSectors = fs->dataLba - partLba;
     if(totalSectors <= metaSectors)
@@ -132,6 +147,18 @@ int Fat32_Mount(Fat32_t *fs)
 
     LOG("[fat] FAT32 @ lba 0x%X [%d clusters]\n", partLba, fs->clusterCount);
     return 0;
+}
+
+const char *Fat32_StripLabel(Fat32_t *fs, const char *path)
+{
+    while(*path == '/')
+        path++;
+
+    const char *label = fs->label;
+    for(; *label && Fat32_ToLower(*path) == Fat32_ToLower(*label); label++)
+        path++;
+
+    return !*label && (!*path || *path == '/') ? path : 0;
 }
 
 int Fat32_ListDir(Fat32_t *fs, uint32_t dirCluster, Fat32_Visitor visit, void *ctx)

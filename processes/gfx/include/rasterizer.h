@@ -1,7 +1,7 @@
 #pragma once
 
 #include "libraries/types.h"
-#include "gfx.h"
+#include "libraries/ipc/gfx.h"
 
 typedef struct
 {

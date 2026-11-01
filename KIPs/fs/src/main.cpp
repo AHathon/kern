@@ -3,7 +3,7 @@
 #include "libraries/hardware/debug.h"
 #include "libraries/services/svc.h"
 #include "libraries/ipc/server.h"
-#include "fs.h"
+#include "libraries/ipc/fs.h"
 #include "kernel/memory/kMemoryMap.h"
 #include "libraries/types.h"
 #include "fat32.h"
@@ -44,8 +44,9 @@ static int FS_ListVisitor(Fat32_t *fs, Fat32Entry_t *entry, void *ctx)
 
 static long FS_ReadFile(ServerRequest *req, const char *path, uint32_t offset)
 {
+    path = Fat32_StripLabel(&fat, path);
     Fat32Entry_t entry;
-    if(Fat32_Open(&fat, path, &entry) != 0)
+    if(!path || Fat32_Open(&fat, path, &entry) != 0)
         return FS_ERR_NOT_FOUND;
     if(entry.attr & FAT_ATTR_DIRECTORY)
         return FS_ERR_IS_DIR;
@@ -67,10 +68,43 @@ static long FS_ReadFile(ServerRequest *req, const char *path, uint32_t offset)
     return FS_OK;
 }
 
+static bool FS_IsRoot(const char *path)
+{
+    while(*path == '/')
+        path++;
+    return !*path;
+}
+
+static long FS_ListPartitions(ServerRequest *req, uint32_t start)
+{
+    uint32_t count = 0;
+    if(start == 0 && req->bufCapacity[0] >= sizeof(FsDirEntry))
+    {
+        FsDirEntry *out = &listBuf[count++];
+        size_t n = 0;
+        for(; fat.label[n]; n++)
+            out->name[n] = fat.label[n];
+        out->name[n] = 0;
+        out->attr = FS_ATTR_DIRECTORY;
+        out->size = 0;
+    }
+
+    FsListDirOut *out = (FsListDirOut*)req->out;
+    out->count = count;
+    req->outSize = sizeof(*out);
+    req->replyBufs[0].ptr = listBuf;
+    req->replyBufs[0].size = count * sizeof(FsDirEntry);
+    return FS_OK;
+}
+
 static long FS_ListDir(ServerRequest *req, const char *path, uint32_t start)
 {
+    if(FS_IsRoot(path))
+        return FS_ListPartitions(req, start);
+
+    path = Fat32_StripLabel(&fat, path);
     Fat32Entry_t dir;
-    if(Fat32_Open(&fat, path, &dir) != 0)
+    if(!path || Fat32_Open(&fat, path, &dir) != 0)
         return FS_ERR_NOT_FOUND;
     if(!(dir.attr & FAT_ATTR_DIRECTORY))
         return FS_ERR_NOT_DIR;

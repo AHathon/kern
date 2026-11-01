@@ -2,6 +2,7 @@
 #include "libraries/services/svc.h"
 #include "kernel/memory/kMemoryMap.h"
 #include "libraries/libc/string.h"
+#include "libraries/libc/time.h"
 
 #define REG(off)            (*(volatile uint32_t*)(USERLAND_USB_VIRT_BASE + (off)))
 
@@ -81,18 +82,9 @@ static uint8_t pipeCount = 0;
 static_assert(DMA_CONTROL_OFF + DWC2_MAX_CONTROL <= DMA_PIPE_OFF, "control buffer overlaps pipes");
 static_assert(DMA_PIPE_OFF + DWC2_MAX_PIPES * DMA_PIPE_SIZE <= USERLAND_USB_DMA_SIZE, "pipes overrun the DMA region");
 
-static uint64_t Counter()
-{
-    uint64_t v;
-    asm volatile("isb; mrs %0, cntpct_el0" : "=r"(v));
-    return v;
-}
-
 static uint64_t MsToTicks(uint32_t ms)
 {
-    uint64_t freq;
-    asm volatile("mrs %0, cntfrq_el0" : "=r"(freq));
-    return freq * ms / 1000;
+    return CounterFreq() * ms / 1000;
 }
 
 void Dwc2_Delay(uint32_t ms)

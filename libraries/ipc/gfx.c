@@ -1,7 +1,6 @@
 #include "libraries/ipc/gfx.h"
 #include "libraries/services/svc.h"
 #include "libraries/libc/string.h"
-#include "gfx.h"
 
 #define TRANSFER_VA 0x30000000UL
 

@@ -1,6 +1,7 @@
 #include "libraries/hardware/emmc.h"
 #include "libraries/hardware/mmio_vars.h"
 #include "libraries/hardware/debug.h"
+#include "libraries/libc/time.h"
 
 //Controller register offsets (BCM EMMC names for the standard SDHCI layout)
 #define EMMC_BLKSIZECNT     0x04
@@ -84,10 +85,7 @@ static inline volatile uint32_t *EMMC_Reg(uint32_t off)
 
 static uint64_t EMMC_TimeUs()
 {
-    uint64_t cnt, freq;
-    asm volatile("isb; mrs %0, cntpct_el0" : "=r"(cnt));
-    asm volatile("mrs %0, cntfrq_el0" : "=r"(freq));
-    return cnt / (freq / 1000000);
+    return Counter() / (CounterFreq() / 1000000);
 }
 
 static void EMMC_DelayUs(uint64_t us)

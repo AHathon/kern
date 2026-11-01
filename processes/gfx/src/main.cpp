@@ -5,7 +5,7 @@
 #include "libraries/libc/stdio.h"
 #include "libraries/libc/stdlib.h"
 #include "libraries/libc/string.h"
-#include "gfx.h"
+#include "libraries/ipc/gfx.h"
 #include "rasterizer.h"
 
 #define TRANSFER_VA     0x70000000UL

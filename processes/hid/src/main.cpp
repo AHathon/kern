@@ -2,7 +2,7 @@
 #include "libraries/services/svc.h"
 #include "libraries/hardware/constants.h"
 #include "libraries/libc/string.h"
-#include "hid.h"
+#include "libraries/ipc/hid.h"
 #include "driver/usb.h"
 
 #define MAX_DEVICES         DWC2_MAX_PIPES
@@ -80,7 +80,6 @@ int main()
     state.mouseX = MAIN_DISP_WIDTH / 2;
     state.mouseY = MAIN_DISP_HEIGHT / 2;
 
-    //Clients wait on the port, so it has to come up even with nothing to drive
     if(Dwc2_Init())
         deviceCount = Usb_Enumerate(devices, MAX_DEVICES);
     else
