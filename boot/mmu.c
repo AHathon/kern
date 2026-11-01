@@ -19,7 +19,8 @@ void setupVMM()
     asm volatile ("msr mair_el1, %0" : : "r" (r));
     
     // specify mapping characteristics in translate control register
-    r = (0b10 << 30) | // TG1=4k
+    r = (0b001UL << 32) | //IPS=36 bit; the PCIe window sits at 0x6_0000_0000
+        (0b10UL << 30) | // TG1=4k
         (0b11 << 28) |  //Inner shared
         (0b01 << 26) |  //Norm,Outer WB/WA
         (0b01 << 24) |  //Norm,Inner WB/WA

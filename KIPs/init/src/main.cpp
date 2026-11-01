@@ -5,6 +5,7 @@
 #include "libraries/hardware/mmio_vars.h"
 #include "libraries/hardware/debug.h"
 #include "libraries/hardware/mmu.h"
+#include "libraries/hardware/pcie.h"
 #include "kernel/memory/kMemoryMap.h"
 #include "libraries/types.h"
 
@@ -78,6 +79,8 @@ static void MapUsb(long pid)
     long r = svcMapPhysicalMemory(pid, (void*)USERLAND_USB_VIRT_BASE, USB_BASE, USERLAND_USB_SIZE);
     if(r == SVC_OK)
         r = svcMapPhysicalMemory(pid, (void*)USERLAND_USB_DMA_VIRT_BASE, USERLAND_USB_DMA_PHYS, USERLAND_USB_DMA_SIZE);
+    if(r == SVC_OK && Pcie_Init())
+        r = svcMapPhysicalMemory(pid, (void*)USERLAND_XHCI_VIRT_BASE, PCIE_XHCI_BASE, USERLAND_XHCI_SIZE);
     if(r != SVC_OK)
         ERROR("[init] couldn't map usb into hid (err -%d)\n", -r);
 }

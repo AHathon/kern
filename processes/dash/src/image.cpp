@@ -38,6 +38,34 @@ bool Image::LoadBmp(const void *data, size_t size)
     return loaded;
 }
 
+bool Image::LoadBmpFile(const char *path)
+{
+    uint8_t probe;
+    uint32_t got = 0;
+    uint64_t size = 0;
+    if(fsReadFile(&fs, path, 0, &probe, sizeof(probe), &got, &size) != FS_OK)
+        return false;
+
+    uint8_t *data = (uint8_t*)malloc(size);
+    if(!data)
+        return false;
+
+    uint64_t off = 0;
+    while(off < size)
+    {
+        uint64_t chunk = size - off;
+        if(chunk > IPC_MAX_COPY)
+            chunk = IPC_MAX_COPY;
+        if(fsReadFile(&fs, path, off, data + off, chunk, &got, 0) != FS_OK || got == 0)
+            break;
+        off += got;
+    }
+
+    bool loaded = off == size && LoadBmp(data, size);
+    free(data);
+    return loaded;
+}
+
 void Image::Unload()
 {
     if(texture)

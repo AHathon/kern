@@ -1,6 +1,7 @@
 #include "driver/usb.h"
 #include "libraries/services/svc.h"
 #include "libraries/libc/stdio.h"
+#include "libraries/libc/time.h"
 
 #define REQ_IN                  0x80
 #define REQ_CLASS               0x20
@@ -9,7 +10,6 @@
 
 #define REQ_CLEAR_FEATURE       1
 #define REQ_SET_FEATURE         3
-#define REQ_SET_ADDRESS         5
 #define REQ_GET_DESCRIPTOR      6
 #define REQ_SET_CONFIGURATION   9
 #define REQ_GET_STATUS          0
@@ -41,8 +41,11 @@
 #define HUB_STATUS_LOW_SPEED    (1 << 9)
 #define HUB_STATUS_HIGH_SPEED   (1 << 10)
 
+#define HUB_THINK_TIME_SHIFT    5
+
 #define MAX_HUB_DEPTH           5
-#define MAX_ADDRESS             127
+#define MAX_ROUTE_PORT          15
+#define ROUTE_TIER_BITS         4
 #define HUB_RESET_POLLS         50
 
 typedef struct
@@ -111,17 +114,25 @@ typedef struct
     uint16_t change;
 } UsbPortStatus;
 
+static const UsbHost *host = nullptr;
 static UsbHidDevice *found = nullptr;
 static size_t foundCount = 0;
 static size_t foundMax = 0;
-static uint8_t nextAddress = 1;
 
-static void EnumerateDevice(UsbSpeed speed, int depth);
+void Usb_Delay(uint32_t ms)
+{
+    uint64_t start = Counter();
+    uint64_t ticks = CounterFreq() * ms / 1000;
+    while(Counter() - start < ticks)
+        svcYield();
+}
+
+static void EnumerateDevice(const UsbLocation *location, int depth);
 
 static int Request(const UsbEndpoint *ep, uint8_t type, uint8_t request, uint16_t value, uint16_t index, void *data, uint16_t length)
 {
     UsbSetup setup = { type, request, value, index, length };
-    return Dwc2_Control(ep, &setup, data);
+    return host->Control(ep, &setup, data);
 }
 
 static int GetDescriptor(const UsbEndpoint *ep, uint8_t type, uint8_t classBits, void *data, uint16_t length)
@@ -148,7 +159,7 @@ static void AddHidDevice(const UsbEndpoint *control, const UsbInterfaceDesc *int
     UsbEndpoint ep = { control->address, (uint8_t)(desc->address & 0xF), control->speed, (uint16_t)(desc->maxPacket & 0x7FF) };
     UsbHidDevice *device = &found[foundCount];
     device->protocol = intf->protocol;
-    if(!Dwc2_OpenPipe(&device->pipe, &ep))
+    if(!host->OpenPipe(&device->pipe, &ep, desc->interval))
     {
         svcDebug("out of host channels");
         return;
@@ -185,15 +196,19 @@ static void ScanInterfaces(const UsbEndpoint *control, const uint8_t *config, si
     }
 }
 
-static void EnumerateHub(const UsbEndpoint *control, int depth)
+static void EnumerateHub(const UsbEndpoint *control, const UsbLocation *location, int depth)
 {
     UsbHubDesc hub;
     if(GetDescriptor(control, DESC_HUB, REQ_CLASS, &hub, sizeof(hub)) < (int)sizeof(hub))
         return;
 
+    Report("hub at address %d with %d ports", control->address, hub.portCount);
+    if(!host->ConfigureHub(control, hub.portCount, (hub.characteristics >> HUB_THINK_TIME_SHIFT) & 3))
+        return;
+
     for(uint8_t port = 1; port <= hub.portCount; port++)
         Request(control, REQ_CLASS | REQ_OTHER, REQ_SET_FEATURE, HUB_FEATURE_POWER, port, nullptr, 0);
-    Dwc2_Delay(hub.powerGood2ms * 2 + 20);
+    Usb_Delay(hub.powerGood2ms * 2 + 20);
 
     for(uint8_t port = 1; port <= hub.portCount; port++)
     {
@@ -206,7 +221,7 @@ static void EnumerateHub(const UsbEndpoint *control, int depth)
         Request(control, REQ_CLASS | REQ_OTHER, REQ_SET_FEATURE, HUB_FEATURE_RESET, port, nullptr, 0);
         for(int i = 0; i < HUB_RESET_POLLS; i++)
         {
-            Dwc2_Delay(10);
+            Usb_Delay(10);
             if(Request(control, REQ_IN | REQ_CLASS | REQ_OTHER, REQ_GET_STATUS, 0, port, &status, sizeof(status)) < (int)sizeof(status))
                 status.status = 0;
             if(!(status.status & HUB_STATUS_RESET))
@@ -215,47 +230,54 @@ static void EnumerateHub(const UsbEndpoint *control, int depth)
         Request(control, REQ_CLASS | REQ_OTHER, REQ_CLEAR_FEATURE, HUB_FEATURE_C_RESET, port, nullptr, 0);
         if(!(status.status & HUB_STATUS_ENABLED))
             continue;
-        Dwc2_Delay(10);
+        Usb_Delay(10);
 
         UsbSpeed speed = (status.status & HUB_STATUS_LOW_SPEED) ? USB_SPEED_LOW :
                          (status.status & HUB_STATUS_HIGH_SPEED) ? USB_SPEED_HIGH : USB_SPEED_FULL;
 
-        //A high speed hub talks to slower devices through split transactions, which aren't implemented
-        if(control->speed == USB_SPEED_HIGH && speed != USB_SPEED_HIGH)
+        //A high speed hub talks to slower devices through split transactions
+        bool translated = control->speed == USB_SPEED_HIGH && speed != USB_SPEED_HIGH;
+        if(translated && !host->hasTransactionTranslators)
         {
             Report("skipping hub port %d: needs split transactions", port, 0);
             continue;
         }
-        EnumerateDevice(speed, depth + 1);
+
+        UsbLocation child = *location;
+        child.speed = speed;
+        child.route |= (uint32_t)(port < MAX_ROUTE_PORT ? port : MAX_ROUTE_PORT) << (depth * ROUTE_TIER_BITS);
+        if(translated)
+        {
+            child.ttSlot = control->address;
+            child.ttPort = port;
+        }
+        EnumerateDevice(&child, depth + 1);
     }
 }
 
-static void EnumerateDevice(UsbSpeed speed, int depth)
+static void EnumerateDevice(const UsbLocation *location, int depth)
 {
-    if(nextAddress > MAX_ADDRESS)
-        return;
-
     //Packet size is unknown until the first 8 bytes of the descriptor are in
-    UsbEndpoint control = { 0, 0, (uint8_t)speed, 8 };
+    UsbEndpoint control = { 0, 0, location->speed, 8 };
+    if(!host->Attach(&control, location))
+    {
+        svcDebug("couldn't attach device");
+        return;
+    }
+
     UsbDeviceDesc device;
     if(GetDescriptor(&control, DESC_DEVICE, 0, &device, 8) < 8 || device.maxPacket0 == 0)
     {
         svcDebug("device didn't answer");
         return;
     }
-    control.maxPacket = device.maxPacket0;
-
-    uint8_t address = nextAddress;
-    if(Request(&control, 0, REQ_SET_ADDRESS, address, 0, nullptr, 0) < 0)
+    if(!host->Assign(&control, device.maxPacket0))
     {
         svcDebug("couldn't set device address");
         return;
     }
-    nextAddress++;
-    control.address = address;
-    Dwc2_Delay(10);
 
-    static uint8_t config[DWC2_MAX_CONTROL];
+    static uint8_t config[USB_MAX_CONTROL];
     if(GetDescriptor(&control, DESC_DEVICE, 0, &device, sizeof(device)) < (int)sizeof(device) ||
         GetDescriptor(&control, DESC_CONFIG, 0, config, sizeof(UsbConfigDesc)) < (int)sizeof(UsbConfigDesc))
     {
@@ -276,20 +298,27 @@ static void EnumerateDevice(UsbSpeed speed, int depth)
     if(device.deviceClass == CLASS_HUB)
     {
         if(depth < MAX_HUB_DEPTH)
-            EnumerateHub(&control, depth);
+            EnumerateHub(&control, location, depth);
         return;
     }
     ScanInterfaces(&control, config, size);
 }
 
-size_t Usb_Enumerate(UsbHidDevice *devices, size_t maxDevices)
+size_t Usb_Enumerate(const UsbHost *usbHost, UsbHidDevice *devices, size_t maxDevices)
 {
+    host = usbHost;
     found = devices;
     foundCount = 0;
     foundMax = maxDevices;
 
-    UsbSpeed speed;
-    if(Dwc2_ResetPort(&speed))
-        EnumerateDevice(speed, 0);
+    for(uint8_t port = 1; port <= host->portCount; port++)
+    {
+        UsbSpeed speed;
+        if(!host->ResetPort(port, &speed))
+            continue;
+
+        UsbLocation location = { (uint8_t)speed, port, 0, 0, 0 };
+        EnumerateDevice(&location, 0);
+    }
     return foundCount;
 }

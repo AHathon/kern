@@ -17,5 +17,6 @@ long svcImpl_CreateSharedMemory(long size);
 long svcImpl_MapSharedMemory(long handle, void *addr);
 long svcImpl_Yield();
 void svcImpl_Debug(const char *msg);
+long svcImpl_IsMapped(void *addr);
 
 void svc_unknown(uint8_t svc);

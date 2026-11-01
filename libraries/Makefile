@@ -10,10 +10,6 @@ INCLUDE := $(PROJECT_ROOT)/include
 
 COMMON := -Wall -g -O0 -ffreestanding -nostdinc -nostdlib -march=armv8-a -mcpu=cortex-a72+nosimd
 
-ifeq ($(PLAT),PI3)
-	COMMON += -DPI3
-endif
-
 CFLAGS := -I$(INCLUDE) $(COMMON) -mgeneral-regs-only
 ASFLAGS := -I$(INCLUDE) -D__ASSEMBLY__ $(COMMON)
 

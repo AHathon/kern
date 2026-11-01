@@ -22,7 +22,7 @@ extern "C" {
 long svcMapMem(void *addr, long size);
 inline void svcFreeMem(void *addr);
 void svcExitProcess();
-long svcCreateProcess(const char *name, const void *code, long size); //returns PID; not scheduled until svcStartProcess
+long svcCreateProcess(const char *name, const void *code, long size);
 long svcStartProcess(long pid);
 long svcMapPhysicalMemory(long pid, void *addr, uintptr_t paddr, long size);
 
@@ -35,6 +35,7 @@ long svcCreateSharedMemory(long size);
 long svcMapSharedMemory(long handle, void *addr); //returns the mapped size
 long svcYield();
 void svcDebug(const char *msg);
+long svcIsMapped(void *addr);
 
 #ifdef __cplusplus
 }

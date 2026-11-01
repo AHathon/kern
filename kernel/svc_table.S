@@ -54,6 +54,10 @@ hndlr_svcCreateSharedMemory:
 hndlr_svcMapSharedMemory:
     b svcImpl_MapSharedMemory
 
+.globl hndlr_svcIsMapped
+hndlr_svcIsMapped:
+    b svcImpl_IsMapped
+
 .globl hndlr_svcDebug
 hndlr_svcDebug:
     b svcImpl_Debug
@@ -79,8 +83,9 @@ swi_table:
     .dword hndlr_svcMapPhysicalMemory
     .dword hndlr_svcCreateSharedMemory
     .dword hndlr_svcMapSharedMemory
+    .dword hndlr_svcIsMapped
 
-    .rept 0xFF - 14
+    .rept 0xFF - 15
     .dword hndlr_svcUnknown
     .endr
     

@@ -31,6 +31,8 @@ typedef enum
 typedef enum 
 {
     TAG_SETPOWER       = 0x28001,
+    TAG_GET_FW_REVISION = 0x1,
+    TAG_NOTIFY_XHCI_RESET = 0x30058,
     TAG_SETPHYWH       = 0x48003,
     TAG_SETVIRTWH      = 0x48004,
     TAG_SETVIRTOFF     = 0x48009,

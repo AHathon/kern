@@ -3,6 +3,20 @@
 #include "services.h"
 #include "libraries/libc/stdio.h"
 #include "libraries/libc/string.h"
+#include "libraries/services/svc.h"
+
+#define SPRITE_DIR      "/ROOTFS/programs/FileBrowser"
+
+#define ICON_COUNT      2
+#define ICON_FOLDER     0
+#define ICON_FILE       1
+
+#define NAV_FRAMES          4
+#define NAV_FRAME_NORMAL    0
+#define NAV_FRAME_HOVERED   1
+#define NAV_FRAME_HELD      2
+#define NAV_FRAME_DISABLED  3
+#define NAV_RADIUS          11.0f
 
 #define TOOLBAR_HEIGHT  36.0f
 #define HEADER_HEIGHT   22.0f
@@ -48,6 +62,58 @@ static void FormatType(char *out, size_t size, const FsDirEntry *entry)
     for(int i = 0; i < 3 && dot[i + 1]; i++)
         extension[i] = ImToUpper(dot[i + 1]);
     snprintf(out, size, "%s File", extension);
+}
+
+FileBrowser::~FileBrowser()
+{
+    navButtons.Unload();
+    icons.Unload();
+}
+
+void FileBrowser::LoadSprites()
+{
+    if(!icons.LoadBmpFile(SPRITE_DIR "/icons.bmp"))
+        svcDebug("couldn't load icons");
+    if(!navButtons.LoadBmpFile(SPRITE_DIR "/nav.bmp"))
+        svcDebug("couldn't load nav buttons");
+}
+
+void FileBrowser::DrawIcon(ImVec2 pos, int index)
+{
+    if(!icons.Texture())
+        return;
+
+    float size = (float)icons.Height();
+    float u = (float)index / ICON_COUNT;
+    ImGui::GetWindowDrawList()->AddImage(ImTextureRef((ImTextureID)icons.Texture()), pos, pos + ImVec2(size, size), ImVec2(u, 0), ImVec2(u + 1.0f / ICON_COUNT, 1));
+}
+
+bool FileBrowser::NavButton(const char *id, ImVec2 center, float direction, bool enabled)
+{
+    ImGui::SetCursorScreenPos(center - ImVec2(NAV_RADIUS, NAV_RADIUS));
+    if(!enabled)
+        ImGui::BeginDisabled();
+    bool pressed = ImGui::InvisibleButton(id, ImVec2(NAV_RADIUS * 2, NAV_RADIUS * 2));
+    if(!enabled)
+        ImGui::EndDisabled();
+
+    if(!navButtons.Texture())
+        return pressed;
+
+    int frame = NAV_FRAME_NORMAL;
+    if(!enabled)
+        frame = NAV_FRAME_DISABLED;
+    else if(ImGui::IsItemActive())
+        frame = NAV_FRAME_HELD;
+    else if(ImGui::IsItemHovered())
+        frame = NAV_FRAME_HOVERED;
+
+    float v = (float)frame / NAV_FRAMES;
+    float left = direction < 0.0f ? 0.0f : 1.0f;
+    ImVec2 min = center - ImVec2(NAV_RADIUS, NAV_RADIUS);
+    ImGui::GetWindowDrawList()->AddImage(ImTextureRef((ImTextureID)navButtons.Texture()), min, min + ImVec2(NAV_RADIUS * 2, NAV_RADIUS * 2),
+        ImVec2(left, v), ImVec2(1.0f - left, v + 1.0f / NAV_FRAMES));
+    return pressed;
 }
 
 bool FileBrowser::Load(const char *newPath)
@@ -155,7 +221,7 @@ void FileBrowser::DrawAddress(float x0, float y0, float x1, float y1)
     Theme_AddressBar(min, max);
     list->PushClipRect(min, max, true);
 
-    Theme_FolderIcon(min + ImVec2(5, 3));
+    DrawIcon(min + ImVec2(5, 3), ICON_FOLDER);
 
     float x = x0 + 25.0f;
     float top = y0 + 1.0f;
@@ -197,9 +263,9 @@ void FileBrowser::DrawToolbar(float x, float y, float width)
     Theme_Toolbar(ImVec2(x, y), ImVec2(x + width, y + TOOLBAR_HEIGHT));
 
     float centerY = y + TOOLBAR_HEIGHT * 0.5f;
-    if(Theme_NavButton("##back", ImVec2(x + 18, centerY), -1.0f, historyPos > 0))
+    if(NavButton("##back", ImVec2(x + 18, centerY), -1.0f, historyPos > 0))
         Back();
-    if(Theme_NavButton("##forward", ImVec2(x + 44, centerY), 1.0f, historyPos + 1 < historyCount))
+    if(NavButton("##forward", ImVec2(x + 44, centerY), 1.0f, historyPos + 1 < historyCount))
         Forward();
 
     DrawAddress(x + 64, y + 6, x + width - 8, y + TOOLBAR_HEIGHT - 7);
@@ -273,9 +339,9 @@ void FileBrowser::DrawList(float x, float y, float width, float height)
             Theme_ListRow(min, max, i == selected, hovered);
 
             if(IsDirectory(entry))
-                Theme_FolderIcon(min + ImVec2(ROW_PADDING, 2));
+                DrawIcon(min + ImVec2(ROW_PADDING, 2), ICON_FOLDER);
             else
-                Theme_FileIcon(min + ImVec2(ROW_PADDING, 2));
+                DrawIcon(min + ImVec2(ROW_PADDING, 2), ICON_FILE);
 
             float textY = min.y + 3;
             list->PushClipRect(min, ImVec2(sizeX, max.y), true);
@@ -327,6 +393,7 @@ void FileBrowser::DrawContent()
     if(!loaded)
     {
         loaded = true;
+        LoadSprites();
         Navigate(path);
     }
 

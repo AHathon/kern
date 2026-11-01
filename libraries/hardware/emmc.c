@@ -202,11 +202,8 @@ static int EMMC_ProbeController(uintptr_t base)
 
 int EMMC_Init()
 {
-    //Pi4 boots from EMMC2; QEMU (and Pi3) attach the card to the legacy EMMC controller
-#ifndef PI3
-    if(!EMMC_ProbeController(MMIO_ADDR + 0x340000))
-#endif
-    if(!EMMC_ProbeController(MMIO_ADDR + 0x300000))
+    //Pi4 boots from EMMC2; QEMU attaches the card to the legacy EMMC controller
+    if(!EMMC_ProbeController(MMIO_ADDR + 0x340000) && !EMMC_ProbeController(MMIO_ADDR + 0x300000))
     {
         ERROR("[emmc] no card found\n");
         return -1;

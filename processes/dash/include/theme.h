@@ -28,15 +28,10 @@ typedef enum
 } ThemeCaptionButton;
 
 void Theme_Apply();
-void Theme_LoadIcons();
-void Theme_UnloadIcons();
 
-void Theme_FolderIcon(ImVec2 pos);
-void Theme_FileIcon(ImVec2 pos);
 void Theme_ShadowText(ImVec2 pos, const char *text, const ImVec4 *clip = nullptr);
 
 bool Theme_Button(const char *label, ImVec2 size = ImVec2(0, 0), bool enabled = true);
-bool Theme_NavButton(const char *id, ImVec2 center, float direction, bool enabled);
 void Theme_ProgressBar(float fraction);
 bool Theme_Slider(const char *id, float *value, float min, float max);
 

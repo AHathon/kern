@@ -10,6 +10,7 @@ public:
 
     bool Load(const uint32_t *pixels, uint32_t newWidth, uint32_t newHeight);
     bool LoadBmp(const void *data, size_t size);
+    bool LoadBmpFile(const char *path);
     void Unload();
 
     uint32_t Texture() const { return texture; }

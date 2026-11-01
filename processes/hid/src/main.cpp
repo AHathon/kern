@@ -1,13 +1,17 @@
 #include "libraries/ipc/server.h"
 #include "libraries/services/svc.h"
 #include "libraries/hardware/constants.h"
+#include "kernel/memory/kMemoryMap.h"
 #include "libraries/libc/string.h"
 #include "libraries/ipc/hid.h"
+#include "driver/dwc2.h"
 #include "driver/usb.h"
+#include "driver/xhci.h"
 
-#define MAX_DEVICES         DWC2_MAX_PIPES
+#define MAX_DEVICES         USB_MAX_PIPES
 #define KEY_ROLLOVER_ERROR  0x01
 
+static const UsbHost *host = nullptr;
 static UsbHidDevice devices[MAX_DEVICES];
 static size_t deviceCount = 0;
 static HidState state;
@@ -49,14 +53,14 @@ static void Hid_Poll()
     uint8_t report[8];
     for(size_t i = 0; i < deviceCount; i++)
     {
-        int size = Dwc2_PollPipe(&devices[i].pipe, report, sizeof(report));
-        if(size <= 0)
-            continue;
-
-        if(devices[i].protocol == USB_PROTOCOL_KEYBOARD)
-            HandleKeyboard(report, size);
-        else
-            HandleMouse(report, size);
+        int size;
+        while((size = host->PollPipe(&devices[i].pipe, report, sizeof(report))) > 0)
+        {
+            if(devices[i].protocol == USB_PROTOCOL_KEYBOARD)
+                HandleKeyboard(report, size);
+            else
+                HandleMouse(report, size);
+        }
     }
 }
 
@@ -75,13 +79,21 @@ static long Hid_Handle(ServerRequest *req, void *ctx)
     }
 }
 
+static const UsbHost *FindHost()
+{
+    if(svcIsMapped((void*)USERLAND_XHCI_VIRT_BASE))
+        return Xhci_Init(USERLAND_XHCI_VIRT_BASE, (uint8_t*)USERLAND_USB_DMA_VIRT_BASE, USERLAND_USB_DMA_PHYS, USERLAND_USB_DMA_SIZE);
+    return Dwc2_Init();
+}
+
 int main()
 {
     state.mouseX = MAIN_DISP_WIDTH / 2;
     state.mouseY = MAIN_DISP_HEIGHT / 2;
 
-    if(Dwc2_Init())
-        deviceCount = Usb_Enumerate(devices, MAX_DEVICES);
+    host = FindHost();
+    if(host)
+        deviceCount = Usb_Enumerate(host, devices, MAX_DEVICES);
     else
         svcDebug("no usb controller");
 

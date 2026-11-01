@@ -126,7 +126,7 @@ long svcImpl_MapPhysicalMemory(long pid, void *addr, uintptr_t paddr, long size)
         if(MMU_IsPageMapped(pageTable, va + off))
             return SVC_ERR_ALREADY_MAPPED;
 
-    uint64_t flags = ATTR_NOEXEC | (paddr >= MMIO_BASE ? ATTR_DEVICE : ATTR_UNCACHED);
+    uint64_t flags = ATTR_NOEXEC | (paddr >= PCIE_BASE ? ATTR_DEVICE : ATTR_UNCACHED);
     if(target->mainThread->threadType == THREAD_KERNEL)
         flags |= ATTR_KERNEL;
     MMU_MapMemPages(pageTable, paddr, va, mapSize, flags);
@@ -177,6 +177,12 @@ long svcImpl_MapSharedMemory(long handle, void *addr)
 long svcImpl_Yield()
 {
     kScheduler_Yield();
+}
+
+long svcImpl_IsMapped(void *addr)
+{
+    kProcess *proc = kProcessManager_GetCurrentProcess();
+    return MMU_IsPageMapped(KERN_PADDR_TO_VADDR(proc->pageTables), (uintptr_t)addr);
 }
 
 void svcImpl_Debug(const char *msg)

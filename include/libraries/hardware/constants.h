@@ -7,15 +7,10 @@
 
 #define SCHEDULE_TIMER_INTERVAL 1000000UL  // 1 million µs = 1s
 
-#ifdef PI3
-    #define PLATFORM            "raspi3b"
-    #define OSC_FREQ            19200000
-    #define MMIO_BASE           0x3F000000
-#else
-    #define PLATFORM            "raspi4b"
-    #define OSC_FREQ		    54000000
-    #define MMIO_BASE           0xFE000000
-#endif
+#define OSC_FREQ                54000000
+#define MMIO_BASE               0xFE000000
+#define PCIE_BASE               0xFD500000
+#define PCIE_XHCI_BASE          0x600000000ULL
 #define ARM_LOCAL_BASE          0xFF800000
 #define GIC_BASE                0xFF840000
 #define USB_BASE                (MMIO_BASE + 0x980000)

@@ -87,3 +87,8 @@ svcMapSharedMemory:
 svcDebug:
     svc 0xFF
     ret
+.globl svcIsMapped
+.type svcIsMapped, %function;
+svcIsMapped:
+    svc 14
+    ret

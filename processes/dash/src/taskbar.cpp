@@ -3,6 +3,7 @@
 #include "libraries/libc/stdio.h"
 #include "libraries/services/svc.h"
 
+#define ORB_PATH        "/ROOTFS/system/orb.bmp"
 #define ORB_FRAMES      3.0f
 #define ORB_MARGIN      2.0f
 #define ORB_SLOT        46.0f
@@ -11,12 +12,9 @@
 #define SHOW_DESKTOP    12.0f
 #define CLOCK_WIDTH     66.0f
 
-extern const char orbBmp[];
-extern const char orbBmpEnd[];
-
 void Taskbar::Initialize()
 {
-    if(!orb.LoadBmp(orbBmp, orbBmpEnd - orbBmp))
+    if(!orb.LoadBmpFile(ORB_PATH))
         svcDebug("couldn't load orb");
 }
 

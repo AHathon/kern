@@ -6,7 +6,12 @@ secmon	:= secmon
 
 BUILD 	  := build
 RESOURCES := resources
-IMAGE_SIZE_MB := 64
+FATFS     := KIPs/fs/src/fatfs
+#Has to stay a power of two; qemu rejects any other SD size
+IMAGE_SIZE_MB := 256
+BOOT_START    := 2048
+BOOT_SECTORS  := 129024
+ROOTFS_START  := 131072
 PROC_DIR      := bin
 
 #Pi4 firmware; start4.elf must come from the same release as fixup4.dat
@@ -25,10 +30,6 @@ COMMON := -Wall -g -O0 -ffreestanding -nostdinc -nostdlib -march=armv8-a -mcpu=c
 #qemu's bcm2838 GIC lacks the security extensions the real GIC-400 has; without
 #them every access is treated as secure and NS IAR reads of grp1 irqs return 1022
 QEMU_MACHINE := raspi4b -global arm_gic.has-security-extensions=on
-ifeq ($(PLAT),PI3)
-	COMMON += -DPI3
-	QEMU_MACHINE := raspi3b
-endif
 QEMU_SECMON := $(BUILD)/$(secmon)_qemu.bin
 QEMU_ARGS := -M $(QEMU_MACHINE) \
 			-serial stdio \
@@ -75,11 +76,11 @@ $(QEMU_SECMON): $(secmon).bin
 	cp $< $@
 	dd if=/dev/zero of=$@ bs=1 seek=240 count=8 conv=notrunc status=none
 
-#MBR w/ single FAT32 boot partition at 1MiB
-image: $(RESOURCES)/bootfs/start4.elf
+#MBR w/ FAT32 boot partition at 1MiB, exFAT rootfs in the rest
+image: $(RESOURCES)/bootfs/start4.elf $(BUILD)/mkrootfs
 	dd if=/dev/zero of=$(Project).img bs=1M count=$(IMAGE_SIZE_MB)
-	echo 'start=2048, type=c, bootable' | sfdisk -q $(Project).img
-	mkfs.fat -F 32 -n "BOOT" --offset 2048 $(Project).img
+	printf 'start=$(BOOT_START), size=$(BOOT_SECTORS), type=c, bootable\nstart=$(ROOTFS_START), type=7\n' | sfdisk -q $(Project).img
+	mkfs.fat -F 32 -n "BOOT" --offset $(BOOT_START) $(Project).img $$(($(BOOT_SECTORS) / 2))
 	for file in $(RESOURCES)/bootfs/*; do \
 		mcopy -s -i $(Project).img@@1M "$$file" "::/"; \
 	done
@@ -91,23 +92,31 @@ image: $(RESOURCES)/bootfs/start4.elf
 		p=$$(basename $$(dirname $$d)); \
 		mcopy -i $(Project).img@@1M "processes/$$p/$$p.bin" "::/$(PROC_DIR)/"; \
 	done
+	truncate -s $$((($(IMAGE_SIZE_MB) * 2048 - $(ROOTFS_START)) * 512)) $(BUILD)/rootfs.img
+	mkfs.exfat -L ROOTFS -P none $(BUILD)/rootfs.img
+	$(BUILD)/mkrootfs $(BUILD)/rootfs.img $(RESOURCES)/rootfs
+	dd if=$(BUILD)/rootfs.img of=$(Project).img bs=1M seek=$$(($(ROOTFS_START) / 2048)) conv=notrunc status=none
+
+$(BUILD)/mkrootfs: misc/mkrootfs.c $(FATFS)/ff.c $(FATFS)/ffunicode.c
+	@mkdir -p $(@D)
+	cc -DFF_FS_READONLY=0 -I$(FATFS) -o $@ $^
 
 $(RESOURCES)/bootfs/start4.elf:
 	curl -fL -o $@.tmp $(FW_URL)/start4.elf
 	mv $@.tmp $@
 
 library:
-	$(MAKE) -C libraries PLAT=$(PLAT)
+	$(MAKE) -C libraries
 	cp libraries/libraries.a $(BUILD)/libraries
 
 KIPs:
-	$(MAKE) -C KIPs PLAT=$(PLAT)
+	$(MAKE) -C KIPs
 
 processes:
-	$(MAKE) -C processes PLAT=$(PLAT)
+	$(MAKE) -C processes
 
 secmon: 
-	$(MAKE) -C secmon PLAT=$(PLAT)
+	$(MAKE) -C secmon
 	cp secmon/secmon.bin .
 
 boot: $(boot).elf

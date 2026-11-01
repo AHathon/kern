@@ -33,7 +33,6 @@ void Desktop::Initialize()
 
     Theme_Apply();
     LoadFont();
-    Theme_LoadIcons();
     taskbar.Initialize();
 
     AddProgram(new TestWindow());
@@ -52,7 +51,6 @@ void Desktop::Finalize()
 
     wallpaper.Finalize();
     taskbar.Finalize();
-    Theme_UnloadIcons();
     ImGuiBackend_Shutdown();
     ImGui::DestroyContext();
 

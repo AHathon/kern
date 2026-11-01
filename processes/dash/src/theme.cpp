@@ -1,23 +1,10 @@
 #include "theme.h"
-#include "image.h"
-#include "libraries/services/svc.h"
-
-#define ICON_COUNT  2
-#define ICON_FOLDER 0
-#define ICON_FILE   1
-
-#define NAV_FRAMES          4
-#define NAV_FRAME_NORMAL    0
-#define NAV_FRAME_HOVERED   1
-#define NAV_FRAME_HELD      2
-#define NAV_FRAME_DISABLED  3
 
 #define CAPTION_BUTTON_HEIGHT   18.0f
 #define CAPTION_MIN_WIDTH       28.0f
 #define CAPTION_MAX_WIDTH       27.0f
 #define CAPTION_CLOSE_WIDTH     (THEME_CAPTION_BUTTONS_WIDTH - CAPTION_MIN_WIDTH - CAPTION_MAX_WIDTH)
 #define MENU_ROUNDING           6.0f
-#define NAV_RADIUS              11.0f
 
 #define COLOR_ROW_BORDER        IM_COL32(125, 162, 206, 255)
 #define COLOR_PANEL_LINE        IM_COL32(190, 205, 222, 255)
@@ -55,28 +42,6 @@ static const ButtonGloss closeGloss =
 
 static const GlossColors taskbarGloss = { IM_COL32(120, 168, 218, 255), IM_COL32(84, 136, 196, 255), IM_COL32(52, 104, 168, 255), IM_COL32(68, 122, 186, 255) };
 static const GlossColors progressGloss = { IM_COL32(190, 245, 190, 255), IM_COL32(112, 229, 122, 255), IM_COL32(32, 196, 58, 255), IM_COL32(70, 214, 88, 255) };
-
-extern const char iconsBmp[];
-extern const char iconsBmpEnd[];
-extern const char navBmp[];
-extern const char navBmpEnd[];
-
-static Image icons;
-static Image navButtons;
-
-void Theme_LoadIcons()
-{
-    if(!icons.LoadBmp(iconsBmp, iconsBmpEnd - iconsBmp))
-        svcDebug("couldn't load icons");
-    if(!navButtons.LoadBmp(navBmp, navBmpEnd - navBmp))
-        svcDebug("couldn't load nav buttons");
-}
-
-void Theme_UnloadIcons()
-{
-    navButtons.Unload();
-    icons.Unload();
-}
 
 void Theme_Apply()
 {
@@ -187,26 +152,6 @@ static void WindowIcon(ImDrawList *list, ImVec2 pos)
     list->AddRect(pos, pos + ImVec2(14, 12), IM_COL32(32, 66, 110, 255), 1.0f);
 }
 
-static void DrawIcon(ImVec2 pos, int index)
-{
-    if(!icons.Texture())
-        return;
-
-    float size = (float)icons.Height();
-    float u = (float)index / ICON_COUNT;
-    ImGui::GetWindowDrawList()->AddImage(ImTextureRef((ImTextureID)icons.Texture()), pos, pos + ImVec2(size, size), ImVec2(u, 0), ImVec2(u + 1.0f / ICON_COUNT, 1));
-}
-
-void Theme_FolderIcon(ImVec2 pos)
-{
-    DrawIcon(pos, ICON_FOLDER);
-}
-
-void Theme_FileIcon(ImVec2 pos)
-{
-    DrawIcon(pos, ICON_FILE);
-}
-
 void Theme_ShadowText(ImVec2 pos, const char *text, const ImVec4 *clip)
 {
     ImDrawList *list = ImGui::GetWindowDrawList();
@@ -256,34 +201,6 @@ bool Theme_Button(const char *label, ImVec2 size, bool enabled)
 
     ImU32 text = ImGui::GetColorU32(enabled ? ImGuiCol_Text : ImGuiCol_TextDisabled);
     list->AddText(min + (size - textSize) * 0.5f, text, label, ImGui::FindRenderedTextEnd(label));
-    return pressed;
-}
-
-bool Theme_NavButton(const char *id, ImVec2 center, float direction, bool enabled)
-{
-    ImGui::SetCursorScreenPos(center - ImVec2(NAV_RADIUS, NAV_RADIUS));
-    if(!enabled)
-        ImGui::BeginDisabled();
-    bool pressed = ImGui::InvisibleButton(id, ImVec2(NAV_RADIUS * 2, NAV_RADIUS * 2));
-    if(!enabled)
-        ImGui::EndDisabled();
-
-    if(!navButtons.Texture())
-        return pressed;
-
-    int frame = NAV_FRAME_NORMAL;
-    if(!enabled)
-        frame = NAV_FRAME_DISABLED;
-    else if(ImGui::IsItemActive())
-        frame = NAV_FRAME_HELD;
-    else if(ImGui::IsItemHovered())
-        frame = NAV_FRAME_HOVERED;
-
-    float v = (float)frame / NAV_FRAMES;
-    float left = direction < 0.0f ? 0.0f : 1.0f;
-    ImVec2 min = center - ImVec2(NAV_RADIUS, NAV_RADIUS);
-    ImGui::GetWindowDrawList()->AddImage(ImTextureRef((ImTextureID)navButtons.Texture()), min, min + ImVec2(NAV_RADIUS * 2, NAV_RADIUS * 2),
-        ImVec2(left, v), ImVec2(1.0f - left, v + 1.0f / NAV_FRAMES));
     return pressed;
 }
 

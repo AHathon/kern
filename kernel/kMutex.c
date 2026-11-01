@@ -14,8 +14,19 @@ void kMutex_Init(kMutex_t *mutex)
 
 void kMutex_Lock(kMutex_t *mutex)
 {
-    while(__atomic_exchange_n(&mutex->isLocked, 1, __ATOMIC_ACQUIRE))
+    while(1)
+    {
+        uint64_t daif;
+        asm volatile("mrs %0, daif" : "=r"(daif));
+        asm volatile("msr daifset, #0x2");
+        uint32_t wasLocked = mutex->isLocked;
+        mutex->isLocked = 1;
+        asm volatile("msr daif, %0" : : "r"(daif));
+
+        if(!wasLocked)
+            break;
         asm volatile("wfe");
+    }
 
     mutex->ownerThread = kScheduler_GetCurrentThread();
 }

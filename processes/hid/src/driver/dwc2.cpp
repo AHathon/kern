@@ -73,26 +73,21 @@
 #define DMA_PIPE_SIZE       0x40
 
 #define CONTROL_CHANNEL     0
+#define REQ_SET_ADDRESS     5
+#define MAX_ADDRESS         127
 #define TIMEOUT_MS          100
 #define MAX_NAK_RETRIES     50
 
 static uint8_t *const dma = (uint8_t*)USERLAND_USB_DMA_VIRT_BASE;
 static uint8_t pipeCount = 0;
+static uint8_t nextAddress = 1;
 
-static_assert(DMA_CONTROL_OFF + DWC2_MAX_CONTROL <= DMA_PIPE_OFF, "control buffer overlaps pipes");
-static_assert(DMA_PIPE_OFF + DWC2_MAX_PIPES * DMA_PIPE_SIZE <= USERLAND_USB_DMA_SIZE, "pipes overrun the DMA region");
+static_assert(DMA_CONTROL_OFF + USB_MAX_CONTROL <= DMA_PIPE_OFF, "control buffer overlaps pipes");
+static_assert(DMA_PIPE_OFF + USB_MAX_PIPES * DMA_PIPE_SIZE <= USERLAND_USB_DMA_SIZE, "pipes overrun the DMA region");
 
 static uint64_t MsToTicks(uint32_t ms)
 {
     return CounterFreq() * ms / 1000;
-}
-
-void Dwc2_Delay(uint32_t ms)
-{
-    uint64_t start = Counter();
-    uint64_t ticks = MsToTicks(ms);
-    while(Counter() - start < ticks)
-        svcYield();
 }
 
 static bool WaitBits(volatile uint32_t &reg, uint32_t mask, uint32_t value)
@@ -105,7 +100,7 @@ static bool WaitBits(volatile uint32_t &reg, uint32_t mask, uint32_t value)
     return true;
 }
 
-bool Dwc2_Init()
+static bool Dwc2_Start()
 {
     if((GSNPSID >> 16) != GSNPSID_MAGIC)
         return false;
@@ -117,7 +112,7 @@ bool Dwc2_Init()
         return false;
 
     GUSBCFG = (GUSBCFG & ~GUSBCFG_FORCE_DEV) | GUSBCFG_FORCE_HOST;
-    Dwc2_Delay(100);
+    Usb_Delay(100);
     PCGCCTL = 0;
 
     GRXFSIZ = 0x306;
@@ -132,19 +127,20 @@ bool Dwc2_Init()
 
     GAHBCFG = GAHBCFG_DMA_EN;
     HPRT = (HPRT & ~HPRT_W1C) | HPRT_POWER;
-    Dwc2_Delay(100);
+    Usb_Delay(100);
     return true;
 }
 
-bool Dwc2_ResetPort(UsbSpeed *speed)
+static bool Dwc2_ResetPort(uint8_t port, UsbSpeed *speed)
 {
+    UNUSED(port);
     if(!(HPRT & HPRT_CONNECTED))
         return false;
 
     HPRT = (HPRT & ~HPRT_W1C) | HPRT_RESET;
-    Dwc2_Delay(60);
+    Usb_Delay(60);
     HPRT = HPRT & ~(HPRT_W1C | HPRT_RESET);
-    Dwc2_Delay(20);
+    Usb_Delay(20);
     if(!(HPRT & HPRT_ENABLED))
         return false;
 
@@ -183,15 +179,15 @@ static int ControlStage(uint32_t chr, uint32_t pid, uint32_t dmaOff, uint32_t si
             return size - (HCTSIZ(CONTROL_CHANNEL) & HCTSIZ_SIZE_MASK);
         if(!(status & (HCINT_NAK | HCINT_NYET)))
             return -1;
-        Dwc2_Delay(1);
+        Usb_Delay(1);
     }
     return -1;
 }
 
-int Dwc2_Control(const UsbEndpoint *ep, const UsbSetup *setup, void *data)
+static int Dwc2_Control(const UsbEndpoint *ep, const UsbSetup *setup, void *data)
 {
     size_t length = setup->length;
-    if(length > DWC2_MAX_CONTROL)
+    if(length > USB_MAX_CONTROL)
         return -1;
 
     bool in = setup->requestType & 0x80;
@@ -207,7 +203,7 @@ int Dwc2_Control(const UsbEndpoint *ep, const UsbSetup *setup, void *data)
         //Whole packets, so a device with more to send can't babble past the request
         uint32_t packets = (length + ep->maxPacket - 1) / ep->maxPacket;
         uint32_t size = in ? packets * ep->maxPacket : length;
-        if(size > DWC2_MAX_CONTROL)
+        if(size > USB_MAX_CONTROL)
             return -1;
         if(!in)
             memcpy(dma + DMA_CONTROL_OFF, data, length);
@@ -230,7 +226,7 @@ int Dwc2_Control(const UsbEndpoint *ep, const UsbSetup *setup, void *data)
     return transferred;
 }
 
-static void StartPipe(Dwc2Pipe *pipe)
+static void StartPipe(UsbPipe *pipe)
 {
     uint32_t chr = EndpointBits(&pipe->ep) | HCCHAR_INTERRUPT | HCCHAR_IN;
     if(!(HFNUM & 1))
@@ -241,9 +237,10 @@ static void StartPipe(Dwc2Pipe *pipe)
     StartChannel(pipe->channel, chr, pid | HCTSIZ_PACKETS(1) | pipe->ep.maxPacket, dmaOff);
 }
 
-bool Dwc2_OpenPipe(Dwc2Pipe *pipe, const UsbEndpoint *ep)
+static bool Dwc2_OpenPipe(UsbPipe *pipe, const UsbEndpoint *ep, uint8_t interval)
 {
-    if(pipeCount >= DWC2_MAX_PIPES || ep->maxPacket == 0 || ep->maxPacket > DMA_PIPE_SIZE)
+    UNUSED(interval);
+    if(pipeCount >= USB_MAX_PIPES || ep->maxPacket == 0 || ep->maxPacket > DMA_PIPE_SIZE)
         return false;
 
     pipe->ep = *ep;
@@ -253,7 +250,7 @@ bool Dwc2_OpenPipe(Dwc2Pipe *pipe, const UsbEndpoint *ep)
     return true;
 }
 
-int Dwc2_PollPipe(Dwc2Pipe *pipe, void *data, size_t size)
+static int Dwc2_PollPipe(UsbPipe *pipe, void *data, size_t size)
 {
     uint32_t status = HCINT(pipe->channel);
     if(!(status & HCINT_HALTED))
@@ -274,4 +271,52 @@ int Dwc2_PollPipe(Dwc2Pipe *pipe, void *data, size_t size)
 
     StartPipe(pipe);
     return received;
+}
+
+static bool Dwc2_Attach(UsbEndpoint *control, const UsbLocation *location)
+{
+    UNUSED(control);
+    UNUSED(location);
+    return true;
+}
+
+static bool Dwc2_Assign(UsbEndpoint *control, uint16_t maxPacket)
+{
+    if(nextAddress > MAX_ADDRESS)
+        return false;
+
+    control->maxPacket = maxPacket;
+    UsbSetup setup = { 0, REQ_SET_ADDRESS, nextAddress, 0, 0 };
+    if(Dwc2_Control(control, &setup, nullptr) < 0)
+        return false;
+
+    control->address = nextAddress++;
+    Usb_Delay(10);
+    return true;
+}
+
+static bool Dwc2_ConfigureHub(const UsbEndpoint *control, uint8_t ports, uint8_t thinkTime)
+{
+    UNUSED(control);
+    UNUSED(ports);
+    UNUSED(thinkTime);
+    return true;
+}
+
+static const UsbHost host =
+{
+    1,
+    false,
+    Dwc2_ResetPort,
+    Dwc2_Attach,
+    Dwc2_Assign,
+    Dwc2_ConfigureHub,
+    Dwc2_Control,
+    Dwc2_OpenPipe,
+    Dwc2_PollPipe
+};
+
+const UsbHost *Dwc2_Init()
+{
+    return Dwc2_Start() ? &host : nullptr;
 }
